@@ -1,0 +1,14 @@
+# secrets / local env
+.env
+.env.*
+!.env.example
+mise.local.toml
+
+# terraform
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json
+crash.log
+crash.*.log
