@@ -1,0 +1,41 @@
+name: Database Checks
+
+on:
+  pull_request:
+    paths:
+      - "db/**"
+      - ".github/workflows/db-tests.yml"
+
+jobs:
+  pgtap:
+    name: migrations + pgTAP
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: 2.118.0
+
+      - name: Install postgresql-client
+        run: sudo apt-get update -qq && sudo apt-get install -y --no-install-recommends postgresql-client
+
+      - name: Start a throwaway Supabase stack
+        run: |
+          supabase init
+          supabase start
+
+      - name: Apply migrations in order
+        run: |
+          for f in db/migrations/*.sql; do
+            echo "applying $f"
+            psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -v ON_ERROR_STOP=1 -f "$f"
+          done
+
+      - name: Run pgTAP tests
+        run: |
+          mkdir -p supabase/tests
+          cp db/tests/*.sql supabase/tests/
+          supabase test db
