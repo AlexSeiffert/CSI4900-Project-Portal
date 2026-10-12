@@ -15,6 +15,13 @@ const CHECKS = {
   '0002_handle_new_user.sql': "select exists (select 1 from pg_trigger where tgname = 'on_auth_user_created')",
   '0003_rls_users.sql': "select exists (select 1 from pg_trigger where tgname = 'users_prevent_role_change')",
   '0004_custom_access_token_hook.sql': "select to_regprocedure('public.custom_access_token_hook(jsonb)') is not null",
+  '0005_profiles.sql': "select exists (select 1 from pg_trigger where tgname = 'users_create_profile')",
+  '0006_topics.sql': "select to_regprocedure('public.get_or_create_topic(text)') is not null",
+  '0007_projects.sql': "select to_regclass('public.projects') is not null",
+  '0008_project_topic_tags.sql': "select to_regclass('public.project_topic_tags') is not null",
+  '0009_inquiries.sql': "select to_regclass('public.inquiries') is not null",
+  '0010_inquiry_attachments.sql': "select to_regclass('public.inquiry_attachments') is not null",
+  '0011_saved_projects.sql': "select to_regclass('public.student_saved_projects') is not null",
 };
 
 function fail(message) {
@@ -62,7 +69,7 @@ try {
       console.log(`present  ${file}`);
       continue;
     }
-    psql('-f', dir + file);
+    psql('-1', '-f', dir + file); // one transaction: a failed migration leaves nothing behind
     if (psql('-c', check) !== 't') fail(`Applied ${file}, but its check still says it is missing.`);
     console.log(`applied  ${file}`);
   }
