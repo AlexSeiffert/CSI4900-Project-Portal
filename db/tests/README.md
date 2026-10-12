@@ -12,7 +12,7 @@ pgTAP tests for the database, written as plain SQL. Each file runs inside a tran
 
 ## How they run
 
-On every PR that touches `db/**`, GitHub Actions (`.github/workflows/db-tests.yml`) starts a throwaway Supabase database, applies `db/migrations/*.sql` in order, and runs `supabase test db`. A failing test fails the check. They never touch the live project.
+On every PR that touches `db/**`, GitHub Actions (`.github/workflows/database.yml`) starts a throwaway Supabase database, applies `db/migrations/*.sql` in order, and runs `supabase test db`. A failing test fails the check. They never touch the live project.
 
 ## Not covered here
 

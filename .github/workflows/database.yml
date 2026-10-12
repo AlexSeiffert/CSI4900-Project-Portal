@@ -4,7 +4,7 @@ on:
   pull_request:
     paths:
       - "db/**"
-      - ".github/workflows/db-tests.yml"
+      - ".github/workflows/database.yml"
 
 jobs:
   pgtap:
