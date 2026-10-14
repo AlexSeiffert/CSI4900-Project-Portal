@@ -8,11 +8,17 @@ on:
 
 jobs:
   validate:
-    name: format + validate
+    name: format + validate (${{ matrix.working-directory }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        working-directory:
+          - infra/modules/supabase-cloud
+          - infra/azuread
     defaults:
       run:
-        working-directory: infra/modules/supabase-cloud
+        working-directory: ${{ matrix.working-directory }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4

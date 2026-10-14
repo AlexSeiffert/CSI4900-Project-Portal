@@ -27,3 +27,22 @@ variable "db_password" {
   type        = string
   sensitive   = true
 }
+
+variable "azure_tenant_id" {
+  description = "uOttawa Azure AD tenant ID, for Azure SSO login. Not yet available — blocked on uOttawa IT (see infra/azuread). Leave null until then; Azure SSO stays disabled without it."
+  type        = string
+  default     = null
+}
+
+variable "azure_client_id" {
+  description = "Azure AD application (client) ID for Azure SSO — from infra/azuread's client_id output, once tenant access exists."
+  type        = string
+  default     = null
+}
+
+variable "azure_client_secret" {
+  description = "Azure AD application client secret for Azure SSO — from infra/azuread's client_secret output, once tenant access exists."
+  type        = string
+  default     = null
+  sensitive   = true
+}
