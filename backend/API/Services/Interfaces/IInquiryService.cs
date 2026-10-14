@@ -10,5 +10,4 @@ public interface IInquiryService
     Task<IEnumerable<DTOs.Inquiry>> GetInquiriesByProjectId(Guid projectId, CancellationToken cancellationToken = default);
     Task<DTOs.Inquiry> GetInquiryById(Guid inquiryId, CancellationToken cancellationToken = default);
     Task<DTOs.Inquiry> CreateInquiry(CreateInquiry request, CancellationToken cancellationToken = default);
-    Task<DTOs.Inquiry> UpdateInquiry(Guid inquiryId, UpdateInquiry request, CancellationToken cancellationToken = default);
 }

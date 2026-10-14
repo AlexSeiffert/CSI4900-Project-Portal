@@ -10,5 +10,4 @@ public interface IInquiryRepository
     Task<List<Inquiry>> GetInquiriesByProjectId(Guid projectId, CancellationToken cancellationToken = default);
     Task<Inquiry?> GetInquiryById(Guid inquiryId, CancellationToken cancellationToken = default);
     Task<Inquiry> CreateInquiry(Inquiry inquiry, CancellationToken cancellationToken = default);
-    Task<Inquiry> UpdateInquiry(Inquiry inquiry, CancellationToken cancellationToken = default);
 }

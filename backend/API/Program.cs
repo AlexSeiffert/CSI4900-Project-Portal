@@ -39,8 +39,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     {
         options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")
             ?? throw new InvalidOperationException("Set ConnectionStrings__DefaultConnection for PostgreSQL.", new ArgumentException("The database connection string is missing.", "ConnectionStrings:DefaultConnection")),
-        postgres => postgres.MapEnum<ProjectStatus>("project_status", "public")
-                            .MapEnum<InquiryStatus>("inquiry_status", "public"));
+        postgres => postgres.MapEnum<ProjectStatus>("project_status", "public"));
     }
 });
 builder.Services.AddScoped<IProjectRepository, ProjectRepository>();

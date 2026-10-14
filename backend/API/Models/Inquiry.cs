@@ -12,8 +12,6 @@ public class Inquiry
 
     public string? Message { get; set; }
 
-    public InquiryStatus Status { get; set; } = InquiryStatus.Pending;
-
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
@@ -21,9 +19,9 @@ public class Inquiry
     public ICollection<InquiryAttachment> Attachments { get; set; } = new List<InquiryAttachment>();
 
     // Relationships
-    public Student? Student { get; set; }
+    public Student Student { get; set; } = null!;
 
-    public Supervisor? Supervisor { get; set; }
+    public Supervisor Supervisor { get; set; } = null!;
 
     public Project? Project { get; set; }
 }

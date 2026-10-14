@@ -205,7 +205,6 @@ public class InquiryServiceTests
 
         Assert.Equal(inquiry.Id, result.Id);
         Assert.Equal(inquiry.Message, result.Message);
-        Assert.Equal(inquiry.Status, result.Status);
         _repository.Verify(repository => repository.GetInquiryById(inquiry.Id, CancellationToken.None), Times.Once);
     }
 
@@ -231,7 +230,7 @@ public class InquiryServiceTests
     }
 
     [Fact]
-    public async Task CreateInquiry_PreservesReferencesMessageAndInitialStatus()
+    public async Task CreateInquiry_PreservesReferencesAndMessage()
     {
         var studentId = Guid.NewGuid();
         var supervisorId = Guid.NewGuid();
@@ -250,7 +249,6 @@ public class InquiryServiceTests
         Assert.Equal(request.SupervisorId, result.SupervisorId);
         Assert.Equal(request.ProjectId, result.ProjectId);
         Assert.Equal(request.Message, result.Message);
-        Assert.Equal(InquiryStatus.Pending, result.Status);
         _repository.Verify(repository => repository.CreateInquiry(It.IsAny<Inquiry>(), CancellationToken.None), Times.Once);
     }
 
@@ -278,83 +276,6 @@ public class InquiryServiceTests
         _repository.Verify(repository => repository.CreateInquiry(It.IsAny<Inquiry>(), token), Times.Once);
     }
 
-    [Fact]
-    public async Task UpdateInquiry_ChangesOnlyStatus()
-    {
-        var studentId = Guid.NewGuid();
-        var supervisorId = Guid.NewGuid();
-        var projectId = Guid.NewGuid();
-        var inquiry = new Inquiry { Id = Guid.NewGuid(), StudentId = studentId, SupervisorId = supervisorId, ProjectId = projectId, Message = "Original message" };
-        var request = new UpdateInquiry { Status = InquiryStatus.Responded };
-        var original = inquiry;
 
-        _repository.Setup(repository => repository.GetInquiryById(original.Id, CancellationToken.None))
-            .ReturnsAsync(inquiry);
-        _repository.Setup(repository => repository.UpdateInquiry(inquiry, CancellationToken.None))
-            .ReturnsAsync(inquiry);
 
-        var service = CreateService();
-
-        var result = await service.UpdateInquiry(original.Id, request, CancellationToken.None);
-
-        Assert.Equal(InquiryStatus.Responded, result.Status);
-        Assert.Equal(original.Id, result.Id);
-        Assert.Equal(original.StudentId, result.StudentId);
-        Assert.Equal(original.SupervisorId, result.SupervisorId);
-        Assert.Equal(original.ProjectId, result.ProjectId);
-        Assert.Equal("Original message", result.Message);
-        Assert.Equal(original.CreatedAt, result.CreatedAt);
-        _repository.Verify(repository => repository.GetInquiryById(original.Id, CancellationToken.None), Times.Once);
-        _repository.Verify(repository => repository.UpdateInquiry(inquiry, CancellationToken.None), Times.Once);
-    }
-
-    [Fact]
-    public async Task UpdateInquiry_WrapsRepositoryFailure()
-    {
-        var studentId = Guid.NewGuid();
-        var supervisorId = Guid.NewGuid();
-        var projectId = Guid.NewGuid();
-        var inquiry = new Inquiry { Id = Guid.NewGuid(), StudentId = studentId, SupervisorId = supervisorId, ProjectId = projectId, Message = "Original message" };
-        var request = new UpdateInquiry { Status = InquiryStatus.Responded };
-        using var cancellation = new CancellationTokenSource();
-        var token = cancellation.Token;
-        var original = new RepositoryException("dependency", new InvalidOperationException("Database failed"));
-
-        _repository.Setup(repository => repository.GetInquiryById(inquiry.Id, token))
-            .ReturnsAsync(inquiry);
-        _repository.Setup(repository => repository.UpdateInquiry(inquiry, token))
-            .ThrowsAsync(original);
-
-        var service = CreateService();
-
-        var exception = await Assert.ThrowsAsync<ServiceException>(() => service.UpdateInquiry(inquiry.Id, request, token));
-
-        Assert.Equal(nameof(InquiryService.UpdateInquiry), exception.Operation);
-        Assert.Equal(ErrorType.Unexpected, exception.Type);
-        Assert.Same(original, exception.InnerException);
-        _repository.Verify(repository => repository.GetInquiryById(inquiry.Id, token), Times.Once);
-        _repository.Verify(repository => repository.UpdateInquiry(inquiry, token), Times.Once);
-    }
-
-    [Fact]
-    public async Task UpdateInquiry_WrapsLookupFailure()
-    {
-        var inquiryId = Guid.NewGuid();
-        var request = new UpdateInquiry { Status = InquiryStatus.Responded };
-        using var cancellation = new CancellationTokenSource();
-        var token = cancellation.Token;
-        var original = new RepositoryException("dependency", new InvalidOperationException("Database failed"));
-
-        _repository.Setup(repository => repository.GetInquiryById(inquiryId, token))
-            .ThrowsAsync(original);
-
-        var service = CreateService();
-
-        var exception = await Assert.ThrowsAsync<ServiceException>(() => service.UpdateInquiry(inquiryId, request, token));
-
-        Assert.Equal(nameof(InquiryService.UpdateInquiry), exception.Operation);
-        Assert.Equal(ErrorType.Unexpected, exception.Type);
-        Assert.Same(original, exception.InnerException);
-        _repository.Verify(repository => repository.GetInquiryById(inquiryId, token), Times.Once);
-    }
 }

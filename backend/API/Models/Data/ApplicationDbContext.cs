@@ -91,8 +91,6 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         model.Entity<Project>().Property(x => x.CreatedAt).HasColumnName("posted_at");
         model.Entity<Project>().Property(x => x.Status).HasColumnType("public.project_status")
             .HasDefaultValue(ProjectStatus.Available);
-        model.Entity<Inquiry>().Property(x => x.Status).HasColumnType("public.inquiry_status")
-            .HasDefaultValue(InquiryStatus.Pending);
     }
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

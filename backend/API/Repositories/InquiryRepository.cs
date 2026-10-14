@@ -84,18 +84,6 @@ public class InquiryRepository(ApplicationDbContext db) : IInquiryRepository
         }
     }
 
-    public async Task<Inquiry> UpdateInquiry(Inquiry inquiry, CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            await _db.SaveChangesAsync(cancellationToken);
-            return inquiry;
-        }
-        catch (Exception exception) when (exception is not RepositoryException)
-        {
-            throw new RepositoryException(nameof(UpdateInquiry), exception);
-        }
-    }
 
     private IQueryable<Inquiry> InquiryQuery()
     {

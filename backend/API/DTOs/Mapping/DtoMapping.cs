@@ -32,7 +32,6 @@ internal static class DtoMapping
             SupervisorId = x.SupervisorId,
             ProjectId = x.ProjectId,
             Message = x.Message,
-            Status = x.Status,
             CreatedAt = x.CreatedAt,
             UpdatedAt = x.UpdatedAt
         };

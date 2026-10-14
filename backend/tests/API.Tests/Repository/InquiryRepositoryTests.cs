@@ -169,7 +169,6 @@ public class InquiryRepositoryTests
         var persisted = await context.Db.Inquiries.SingleAsync(x => x.Id == inquiry.Id);
         Assert.Null(persisted.ProjectId);
         Assert.Null(persisted.Message);
-        Assert.Equal(InquiryStatus.Pending, persisted.Status);
     }
 
     [Fact]
@@ -208,38 +207,5 @@ public class InquiryRepositoryTests
         context.DbMock.Verify(db => db.SaveChangesAsync(CancellationToken.None), Times.Once);
     }
 
-    [Fact]
-    public async Task UpdateInquiry_PersistsStatusAndPreservesMessage()
-    {
-        await using var context = await RepositoryTestContext.CreateAsync();
-        var repository = new InquiryRepository(context.Db);
-        var inquiry = (await repository.GetInquiryById(context.Inquiry.Id))!;
-        inquiry.Status = InquiryStatus.Responded;
 
-        Assert.Same(inquiry, await repository.UpdateInquiry(inquiry));
-        context.Db.ChangeTracker.Clear();
-        var persisted = (await repository.GetInquiryById(inquiry.Id))!;
-        Assert.Equal(InquiryStatus.Responded, persisted.Status);
-        Assert.Equal("Original", persisted.Message);
-        Assert.Equal(context.Project.Id, persisted.ProjectId);
-    }
-
-    [Fact]
-    public async Task UpdateInquiry_WrapsSaveFailure()
-    {
-        await using var context = await RepositoryTestContext.CreateAsync();
-        var repository = new InquiryRepository(context.Db);
-        var entity = (await repository.GetInquiryById(context.Inquiry.Id))!;
-        entity.Status = InquiryStatus.Responded;
-        var original = new InvalidOperationException("Save failed");
-
-        context.DbMock.Setup(db => db.SaveChangesAsync(CancellationToken.None))
-            .ThrowsAsync(original);
-
-        var exception = await Assert.ThrowsAsync<RepositoryException>(() => repository.UpdateInquiry(entity));
-
-        Assert.Same(original, exception.InnerException);
-        Assert.Equal(ErrorType.Unexpected, exception.Type);
-        context.DbMock.Verify(db => db.SaveChangesAsync(CancellationToken.None), Times.Once);
-    }
 }

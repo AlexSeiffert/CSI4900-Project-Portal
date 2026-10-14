@@ -62,7 +62,6 @@ public class DtoMappingTests
             SupervisorId = Guid.NewGuid(),
             ProjectId = Guid.NewGuid(),
             Message = "Interested in this project",
-            Status = InquiryStatus.Responded,
             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc),
             UpdatedAt = new DateTime(2025, 2, 1, 0, 0, 0, DateTimeKind.Utc)
         };
@@ -74,7 +73,6 @@ public class DtoMappingTests
         Assert.Equal(model.SupervisorId, result.SupervisorId);
         Assert.Equal(model.ProjectId, result.ProjectId);
         Assert.Equal(model.Message, result.Message);
-        Assert.Equal(model.Status, result.Status);
         Assert.Equal(model.CreatedAt, result.CreatedAt);
         Assert.Equal(model.UpdatedAt, result.UpdatedAt);
     }

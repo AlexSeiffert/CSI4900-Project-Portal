@@ -121,22 +121,4 @@ public class InquiriesControllerTests
         Assert.Equal(nameof(InquiriesController.GetInquiryById), created.ActionName);
         Assert.Equal(inquiry.Id, created.RouteValues!["inquiryId"]);
     }
-
-    [Fact]
-    public async Task UpdateInquiry_ReturnsNoContent()
-    {
-        var inquiryId = Guid.NewGuid();
-
-        var request = new UpdateInquiry();
-
-        _service.Setup(service => service.UpdateInquiry(inquiryId, request, CancellationToken.None))
-            .ReturnsAsync(new Inquiry { Id = inquiryId });
-            
-        var controller = CreateController();
-
-        var result = await controller.UpdateInquiry(inquiryId, request, CancellationToken.None);
-
-        Assert.IsType<NoContentResult>(result);
-        _service.Verify(service => service.UpdateInquiry(inquiryId, request, CancellationToken.None), Times.Once);
-    }
 }

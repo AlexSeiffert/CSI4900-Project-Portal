@@ -179,57 +179,49 @@ internal static class DevelopmentData
             {
                 Id = Guid.Parse("55555555-5555-5555-5555-555555555551"),
                 Student = students[0], Supervisor = supervisors[0], Project = projects[0],
-                Message = "I am interested in accessible web development. Could we discuss this project?",
-                Status = InquiryStatus.Pending
+                Message = "I am interested in accessible web development. Could we discuss this project?"
             },
             new Inquiry
             {
                 Id = Guid.Parse("55555555-5555-5555-5555-555555555552"),
                 Student = students[1], Supervisor = supervisors[1], Project = projects[3],
-                Message = "I have completed a machine learning course and would like to work on recommendations.",
-                Status = InquiryStatus.Viewed
+                Message = "I have completed a machine learning course and would like to work on recommendations."
             },
             new Inquiry
             {
                 Id = Guid.Parse("55555555-5555-5555-5555-555555555553"),
                 Student = students[2], Supervisor = supervisors[2], Project = projects[6],
-                Message = "I would like to explore privacy-preserving access controls.",
-                Status = InquiryStatus.Responded
+                Message = "I would like to explore privacy-preserving access controls."
             },
             new Inquiry
             {
                 Id = Guid.Parse("55555555-5555-5555-5555-555555555554"),
                 Student = students[0], Supervisor = supervisors[0], Project = projects[1],
-                Message = "Is there room for another student on the testing toolkit?",
-                Status = InquiryStatus.Closed
+                Message = "Is there room for another student on the testing toolkit?"
             },
             new Inquiry
             {
                 Id = Guid.Parse("55555555-5555-5555-5555-555555555555"),
                 Student = students[1], Supervisor = supervisors[0],
-                Message = "Are there upcoming projects that combine AI and software engineering?",
-                Status = InquiryStatus.Pending
+                Message = "Are there upcoming projects that combine AI and software engineering?"
             },
             new Inquiry
             {
                 Id = Guid.Parse("55555555-5555-5555-5555-555555555556"),
-                Student = students[2], Supervisor = supervisors[1],
-                Status = InquiryStatus.Viewed
+                Student = students[2], Supervisor = supervisors[1]
                 // A general inquiry with a null project and message.
             },
             new Inquiry
             {
                 Id = Guid.Parse("55555555-5555-5555-5555-555555555557"),
                 Student = students[4], Supervisor = supervisors[0], Project = projects[2],
-                Message = "Thank you for discussing the results of the campus usability study.",
-                Status = InquiryStatus.Closed
+                Message = "Thank you for discussing the results of the campus usability study."
             },
             new Inquiry
             {
                 Id = Guid.Parse("55555555-5555-5555-5555-555555555558"),
                 Student = students[4], Supervisor = supervisors[1], Project = projects[4],
-                Message = "Could the search interface support keyboard-only navigation?",
-                Status = InquiryStatus.Responded
+                Message = "Could the search interface support keyboard-only navigation?"
             }
         };
 

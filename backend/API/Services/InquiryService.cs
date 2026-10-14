@@ -174,36 +174,4 @@ public class InquiryService(IInquiryRepository repository) : IInquiryService
             throw new ServiceException(nameof(CreateInquiry), ErrorType.Unexpected, "The operation could not be completed.", exception);
         }
     }
-
-    public async Task<DTOs.Inquiry> UpdateInquiry(Guid inquiryId, UpdateInquiry request, CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            Validator.ValidateObject(request, new ValidationContext(request), true);
-            var inquiry = await _repository.GetInquiryById(inquiryId, cancellationToken);
-            if (inquiry == null)
-            {
-                var exception = new KeyNotFoundException($"Inquiry '{inquiryId}' was not found.");
-                throw new ServiceException(nameof(UpdateInquiry), ErrorType.NotFound, exception.Message, exception);
-            }
-            inquiry.Status = request.Status!.Value;
-            return (await _repository.UpdateInquiry(inquiry, cancellationToken)).ToDto();
-        }
-        catch (RepositoryException exception)
-        {
-            throw new ServiceException(nameof(UpdateInquiry), exception.Type, "The data operation could not be completed.", exception);
-        }
-        catch (ValidationException exception)
-        {
-            throw new ServiceException(nameof(UpdateInquiry), ErrorType.Validation, exception.Message, exception);
-        }
-        catch (OperationCanceledException exception)
-        {
-            throw new ServiceException(nameof(UpdateInquiry), ErrorType.Cancelled, "The operation was cancelled.", exception);
-        }
-        catch (Exception exception) when (exception is not ServiceException)
-        {
-            throw new ServiceException(nameof(UpdateInquiry), ErrorType.Unexpected, "The operation could not be completed.", exception);
-        }
-    }
 }

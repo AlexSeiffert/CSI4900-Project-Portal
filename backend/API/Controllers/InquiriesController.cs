@@ -51,14 +51,4 @@ public class InquiriesController(IInquiryService service) : ControllerBase
         var result = await _service.CreateInquiry(request, cancellationToken);
         return CreatedAtAction(nameof(GetInquiryById), new { inquiryId = result.Id }, result);
     }
-
-    [HttpPut("{inquiryId:guid}")]
-    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult> UpdateInquiry(Guid inquiryId, UpdateInquiry request, CancellationToken cancellationToken)
-    {
-        await _service.UpdateInquiry(inquiryId, request, cancellationToken);
-        return NoContent();
-    }
 }
