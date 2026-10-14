@@ -10,7 +10,7 @@ namespace API.Tests.Repository;
 public class ProjectRepositoryTests
 {
     [Fact]
-    public async Task GetProjects_ReturnsNewestFirstWithTopicsWithoutTracking()
+    public async Task GetProjects_ReturnsNewestFirstWithoutNavigationsOrTracking()
     {
         await using var context = await RepositoryTestContext.CreateAsync();
         var repository = new ProjectRepository(context.Db);
@@ -18,9 +18,9 @@ public class ProjectRepositoryTests
         var result = await repository.GetProjects();
 
         Assert.Equal(new[] { context.Project.Id, context.OtherProject.Id }, result.Select(x => x.Id));
-        Assert.Equal(context.Topic.Id, Assert.Single(result[0].Topics).Id);
-        Assert.Equal(context.Supervisor.UserId, result[0].Supervisor.UserId);
-        Assert.Equal(context.Inquiry.Id, Assert.Single(result[0].Inquiries).Id);
+        Assert.Empty(result[0].Topics);
+        Assert.Null(result[0].Supervisor);
+        Assert.Empty(result[0].Inquiries);
         Assert.Empty(context.Db.ChangeTracker.Entries());
     }
 
@@ -51,7 +51,7 @@ public class ProjectRepositoryTests
         var result = Assert.Single(await repository.GetProjectsBySupervisorId(context.Supervisor.UserId));
 
         Assert.Equal(context.Project.Id, result.Id);
-        Assert.Equal(context.Topic.Id, Assert.Single(result.Topics).Id);
+        Assert.Empty(result.Topics);
     }
 
     [Fact]
@@ -81,7 +81,7 @@ public class ProjectRepositoryTests
         var result = Assert.Single(await repository.GetProjectsByTopicId(context.Topic.Id));
 
         Assert.Equal(context.Project.Id, result.Id);
-        Assert.Equal(context.Topic.Id, Assert.Single(result.Topics).Id);
+        Assert.Empty(result.Topics);
     }
 
     [Fact]
@@ -111,7 +111,7 @@ public class ProjectRepositoryTests
         var result = Assert.Single(await repository.GetProjectsByStatus(ProjectStatus.Available));
 
         Assert.Equal(context.Project.Id, result.Id);
-        Assert.Equal(context.Topic.Id, Assert.Single(result.Topics).Id);
+        Assert.Empty(result.Topics);
     }
 
     [Fact]

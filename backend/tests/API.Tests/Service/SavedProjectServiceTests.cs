@@ -28,7 +28,9 @@ public class SavedProjectServiceTests
         var result = Assert.Single(await service.GetSavedProjects(studentId, CancellationToken.None));
 
         Assert.Equal(project.Id, result.Id);
-        Assert.Equal(topic.Id, Assert.Single(result.Topics).Id);
+        Assert.Null(result.Topics);
+        Assert.Null(result.Supervisor);
+        Assert.Null(result.Inquiries);
         _repository.Verify(repository => repository.GetSavedProjects(studentId, CancellationToken.None), Times.Once);
     }
 

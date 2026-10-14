@@ -10,7 +10,7 @@ namespace API.Tests.Repository;
 public class SupervisorRepositoryTests
 {
     [Fact]
-    public async Task GetSupervisors_OrdersProfilesAndIncludesTopicsWithoutTracking()
+    public async Task GetSupervisors_OrdersProfilesWithoutNavigationsOrTracking()
     {
         await using var context = await RepositoryTestContext.CreateAsync();
         var repository = new SupervisorRepository(context.Db);
@@ -18,9 +18,9 @@ public class SupervisorRepositoryTests
         var result = await repository.GetSupervisors();
 
         Assert.Equal(new[] { context.OtherSupervisor.UserId, context.Supervisor.UserId }, result.Select(x => x.UserId));
-        Assert.Equal(context.Topic.Id, Assert.Single(result[1].TopicInterests).Id);
-        Assert.Equal(context.Project.Id, Assert.Single(result[1].Projects).Id);
-        Assert.Equal(context.Inquiry.Id, Assert.Single(result[1].Inquiries).Id);
+        Assert.Empty(result[1].TopicInterests);
+        Assert.Empty(result[1].Projects);
+        Assert.Empty(result[1].Inquiries);
         Assert.Empty(context.Db.ChangeTracker.Entries());
     }
 

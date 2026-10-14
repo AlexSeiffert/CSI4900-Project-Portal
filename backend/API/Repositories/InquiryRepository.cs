@@ -88,7 +88,7 @@ public class InquiryRepository(ApplicationDbContext db) : IInquiryRepository
 
     private IQueryable<Inquiry> InquiryQuery()
     {
-        return InquiryWithRelations().AsNoTracking().OrderByDescending(inquiry => inquiry.CreatedAt).ThenBy(inquiry => inquiry.Id);
+        return _db.Inquiries.AsNoTracking().OrderByDescending(inquiry => inquiry.CreatedAt).ThenBy(inquiry => inquiry.Id);
     }
 
     private IQueryable<Inquiry> InquiryWithRelations()

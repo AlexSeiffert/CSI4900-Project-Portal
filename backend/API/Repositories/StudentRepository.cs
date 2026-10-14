@@ -14,7 +14,7 @@ public class StudentRepository(ApplicationDbContext db) : IStudentRepository
     {
         try
         {
-            return await StudentWithRelations().AsNoTrackingWithIdentityResolution()
+            return await _db.Students.AsNoTracking()
                 .OrderBy(profile => profile.DisplayName).ToListAsync(cancellationToken);
         }
         catch (Exception exception) when (exception is not RepositoryException)

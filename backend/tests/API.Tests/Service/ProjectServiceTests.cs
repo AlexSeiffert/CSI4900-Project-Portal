@@ -29,7 +29,9 @@ public class ProjectServiceTests
 
         Assert.Equal(project.Id, result.Id);
         Assert.Equal(project.Title, result.Title);
-        Assert.Equal(topic.Id, Assert.Single(result.Topics).Id);
+        Assert.Null(result.Topics);
+        Assert.Null(result.Supervisor);
+        Assert.Null(result.Inquiries);
         _repository.Verify(repository => repository.GetProjects(CancellationToken.None), Times.Once);
     }
 
@@ -69,7 +71,9 @@ public class ProjectServiceTests
 
         Assert.Equal(project.Id, result.Id);
         Assert.Equal(project.Title, result.Title);
-        Assert.Equal(topic.Id, Assert.Single(result.Topics).Id);
+        Assert.Null(result.Topics);
+        Assert.Null(result.Supervisor);
+        Assert.Null(result.Inquiries);
         _repository.Verify(repository => repository.GetProjectsBySupervisorId(supervisorId, CancellationToken.None), Times.Once);
     }
 
@@ -110,7 +114,9 @@ public class ProjectServiceTests
 
         Assert.Equal(project.Id, result.Id);
         Assert.Equal(project.Title, result.Title);
-        Assert.Equal(topic.Id, Assert.Single(result.Topics).Id);
+        Assert.Null(result.Topics);
+        Assert.Null(result.Supervisor);
+        Assert.Null(result.Inquiries);
         _repository.Verify(repository => repository.GetProjectsByTopicId(topic.Id, CancellationToken.None), Times.Once);
     }
 
@@ -151,7 +157,9 @@ public class ProjectServiceTests
 
         Assert.Equal(project.Id, result.Id);
         Assert.Equal(project.Title, result.Title);
-        Assert.Equal(topic.Id, Assert.Single(result.Topics).Id);
+        Assert.Null(result.Topics);
+        Assert.Null(result.Supervisor);
+        Assert.Null(result.Inquiries);
         _repository.Verify(repository => repository.GetProjectsByStatus(ProjectStatus.Available, CancellationToken.None), Times.Once);
     }
 
@@ -192,7 +200,7 @@ public class ProjectServiceTests
         Assert.Equal(project.Id, result.Id);
         Assert.Equal(project.SupervisorId, result.SupervisorId);
         Assert.Equal(project.CreatedAt, result.CreatedAt);
-        Assert.Equal(topic.Id, Assert.Single(result.Topics).Id);
+        Assert.Equal(topic.Id, Assert.Single(result.Topics!).Id);
         _repository.Verify(repository => repository.GetProjectById(project.Id, CancellationToken.None), Times.Once);
     }
 

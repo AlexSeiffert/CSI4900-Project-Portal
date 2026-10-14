@@ -14,7 +14,7 @@ public class SupervisorRepository(ApplicationDbContext db) : ISupervisorReposito
     {
         try
         {
-            return await SupervisorWithRelations().AsNoTrackingWithIdentityResolution()
+            return await _db.Supervisors.AsNoTracking()
                 .OrderBy(profile => profile.DisplayName).ToListAsync(cancellationToken);
         }
         catch (Exception exception) when (exception is not RepositoryException)

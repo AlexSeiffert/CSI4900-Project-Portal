@@ -2,17 +2,23 @@ namespace API.DTOs.Mapping;
 
 internal static class DtoMapping
 {
-    public static Topic ToDto(this Models.Topic x) => new Mapper().Map(x, 0);
-    public static Project ToDto(this Models.Project x) => new Mapper().Map(x, 0);
-    public static Inquiry ToDto(this Models.Inquiry x) => new Mapper().Map(x, 0);
-    public static Student ToDto(this Models.Student x) => new Mapper().Map(x, 0);
-    public static Supervisor ToDto(this Models.Supervisor x) => new Mapper().Map(x, 0);
+    // Endpoints opt in to relationships with ToDtoWithRelations and a matching repository query.
+    public static Topic ToDto(this Models.Topic x) => new Mapper(0).Map(x, 0);
+    public static Project ToDto(this Models.Project x) => new Mapper(0).Map(x, 0);
+    public static Inquiry ToDto(this Models.Inquiry x) => new Mapper(0).Map(x, 0);
+    public static Student ToDto(this Models.Student x) => new Mapper(0).Map(x, 0);
+    public static Supervisor ToDto(this Models.Supervisor x) => new Mapper(0).Map(x, 0);
+
+    public static Topic ToDtoWithRelations(this Models.Topic x) => new Mapper(2).Map(x, 0);
+    public static Project ToDtoWithRelations(this Models.Project x) => new Mapper(2).Map(x, 0);
+    public static Inquiry ToDtoWithRelations(this Models.Inquiry x) => new Mapper(2).Map(x, 0);
+    public static Student ToDtoWithRelations(this Models.Student x) => new Mapper(2).Map(x, 0);
+    public static Supervisor ToDtoWithRelations(this Models.Supervisor x) => new Mapper(2).Map(x, 0);
 
     // Include the requested DTO's relations and their relations, then stop expanding.
     // Objects on the active path are reused so IgnoreCycles can serialize back-references.
-    private sealed class Mapper
+    private sealed class Mapper(int maxRelationshipDepth)
     {
-        private const int MaxRelationshipDepth = 2;
         private readonly Dictionary<object, object> _active = new(ReferenceEqualityComparer.Instance);
 
         public Topic Map(Models.Topic x, int depth)
@@ -24,7 +30,7 @@ internal static class DtoMapping
 
             var dto = new Topic { Id = x.Id, Name = x.Name };
             _active.Add(x, dto);
-            if (depth < MaxRelationshipDepth)
+            if (depth < maxRelationshipDepth)
             {
                 dto.Projects = x.Projects.Select(project => Map(project, depth + 1)).ToList();
                 dto.Students = x.Students.Select(student => Map(student, depth + 1)).ToList();
@@ -48,7 +54,7 @@ internal static class DtoMapping
                 CreatedAt = x.CreatedAt, UpdatedAt = x.UpdatedAt
             };
             _active.Add(x, dto);
-            if (depth < MaxRelationshipDepth)
+            if (depth < maxRelationshipDepth)
             {
                 dto.Supervisor = x.Supervisor is null ? null : Map(x.Supervisor, depth + 1);
                 dto.Topics = x.Topics.Select(topic => Map(topic, depth + 1)).ToList();
@@ -72,7 +78,7 @@ internal static class DtoMapping
                 CreatedAt = x.CreatedAt, UpdatedAt = x.UpdatedAt
             };
             _active.Add(x, dto);
-            if (depth < MaxRelationshipDepth)
+            if (depth < maxRelationshipDepth)
             {
                 dto.Student = x.Student is null ? null : Map(x.Student, depth + 1);
                 dto.Supervisor = x.Supervisor is null ? null : Map(x.Supervisor, depth + 1);
@@ -95,7 +101,7 @@ internal static class DtoMapping
                 Program = x.Program, UpdatedAt = x.UpdatedAt
             };
             _active.Add(x, dto);
-            if (depth < MaxRelationshipDepth)
+            if (depth < maxRelationshipDepth)
             {
                 dto.TopicInterests = x.TopicInterests.Select(topic => Map(topic, depth + 1)).ToList();
                 dto.Inquiries = x.Inquiries.Select(inquiry => Map(inquiry, depth + 1)).ToList();
@@ -120,7 +126,7 @@ internal static class DtoMapping
                 UpdatedAt = x.UpdatedAt
             };
             _active.Add(x, dto);
-            if (depth < MaxRelationshipDepth)
+            if (depth < maxRelationshipDepth)
             {
                 dto.TopicInterests = x.TopicInterests.Select(topic => Map(topic, depth + 1)).ToList();
                 dto.Projects = x.Projects.Select(project => Map(project, depth + 1)).ToList();

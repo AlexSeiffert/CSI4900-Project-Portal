@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace API.DTOs;
 
 public class Supervisor : UserDto
@@ -6,7 +8,13 @@ public class Supervisor : UserDto
     public string? AboutMe { get; set; }
     public string? ExternalUrl { get; set; }
     public bool AcceptingInquiries { get; set; }
-    public List<Topic> TopicInterests { get; set; } = [];
-    public List<Project> Projects { get; set; } = [];
-    public List<Inquiry> Inquiries { get; set; } = [];
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public List<Topic>? TopicInterests { get; set; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public List<Project>? Projects { get; set; }
+    
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public List<Inquiry>? Inquiries { get; set; }
 }

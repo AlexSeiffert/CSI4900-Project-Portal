@@ -46,7 +46,7 @@ public class SupervisorService(ISupervisorRepository repository) : ISupervisorSe
                 var exception = new KeyNotFoundException($"Supervisor '{userId}' was not found.");
                 throw new ServiceException(nameof(GetSupervisorById), ErrorType.NotFound, exception.Message, exception);
             }
-            return profile.ToDto();
+            return profile.ToDtoWithRelations();
         }
         catch (RepositoryException exception)
         {
@@ -83,7 +83,7 @@ public class SupervisorService(ISupervisorRepository repository) : ISupervisorSe
             profile.ExternalUrl = request.ExternalUrl;
             profile.AcceptingInquiries = request.AcceptingInquiries;
             profile.UpdatedAt = DateTime.UtcNow;
-            return (await _repository.UpdateSupervisor(profile, request.TopicIds, cancellationToken)).ToDto();
+            return (await _repository.UpdateSupervisor(profile, request.TopicIds, cancellationToken)).ToDtoWithRelations();
         }
         catch (RepositoryException exception)
         {

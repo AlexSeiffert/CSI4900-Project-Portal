@@ -122,7 +122,7 @@ public class InquiryService(IInquiryRepository repository) : IInquiryService
                 var exception = new KeyNotFoundException($"Inquiry '{inquiryId}' was not found.");
                 throw new ServiceException(nameof(GetInquiryById), ErrorType.NotFound, exception.Message, exception);
             }
-            return inquiry.ToDto();
+            return inquiry.ToDtoWithRelations();
         }
         catch (RepositoryException exception)
         {
@@ -155,7 +155,7 @@ public class InquiryService(IInquiryRepository repository) : IInquiryService
                 ProjectId = request.ProjectId,
                 Message = request.Message
             };
-            return (await _repository.CreateInquiry(inquiry, cancellationToken)).ToDto();
+            return (await _repository.CreateInquiry(inquiry, cancellationToken)).ToDtoWithRelations();
         }
         catch (RepositoryException exception)
         {

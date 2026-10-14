@@ -46,7 +46,7 @@ public class StudentService(IStudentRepository repository) : IStudentService
                 var exception = new KeyNotFoundException($"Student '{userId}' was not found.");
                 throw new ServiceException(nameof(GetStudentById), ErrorType.NotFound, exception.Message, exception);
             }
-            return profile.ToDto();
+            return profile.ToDtoWithRelations();
         }
         catch (RepositoryException exception)
         {
@@ -80,7 +80,7 @@ public class StudentService(IStudentRepository repository) : IStudentService
             profile.DisplayName = request.DisplayName;
             profile.Program = request.Program;
             profile.UpdatedAt = DateTime.UtcNow;
-            return (await _repository.UpdateStudent(profile, request.TopicIds, cancellationToken)).ToDto();
+            return (await _repository.UpdateStudent(profile, request.TopicIds, cancellationToken)).ToDtoWithRelations();
         }
         catch (RepositoryException exception)
         {

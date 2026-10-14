@@ -10,7 +10,7 @@ namespace API.Tests.Repository;
 public class StudentRepositoryTests
 {
     [Fact]
-    public async Task GetStudents_OrdersProfilesAndIncludesTopicsWithoutTracking()
+    public async Task GetStudents_OrdersProfilesWithoutNavigationsOrTracking()
     {
         await using var context = await RepositoryTestContext.CreateAsync();
         var repository = new StudentRepository(context.Db);
@@ -18,8 +18,9 @@ public class StudentRepositoryTests
         var result = await repository.GetStudents();
 
         Assert.Equal(new[] { context.OtherStudent.UserId, context.Student.UserId }, result.Select(x => x.UserId));
-        Assert.Equal(context.Topic.Id, Assert.Single(result[1].TopicInterests).Id);
-        Assert.Equal(context.Inquiry.Id, Assert.Single(result[1].Inquiries).Id);
+        Assert.Empty(result[1].TopicInterests);
+        Assert.Empty(result[1].Inquiries);
+        Assert.Empty(result[1].SavedProjects);
         Assert.Empty(context.Db.ChangeTracker.Entries());
     }
 

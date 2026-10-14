@@ -18,12 +18,9 @@ public class InquiryRepositoryTests
         var result = await repository.GetInquiries();
 
         Assert.Equal(new[] { context.Inquiry.Id, context.OtherInquiry.Id }, result.Select(x => x.Id));
-        Assert.Equal(context.Student.UserId, result[0].Student.UserId);
-        Assert.Equal(context.Supervisor.UserId, result[0].Supervisor.UserId);
-        Assert.Equal(context.Project.Id, result[0].Project?.Id);
-        Assert.Equal(context.Topic.Id, Assert.Single(result[0].Student.TopicInterests).Id);
-        Assert.Equal(context.Topic.Id, Assert.Single(result[0].Supervisor.TopicInterests).Id);
-        Assert.Equal(context.Topic.Id, Assert.Single(result[0].Project!.Topics).Id);
+        Assert.Null(result[0].Student);
+        Assert.Null(result[0].Supervisor);
+        Assert.Null(result[0].Project);
         Assert.Empty(context.Db.ChangeTracker.Entries());
     }
 

@@ -15,11 +15,8 @@ public class SavedProjectRepository(ApplicationDbContext db) : ISavedProjectRepo
     {
         try
         {
-            var student = await _db.Students.AsNoTrackingWithIdentityResolution()
-                .Include(student => student.SavedProjects).ThenInclude(project => project.Supervisor)
-                .Include(student => student.SavedProjects).ThenInclude(project => project.Topics)
-                .Include(student => student.SavedProjects).ThenInclude(project => project.Inquiries)
-                .AsSplitQuery()
+            var student = await _db.Students.AsNoTracking()
+                .Include(student => student.SavedProjects)
                 .SingleOrDefaultAsync(student => student.UserId == studentId, cancellationToken);
             return student?.SavedProjects.OrderBy(project => project.Title).ToList() ?? [];
         }

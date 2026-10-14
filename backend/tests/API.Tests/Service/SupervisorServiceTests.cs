@@ -28,7 +28,9 @@ public class SupervisorServiceTests
 
         Assert.Equal(supervisor.UserId, result.UserId);
         Assert.Equal(supervisor.DisplayName, result.DisplayName);
-        Assert.Equal(topic.Id, Assert.Single(result.TopicInterests).Id);
+        Assert.Null(result.TopicInterests);
+        Assert.Null(result.Projects);
+        Assert.Null(result.Inquiries);
         _repository.Verify(repository => repository.GetSupervisors(CancellationToken.None), Times.Once);
     }
 
@@ -67,7 +69,7 @@ public class SupervisorServiceTests
 
         Assert.Equal(supervisor.UserId, result.UserId);
         Assert.Equal(supervisor.DisplayName, result.DisplayName);
-        Assert.Equal(topic.Id, Assert.Single(result.TopicInterests).Id);
+        Assert.Equal(topic.Id, Assert.Single(result.TopicInterests!).Id);
         _repository.Verify(repository => repository.GetSupervisorById(supervisor.UserId, CancellationToken.None), Times.Once);
     }
 

@@ -125,7 +125,7 @@ public class ProjectRepository(ApplicationDbContext db) : IProjectRepository
 
     private IQueryable<Project> ProjectQuery()
     {
-        return ProjectWithRelations().AsNoTrackingWithIdentityResolution()
+        return _db.Projects.AsNoTracking()
             .OrderByDescending(project => project.CreatedAt).ThenBy(project => project.Id);
     }
 

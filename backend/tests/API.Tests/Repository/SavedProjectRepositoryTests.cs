@@ -10,7 +10,7 @@ namespace API.Tests.Repository;
 public class SavedProjectRepositoryTests
 {
     [Fact]
-    public async Task GetSavedProjects_IsolatesStudentsOrdersTitlesAndIncludesTopics()
+    public async Task GetSavedProjects_IsolatesStudentsAndOrdersTitles()
     {
         await using var context = await RepositoryTestContext.CreateAsync();
         var repository = new SavedProjectRepository(context.Db);
@@ -21,9 +21,9 @@ public class SavedProjectRepositoryTests
         var result = await repository.GetSavedProjects(context.Student.UserId);
 
         Assert.Equal(new[] { context.OtherProject.Id, context.Project.Id }, result.Select(x => x.Id));
-        Assert.Equal(context.Topic.Id, Assert.Single(result[1].Topics).Id);
-        Assert.Equal(context.Supervisor.UserId, result[1].Supervisor.UserId);
-        Assert.Equal(context.Inquiry.Id, Assert.Single(result[1].Inquiries).Id);
+        Assert.Empty(result[1].Topics);
+        Assert.Null(result[1].Supervisor);
+        Assert.Empty(result[1].Inquiries);
         Assert.Empty(context.Db.ChangeTracker.Entries());
     }
 

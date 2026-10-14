@@ -28,7 +28,9 @@ public class StudentServiceTests
 
         Assert.Equal(student.UserId, result.UserId);
         Assert.Equal(student.DisplayName, result.DisplayName);
-        Assert.Equal(topic.Id, Assert.Single(result.TopicInterests).Id);
+        Assert.Null(result.TopicInterests);
+        Assert.Null(result.Inquiries);
+        Assert.Null(result.SavedProjects);
         _repository.Verify(repository => repository.GetStudents(CancellationToken.None), Times.Once);
     }
 
@@ -67,7 +69,7 @@ public class StudentServiceTests
 
         Assert.Equal(student.UserId, result.UserId);
         Assert.Equal(student.DisplayName, result.DisplayName);
-        Assert.Equal(topic.Id, Assert.Single(result.TopicInterests).Id);
+        Assert.Equal(topic.Id, Assert.Single(result.TopicInterests!).Id);
         _repository.Verify(repository => repository.GetStudentById(student.UserId, CancellationToken.None), Times.Once);
     }
 

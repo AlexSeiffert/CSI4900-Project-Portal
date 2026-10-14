@@ -14,12 +14,8 @@ public class TopicRepository(ApplicationDbContext db) : ITopicRepository
     {
         try
         {
-            return await _db.Topics.AsNoTrackingWithIdentityResolution()
-                .Include(topic => topic.Projects)
-                .Include(topic => topic.Students)
-                .Include(topic => topic.Supervisors)
-                .AsSplitQuery()
-                .OrderBy(topic => topic.Name).ToListAsync(cancellationToken);
+            return await _db.Topics.AsNoTracking().OrderBy(topic => topic.Name)
+                .ToListAsync(cancellationToken);
         }
         catch (Exception exception) when (exception is not RepositoryException)
         {

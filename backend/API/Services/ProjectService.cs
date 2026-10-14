@@ -126,7 +126,7 @@ public class ProjectService(IProjectRepository repository) : IProjectService
                 var exception = new KeyNotFoundException($"Project '{projectId}' was not found.");
                 throw new ServiceException(nameof(GetProjectById), ErrorType.NotFound, exception.Message, exception);
             }
-            return project.ToDto();
+            return project.ToDtoWithRelations();
         }
         catch (RepositoryException exception)
         {
@@ -160,7 +160,7 @@ public class ProjectService(IProjectRepository repository) : IProjectService
                 ExternalUrl = request.ExternalUrl,
                 Status = request.Status
             };
-            return (await _repository.CreateProject(project, request.TopicIds, cancellationToken)).ToDto();
+            return (await _repository.CreateProject(project, request.TopicIds, cancellationToken)).ToDtoWithRelations();
         }
         catch (RepositoryException exception)
         {
@@ -196,7 +196,7 @@ public class ProjectService(IProjectRepository repository) : IProjectService
             project.ExternalUrl = request.ExternalUrl;
             project.Status = request.Status;
             project.UpdatedAt = DateTime.UtcNow;
-            return (await _repository.UpdateProject(project, request.TopicIds, cancellationToken)).ToDto();
+            return (await _repository.UpdateProject(project, request.TopicIds, cancellationToken)).ToDtoWithRelations();
         }
         catch (RepositoryException exception)
         {

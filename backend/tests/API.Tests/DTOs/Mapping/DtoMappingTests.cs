@@ -8,6 +8,28 @@ namespace API.Tests.DTOs.Mapping;
 public class DtoMappingTests
 {
     [Fact]
+    public void ToDto_OmitsLoadedRelationshipsUnlessRequested()
+    {
+        var supervisor = new Supervisor { UserId = Guid.NewGuid(), DisplayName = "Supervisor" };
+        var project = new Project
+        {
+            Id = Guid.NewGuid(), SupervisorId = supervisor.UserId, Supervisor = supervisor,
+            Topics = [new Topic { Id = Guid.NewGuid(), Name = "Databases" }]
+        };
+
+        var basic = project.ToDto();
+        var detailed = project.ToDtoWithRelations();
+
+        Assert.Null(basic.Supervisor);
+        Assert.Null(basic.Topics);
+        Assert.Equal(supervisor.UserId, detailed.Supervisor?.UserId);
+        Assert.Single(detailed.Topics!);
+        using var json = JsonDocument.Parse(JsonSerializer.Serialize(basic));
+        Assert.False(json.RootElement.TryGetProperty("Supervisor", out _));
+        Assert.False(json.RootElement.TryGetProperty("Topics", out _));
+    }
+
+    [Fact]
     public void ToDto_ReusesBackReferencesAndSerializesCycles()
     {
         var student = new Student { UserId = Guid.NewGuid(), DisplayName = "Student" };
@@ -29,11 +51,11 @@ public class DtoMappingTests
         topic.Students.Add(student);
         topic.Supervisors.Add(supervisor);
 
-        var result = project.ToDto();
+        var result = project.ToDtoWithRelations();
 
-        Assert.Same(result, result.Supervisor?.Projects.Single());
-        Assert.Same(result, result.Inquiries.Single().Project);
-        Assert.Same(result, result.Topics.Single().Projects.Single());
+        Assert.Same(result, result.Supervisor?.Projects!.Single());
+        Assert.Same(result, result.Inquiries!.Single().Project);
+        Assert.Same(result, result.Topics!.Single().Projects!.Single());
         var json = JsonSerializer.Serialize(result, new JsonSerializerOptions
         {
             ReferenceHandler = ReferenceHandler.IgnoreCycles
@@ -53,7 +75,7 @@ public class DtoMappingTests
             Name = "Databases"
         };
 
-        var result = model.ToDto();
+        var result = model.ToDtoWithRelations();
 
         Assert.Equal(model.Id, result.Id);
         Assert.Equal(model.Name, result.Name);
@@ -76,7 +98,7 @@ public class DtoMappingTests
             Topics = [topic]
         };
 
-        var result = model.ToDto();
+        var result = model.ToDtoWithRelations();
 
         Assert.Equal(model.Id, result.Id);
         Assert.Equal(model.SupervisorId, result.SupervisorId);
@@ -86,7 +108,7 @@ public class DtoMappingTests
         Assert.Equal(model.Status, result.Status);
         Assert.Equal(model.CreatedAt, result.CreatedAt);
         Assert.Equal(model.UpdatedAt, result.UpdatedAt);
-        var mappedTopic = Assert.Single(result.Topics);
+        var mappedTopic = Assert.Single(result.Topics!);
         Assert.Equal(topic.Id, mappedTopic.Id);
         Assert.Equal(topic.Name, mappedTopic.Name);
     }
@@ -105,7 +127,7 @@ public class DtoMappingTests
             UpdatedAt = new DateTime(2025, 2, 1, 0, 0, 0, DateTimeKind.Utc)
         };
 
-        var result = model.ToDto();
+        var result = model.ToDtoWithRelations();
 
         Assert.Equal(model.Id, result.Id);
         Assert.Equal(model.StudentId, result.StudentId);
@@ -129,14 +151,14 @@ public class DtoMappingTests
             ProjectId = project.Id, Student = student, Supervisor = supervisor, Project = project
         };
 
-        var result = inquiry.ToDto();
+        var result = inquiry.ToDtoWithRelations();
 
         Assert.Equal(student.UserId, result.Student?.UserId);
-        Assert.Equal(topic.Id, Assert.Single(result.Student!.TopicInterests).Id);
+        Assert.Equal(topic.Id, Assert.Single(result.Student!.TopicInterests!).Id);
         Assert.Equal(supervisor.ContactEmail, result.Supervisor?.ContactEmail);
-        Assert.Equal(topic.Id, Assert.Single(result.Supervisor!.TopicInterests).Id);
+        Assert.Equal(topic.Id, Assert.Single(result.Supervisor!.TopicInterests!).Id);
         Assert.Equal(project.Title, result.Project?.Title);
-        Assert.Equal(topic.Id, Assert.Single(result.Project!.Topics).Id);
+        Assert.Equal(topic.Id, Assert.Single(result.Project!.Topics!).Id);
     }
 
     [Fact]
@@ -152,13 +174,13 @@ public class DtoMappingTests
             TopicInterests = [topic]
         };
 
-        var result = model.ToDto();
+        var result = model.ToDtoWithRelations();
 
         Assert.Equal(model.UserId, result.UserId);
         Assert.Equal(model.DisplayName, result.DisplayName);
         Assert.Equal(model.Program, result.Program);
         Assert.Equal(model.UpdatedAt, result.UpdatedAt);
-        var mappedTopic = Assert.Single(result.TopicInterests);
+        var mappedTopic = Assert.Single(result.TopicInterests!);
         Assert.Equal(topic.Id, mappedTopic.Id);
         Assert.Equal(topic.Name, mappedTopic.Name);
     }
@@ -179,7 +201,7 @@ public class DtoMappingTests
             TopicInterests = [topic]
         };
 
-        var result = model.ToDto();
+        var result = model.ToDtoWithRelations();
 
         Assert.Equal(model.UserId, result.UserId);
         Assert.Equal(model.DisplayName, result.DisplayName);
@@ -188,7 +210,7 @@ public class DtoMappingTests
         Assert.Equal(model.ExternalUrl, result.ExternalUrl);
         Assert.Equal(model.AcceptingInquiries, result.AcceptingInquiries);
         Assert.Equal(model.UpdatedAt, result.UpdatedAt);
-        var mappedTopic = Assert.Single(result.TopicInterests);
+        var mappedTopic = Assert.Single(result.TopicInterests!);
         Assert.Equal(topic.Id, mappedTopic.Id);
         Assert.Equal(topic.Name, mappedTopic.Name);
     }
