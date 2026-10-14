@@ -8,6 +8,25 @@ namespace API.Tests.DTOs.Mapping;
 public class DtoMappingTests
 {
     [Fact]
+    public void ToDto_OmitsEveryNavigationPropertyByDefault()
+    {
+        static void AssertAbsent(object dto, params string[] navigationNames)
+        {
+            using var json = JsonDocument.Parse(JsonSerializer.Serialize(dto, new JsonSerializerOptions(JsonSerializerDefaults.Web)));
+            foreach (var name in navigationNames)
+            {
+                Assert.False(json.RootElement.TryGetProperty(name, out _), $"{dto.GetType().Name}.{name} should be omitted.");
+            }
+        }
+
+        AssertAbsent(new Topic().ToDto(), "projects", "students", "supervisors");
+        AssertAbsent(new Project().ToDto(), "supervisor", "topics", "inquiries");
+        AssertAbsent(new Inquiry().ToDto(), "student", "supervisor", "project");
+        AssertAbsent(new Student().ToDto(), "topicInterests", "inquiries", "savedProjects");
+        AssertAbsent(new Supervisor().ToDto(), "topicInterests", "projects", "inquiries");
+    }
+
+    [Fact]
     public void ToDto_OmitsLoadedRelationshipsUnlessRequested()
     {
         var supervisor = new Supervisor { UserId = Guid.NewGuid(), DisplayName = "Supervisor" };
