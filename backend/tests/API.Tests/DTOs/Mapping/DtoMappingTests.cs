@@ -1,10 +1,49 @@
 using API.DTOs.Mapping;
 using API.Models;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace API.Tests.DTOs.Mapping;
 
 public class DtoMappingTests
 {
+    [Fact]
+    public void ToDto_ReusesBackReferencesAndSerializesCycles()
+    {
+        var student = new Student { UserId = Guid.NewGuid(), DisplayName = "Student" };
+        var supervisor = new Supervisor { UserId = Guid.NewGuid(), DisplayName = "Supervisor" };
+        var project = new Project { Id = Guid.NewGuid(), SupervisorId = supervisor.UserId, Supervisor = supervisor };
+        var topic = new Topic { Id = Guid.NewGuid(), Name = "Databases" };
+        var inquiry = new Inquiry
+        {
+            Id = Guid.NewGuid(), StudentId = student.UserId, SupervisorId = supervisor.UserId,
+            ProjectId = project.Id, Student = student, Supervisor = supervisor, Project = project
+        };
+        student.Inquiries.Add(inquiry);
+        student.SavedProjects.Add(project);
+        supervisor.Projects.Add(project);
+        supervisor.Inquiries.Add(inquiry);
+        project.Inquiries.Add(inquiry);
+        project.Topics.Add(topic);
+        topic.Projects.Add(project);
+        topic.Students.Add(student);
+        topic.Supervisors.Add(supervisor);
+
+        var result = project.ToDto();
+
+        Assert.Same(result, result.Supervisor?.Projects.Single());
+        Assert.Same(result, result.Inquiries.Single().Project);
+        Assert.Same(result, result.Topics.Single().Projects.Single());
+        var json = JsonSerializer.Serialize(result, new JsonSerializerOptions
+        {
+            ReferenceHandler = ReferenceHandler.IgnoreCycles
+        });
+        using var document = JsonDocument.Parse(json);
+        Assert.Equal(project.Id, document.RootElement.GetProperty("Id").GetGuid());
+        Assert.Equal(JsonValueKind.Null,
+            document.RootElement.GetProperty("Supervisor").GetProperty("Projects")[0].ValueKind);
+    }
+
     [Fact]
     public void ToDto_MapsTopic()
     {
@@ -75,6 +114,29 @@ public class DtoMappingTests
         Assert.Equal(model.Message, result.Message);
         Assert.Equal(model.CreatedAt, result.CreatedAt);
         Assert.Equal(model.UpdatedAt, result.UpdatedAt);
+    }
+
+    [Fact]
+    public void ToDto_MapsInquiryRelationships()
+    {
+        var topic = new Topic { Id = Guid.NewGuid(), Name = "Databases" };
+        var student = new Student { UserId = Guid.NewGuid(), DisplayName = "Student", TopicInterests = [topic] };
+        var supervisor = new Supervisor { UserId = Guid.NewGuid(), DisplayName = "Supervisor", ContactEmail = "supervisor@example.test", TopicInterests = [topic] };
+        var project = new Project { Id = Guid.NewGuid(), SupervisorId = supervisor.UserId, Title = "Portal", Topics = [topic] };
+        var inquiry = new Inquiry
+        {
+            Id = Guid.NewGuid(), StudentId = student.UserId, SupervisorId = supervisor.UserId,
+            ProjectId = project.Id, Student = student, Supervisor = supervisor, Project = project
+        };
+
+        var result = inquiry.ToDto();
+
+        Assert.Equal(student.UserId, result.Student?.UserId);
+        Assert.Equal(topic.Id, Assert.Single(result.Student!.TopicInterests).Id);
+        Assert.Equal(supervisor.ContactEmail, result.Supervisor?.ContactEmail);
+        Assert.Equal(topic.Id, Assert.Single(result.Supervisor!.TopicInterests).Id);
+        Assert.Equal(project.Title, result.Project?.Title);
+        Assert.Equal(topic.Id, Assert.Single(result.Project!.Topics).Id);
     }
 
     [Fact]

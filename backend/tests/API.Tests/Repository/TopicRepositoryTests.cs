@@ -18,6 +18,9 @@ public class TopicRepositoryTests
         var result = await repository.GetTopics();
 
         Assert.Equal(new[] { context.OtherTopic.Id, context.Topic.Id }, result.Select(x => x.Id));
+        Assert.Equal(context.Project.Id, Assert.Single(result[1].Projects).Id);
+        Assert.Equal(context.Student.UserId, Assert.Single(result[1].Students).UserId);
+        Assert.Equal(context.Supervisor.UserId, Assert.Single(result[1].Supervisors).UserId);
         Assert.Empty(context.Db.ChangeTracker.Entries());
     }
 

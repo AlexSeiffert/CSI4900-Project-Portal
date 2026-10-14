@@ -62,7 +62,7 @@ public class ProjectRepository(ApplicationDbContext db) : IProjectRepository
     {
         try
         {
-            return await _db.Projects.Include(project => project.Topics).SingleOrDefaultAsync(project => project.Id == projectId, cancellationToken);
+            return await ProjectWithRelations().SingleOrDefaultAsync(project => project.Id == projectId, cancellationToken);
         }
         catch (Exception exception) when (exception is not RepositoryException)
         {
@@ -77,6 +77,7 @@ public class ProjectRepository(ApplicationDbContext db) : IProjectRepository
             await SetTopics(project, topicIds, cancellationToken);
             _db.Projects.Add(project);
             await _db.SaveChangesAsync(cancellationToken);
+            await _db.Entry(project).Reference(x => x.Supervisor).LoadAsync(cancellationToken);
             return project;
         }
         catch (Exception exception) when (exception is not RepositoryException)
@@ -124,8 +125,16 @@ public class ProjectRepository(ApplicationDbContext db) : IProjectRepository
 
     private IQueryable<Project> ProjectQuery()
     {
-        return _db.Projects.AsNoTracking().Include(project => project.Topics)
+        return ProjectWithRelations().AsNoTrackingWithIdentityResolution()
             .OrderByDescending(project => project.CreatedAt).ThenBy(project => project.Id);
+    }
+
+    private IQueryable<Project> ProjectWithRelations()
+    {
+        return _db.Projects.Include(project => project.Supervisor)
+            .Include(project => project.Topics)
+            .Include(project => project.Inquiries)
+            .AsSplitQuery();
     }
 
     private async Task SetTopics(Project project, IReadOnlyCollection<Guid> topicIds, CancellationToken cancellationToken)

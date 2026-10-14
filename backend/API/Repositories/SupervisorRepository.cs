@@ -14,7 +14,7 @@ public class SupervisorRepository(ApplicationDbContext db) : ISupervisorReposito
     {
         try
         {
-            return await _db.Supervisors.AsNoTracking().Include(profile => profile.TopicInterests)
+            return await SupervisorWithRelations().AsNoTrackingWithIdentityResolution()
                 .OrderBy(profile => profile.DisplayName).ToListAsync(cancellationToken);
         }
         catch (Exception exception) when (exception is not RepositoryException)
@@ -27,7 +27,7 @@ public class SupervisorRepository(ApplicationDbContext db) : ISupervisorReposito
     {
         try
         {
-            return await _db.Supervisors.Include(profile => profile.TopicInterests)
+            return await SupervisorWithRelations()
                 .SingleOrDefaultAsync(profile => profile.UserId == userId, cancellationToken);
         }
         catch (Exception exception) when (exception is not RepositoryException)
@@ -51,11 +51,21 @@ public class SupervisorRepository(ApplicationDbContext db) : ISupervisorReposito
                 profile.TopicInterests.Add(topic);
             }
             await _db.SaveChangesAsync(cancellationToken);
+            await _db.Entry(profile).Collection(x => x.Projects).LoadAsync(cancellationToken);
+            await _db.Entry(profile).Collection(x => x.Inquiries).LoadAsync(cancellationToken);
             return profile;
         }
         catch (Exception exception) when (exception is not RepositoryException)
         {
             throw new RepositoryException(nameof(UpdateSupervisor), exception);
         }
+    }
+
+    private IQueryable<Supervisor> SupervisorWithRelations()
+    {
+        return _db.Supervisors.Include(supervisor => supervisor.TopicInterests)
+            .Include(supervisor => supervisor.Projects)
+            .Include(supervisor => supervisor.Inquiries)
+            .AsSplitQuery();
     }
 }

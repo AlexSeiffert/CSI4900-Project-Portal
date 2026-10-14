@@ -19,6 +19,8 @@ public class SupervisorRepositoryTests
 
         Assert.Equal(new[] { context.OtherSupervisor.UserId, context.Supervisor.UserId }, result.Select(x => x.UserId));
         Assert.Equal(context.Topic.Id, Assert.Single(result[1].TopicInterests).Id);
+        Assert.Equal(context.Project.Id, Assert.Single(result[1].Projects).Id);
+        Assert.Equal(context.Inquiry.Id, Assert.Single(result[1].Inquiries).Id);
         Assert.Empty(context.Db.ChangeTracker.Entries());
     }
 
@@ -51,6 +53,8 @@ public class SupervisorRepositoryTests
         Assert.NotNull(result);
         Assert.Equal(context.Supervisor.UserId, result.UserId);
         Assert.Equal(context.Topic.Id, Assert.Single(result.TopicInterests).Id);
+        Assert.Equal(context.Project.Id, Assert.Single(result.Projects).Id);
+        Assert.Equal(context.Inquiry.Id, Assert.Single(result.Inquiries).Id);
         Assert.Equal(EntityState.Unchanged, context.Db.Entry(result).State);
     }
 

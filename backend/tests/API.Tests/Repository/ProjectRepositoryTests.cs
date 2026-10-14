@@ -19,6 +19,8 @@ public class ProjectRepositoryTests
 
         Assert.Equal(new[] { context.Project.Id, context.OtherProject.Id }, result.Select(x => x.Id));
         Assert.Equal(context.Topic.Id, Assert.Single(result[0].Topics).Id);
+        Assert.Equal(context.Supervisor.UserId, result[0].Supervisor.UserId);
+        Assert.Equal(context.Inquiry.Id, Assert.Single(result[0].Inquiries).Id);
         Assert.Empty(context.Db.ChangeTracker.Entries());
     }
 
@@ -141,6 +143,8 @@ public class ProjectRepositoryTests
         Assert.NotNull(result);
         Assert.Equal(context.Project.Id, result.Id);
         Assert.Equal(context.Topic.Id, Assert.Single(result.Topics).Id);
+        Assert.Equal(context.Supervisor.UserId, result.Supervisor.UserId);
+        Assert.Equal(context.Inquiry.Id, Assert.Single(result.Inquiries).Id);
         Assert.Equal(EntityState.Unchanged, context.Db.Entry(result).State);
     }
 
@@ -170,6 +174,7 @@ public class ProjectRepositoryTests
         var project = new Project { Id = Guid.NewGuid(), SupervisorId = context.Supervisor.UserId, Title = "New", Description = "Research" };
 
         Assert.Same(project, await repository.CreateProject(project, [context.Topic.Id, context.Topic.Id]));
+        Assert.Equal(context.Supervisor.UserId, project.Supervisor.UserId);
         context.Db.ChangeTracker.Clear();
         var persisted = await context.Db.Projects.Include(x => x.Topics).SingleAsync(x => x.Id == project.Id);
         Assert.Equal("New", persisted.Title);

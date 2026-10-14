@@ -18,6 +18,12 @@ public class InquiryRepositoryTests
         var result = await repository.GetInquiries();
 
         Assert.Equal(new[] { context.Inquiry.Id, context.OtherInquiry.Id }, result.Select(x => x.Id));
+        Assert.Equal(context.Student.UserId, result[0].Student.UserId);
+        Assert.Equal(context.Supervisor.UserId, result[0].Supervisor.UserId);
+        Assert.Equal(context.Project.Id, result[0].Project?.Id);
+        Assert.Equal(context.Topic.Id, Assert.Single(result[0].Student.TopicInterests).Id);
+        Assert.Equal(context.Topic.Id, Assert.Single(result[0].Supervisor.TopicInterests).Id);
+        Assert.Equal(context.Topic.Id, Assert.Single(result[0].Project!.Topics).Id);
         Assert.Empty(context.Db.ChangeTracker.Entries());
     }
 
@@ -136,6 +142,9 @@ public class InquiryRepositoryTests
 
         Assert.NotNull(result);
         Assert.Equal(context.Inquiry.Id, result.Id);
+        Assert.Equal(context.Student.UserId, result.Student.UserId);
+        Assert.Equal(context.Supervisor.UserId, result.Supervisor.UserId);
+        Assert.Equal(context.Project.Id, result.Project?.Id);
         Assert.Equal(EntityState.Unchanged, context.Db.Entry(result).State);
     }
 
@@ -165,10 +174,17 @@ public class InquiryRepositoryTests
         var inquiry = new Inquiry { Id = Guid.NewGuid(), StudentId = context.Student.UserId, SupervisorId = context.Supervisor.UserId };
 
         Assert.Same(inquiry, await repository.CreateInquiry(inquiry));
+        Assert.Equal(context.Student.UserId, inquiry.Student.UserId);
+        Assert.Equal(context.Supervisor.UserId, inquiry.Supervisor.UserId);
+        Assert.Null(inquiry.Project);
         context.Db.ChangeTracker.Clear();
         var persisted = await context.Db.Inquiries.SingleAsync(x => x.Id == inquiry.Id);
         Assert.Null(persisted.ProjectId);
         Assert.Null(persisted.Message);
+        var withRelations = await repository.GetInquiryById(inquiry.Id);
+        Assert.Equal(context.Student.UserId, withRelations?.Student.UserId);
+        Assert.Equal(context.Supervisor.UserId, withRelations?.Supervisor.UserId);
+        Assert.Null(withRelations?.Project);
     }
 
     [Fact]

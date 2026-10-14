@@ -14,7 +14,7 @@ public class StudentRepository(ApplicationDbContext db) : IStudentRepository
     {
         try
         {
-            return await _db.Students.AsNoTracking().Include(profile => profile.TopicInterests)
+            return await StudentWithRelations().AsNoTrackingWithIdentityResolution()
                 .OrderBy(profile => profile.DisplayName).ToListAsync(cancellationToken);
         }
         catch (Exception exception) when (exception is not RepositoryException)
@@ -27,7 +27,7 @@ public class StudentRepository(ApplicationDbContext db) : IStudentRepository
     {
         try
         {
-            return await _db.Students.Include(profile => profile.TopicInterests)
+            return await StudentWithRelations()
                 .SingleOrDefaultAsync(profile => profile.UserId == userId, cancellationToken);
         }
         catch (Exception exception) when (exception is not RepositoryException)
@@ -51,11 +51,21 @@ public class StudentRepository(ApplicationDbContext db) : IStudentRepository
                 profile.TopicInterests.Add(topic);
             }
             await _db.SaveChangesAsync(cancellationToken);
+            await _db.Entry(profile).Collection(x => x.Inquiries).LoadAsync(cancellationToken);
+            await _db.Entry(profile).Collection(x => x.SavedProjects).LoadAsync(cancellationToken);
             return profile;
         }
         catch (Exception exception) when (exception is not RepositoryException)
         {
             throw new RepositoryException(nameof(UpdateStudent), exception);
         }
+    }
+
+    private IQueryable<Student> StudentWithRelations()
+    {
+        return _db.Students.Include(student => student.TopicInterests)
+            .Include(student => student.Inquiries)
+            .Include(student => student.SavedProjects)
+            .AsSplitQuery();
     }
 }

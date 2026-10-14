@@ -62,7 +62,7 @@ public class InquiryRepository(ApplicationDbContext db) : IInquiryRepository
     {
         try
         {
-            return await _db.Inquiries.FindAsync([inquiryId], cancellationToken);
+            return await InquiryWithRelations().SingleOrDefaultAsync(inquiry => inquiry.Id == inquiryId, cancellationToken);
         }
         catch (Exception exception) when (exception is not RepositoryException)
         {
@@ -76,6 +76,7 @@ public class InquiryRepository(ApplicationDbContext db) : IInquiryRepository
         {
             _db.Inquiries.Add(inquiry);
             await _db.SaveChangesAsync(cancellationToken);
+            await InquiryWithRelations().SingleAsync(saved => saved.Id == inquiry.Id, cancellationToken);
             return inquiry;
         }
         catch (Exception exception) when (exception is not RepositoryException)
@@ -87,6 +88,15 @@ public class InquiryRepository(ApplicationDbContext db) : IInquiryRepository
 
     private IQueryable<Inquiry> InquiryQuery()
     {
-        return _db.Inquiries.AsNoTracking().OrderByDescending(inquiry => inquiry.CreatedAt).ThenBy(inquiry => inquiry.Id);
+        return InquiryWithRelations().AsNoTracking().OrderByDescending(inquiry => inquiry.CreatedAt).ThenBy(inquiry => inquiry.Id);
+    }
+
+    private IQueryable<Inquiry> InquiryWithRelations()
+    {
+        return _db.Inquiries
+            .Include(inquiry => inquiry.Student).ThenInclude(student => student.TopicInterests)
+            .Include(inquiry => inquiry.Supervisor).ThenInclude(supervisor => supervisor.TopicInterests)
+            .Include(inquiry => inquiry.Project).ThenInclude(project => project!.Topics)
+            .AsSplitQuery();
     }
 }

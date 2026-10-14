@@ -22,6 +22,8 @@ public class SavedProjectRepositoryTests
 
         Assert.Equal(new[] { context.OtherProject.Id, context.Project.Id }, result.Select(x => x.Id));
         Assert.Equal(context.Topic.Id, Assert.Single(result[1].Topics).Id);
+        Assert.Equal(context.Supervisor.UserId, result[1].Supervisor.UserId);
+        Assert.Equal(context.Inquiry.Id, Assert.Single(result[1].Inquiries).Id);
         Assert.Empty(context.Db.ChangeTracker.Entries());
     }
 

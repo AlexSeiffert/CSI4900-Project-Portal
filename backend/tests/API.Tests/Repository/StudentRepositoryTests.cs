@@ -19,6 +19,7 @@ public class StudentRepositoryTests
 
         Assert.Equal(new[] { context.OtherStudent.UserId, context.Student.UserId }, result.Select(x => x.UserId));
         Assert.Equal(context.Topic.Id, Assert.Single(result[1].TopicInterests).Id);
+        Assert.Equal(context.Inquiry.Id, Assert.Single(result[1].Inquiries).Id);
         Assert.Empty(context.Db.ChangeTracker.Entries());
     }
 
@@ -51,7 +52,20 @@ public class StudentRepositoryTests
         Assert.NotNull(result);
         Assert.Equal(context.Student.UserId, result.UserId);
         Assert.Equal(context.Topic.Id, Assert.Single(result.TopicInterests).Id);
+        Assert.Equal(context.Inquiry.Id, Assert.Single(result.Inquiries).Id);
         Assert.Equal(EntityState.Unchanged, context.Db.Entry(result).State);
+    }
+
+    [Fact]
+    public async Task GetStudentById_LoadsSavedProjects()
+    {
+        await using var context = await RepositoryTestContext.CreateAsync();
+        await new SavedProjectRepository(context.Db).SaveProject(context.Student.UserId, context.Project.Id);
+        context.Db.ChangeTracker.Clear();
+
+        var result = await new StudentRepository(context.Db).GetStudentById(context.Student.UserId);
+
+        Assert.Equal(context.Project.Id, Assert.Single(result!.SavedProjects).Id);
     }
 
     [Fact]
