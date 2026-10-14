@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Text.Json;
 using API.Exceptions;
 using API.Middleware;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,6 +17,40 @@ public class ApiExceptionHandlerTests
     private readonly Mock<ILogger<ApiExceptionHandler>> _logger = new();
 
     private ApiExceptionHandler CreateHandler() => new(_problems.Object, _logger.Object);
+
+    public static IEnumerable<object[]> DirectFailures()
+    {
+        yield return [new System.ComponentModel.DataAnnotations.ValidationException("Invalid request"), 400];
+        yield return [new OperationCanceledException("Cancelled"), 499];
+        yield return [new RepositoryException("Save", new DbUpdateConcurrencyException("Changed")), 409];
+        yield return [new RepositoryException("Read", new OperationCanceledException("Cancelled")), 499];
+        yield return [new RepositoryException("Read", new InvalidOperationException("Database unavailable")), 500];
+    }
+
+    [Theory]
+    [MemberData(nameof(DirectFailures))]
+    public async Task TryHandleAsync_ClassifiesDirectFailures(Exception exception, int status)
+    {
+        var context = new DefaultHttpContext();
+        ProblemDetailsContext? written = null;
+        _problems.Setup(problems => problems.TryWriteAsync(It.IsAny<ProblemDetailsContext>()))
+            .Callback<ProblemDetailsContext>(value => written = value)
+            .ReturnsAsync(true);
+
+        Assert.True(await CreateHandler().TryHandleAsync(context, exception, CancellationToken.None));
+
+        Assert.Equal(status, context.Response.StatusCode);
+        Assert.Equal(status, written?.ProblemDetails.Status);
+        if (exception is System.ComponentModel.DataAnnotations.ValidationException)
+        {
+            Assert.Equal(exception.Message,
+                Assert.Single(Assert.IsType<ValidationProblemDetails>(written!.ProblemDetails).Errors["request"]));
+        }
+        if (status == 500)
+        {
+            Assert.DoesNotContain("Database unavailable", written!.ProblemDetails.Detail);
+        }
+    }
 
     [Theory]
     [InlineData(ErrorType.Validation, 400)]

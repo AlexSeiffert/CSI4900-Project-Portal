@@ -22,18 +22,6 @@ public class StudentService(IStudentRepository repository) : IStudentService
         {
             throw new ServiceException(nameof(GetStudents), exception.Type, "The data operation could not be completed.", exception);
         }
-        catch (ValidationException exception)
-        {
-            throw new ServiceException(nameof(GetStudents), ErrorType.Validation, exception.Message, exception);
-        }
-        catch (OperationCanceledException exception)
-        {
-            throw new ServiceException(nameof(GetStudents), ErrorType.Cancelled, "The operation was cancelled.", exception);
-        }
-        catch (Exception exception) when (exception is not ServiceException)
-        {
-            throw new ServiceException(nameof(GetStudents), ErrorType.Unexpected, "The operation could not be completed.", exception);
-        }
     }
 
     public async Task<DTOs.Student> GetStudentById(Guid userId, CancellationToken cancellationToken = default)
@@ -51,18 +39,6 @@ public class StudentService(IStudentRepository repository) : IStudentService
         catch (RepositoryException exception)
         {
             throw new ServiceException(nameof(GetStudentById), exception.Type, "The data operation could not be completed.", exception);
-        }
-        catch (ValidationException exception)
-        {
-            throw new ServiceException(nameof(GetStudentById), ErrorType.Validation, exception.Message, exception);
-        }
-        catch (OperationCanceledException exception)
-        {
-            throw new ServiceException(nameof(GetStudentById), ErrorType.Cancelled, "The operation was cancelled.", exception);
-        }
-        catch (Exception exception) when (exception is not ServiceException)
-        {
-            throw new ServiceException(nameof(GetStudentById), ErrorType.Unexpected, "The operation could not be completed.", exception);
         }
     }
 
@@ -85,18 +61,6 @@ public class StudentService(IStudentRepository repository) : IStudentService
         catch (RepositoryException exception)
         {
             throw new ServiceException(nameof(UpdateStudent), exception.Type, "The data operation could not be completed.", exception);
-        }
-        catch (ValidationException exception)
-        {
-            throw new ServiceException(nameof(UpdateStudent), ErrorType.Validation, exception.Message, exception);
-        }
-        catch (OperationCanceledException exception)
-        {
-            throw new ServiceException(nameof(UpdateStudent), ErrorType.Cancelled, "The operation was cancelled.", exception);
-        }
-        catch (Exception exception) when (exception is not ServiceException)
-        {
-            throw new ServiceException(nameof(UpdateStudent), ErrorType.Unexpected, "The operation could not be completed.", exception);
         }
     }
 }

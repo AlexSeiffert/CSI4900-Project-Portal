@@ -23,18 +23,6 @@ public class InquiryService(IInquiryRepository repository) : IInquiryService
         {
             throw new ServiceException(nameof(GetInquiries), exception.Type, "The data operation could not be completed.", exception);
         }
-        catch (ValidationException exception)
-        {
-            throw new ServiceException(nameof(GetInquiries), ErrorType.Validation, exception.Message, exception);
-        }
-        catch (OperationCanceledException exception)
-        {
-            throw new ServiceException(nameof(GetInquiries), ErrorType.Cancelled, "The operation was cancelled.", exception);
-        }
-        catch (Exception exception) when (exception is not ServiceException)
-        {
-            throw new ServiceException(nameof(GetInquiries), ErrorType.Unexpected, "The operation could not be completed.", exception);
-        }
     }
 
     public async Task<IEnumerable<DTOs.Inquiry>> GetInquiriesByStudentId(Guid studentId, CancellationToken cancellationToken = default)
@@ -47,18 +35,6 @@ public class InquiryService(IInquiryRepository repository) : IInquiryService
         catch (RepositoryException exception)
         {
             throw new ServiceException(nameof(GetInquiriesByStudentId), exception.Type, "The data operation could not be completed.", exception);
-        }
-        catch (ValidationException exception)
-        {
-            throw new ServiceException(nameof(GetInquiriesByStudentId), ErrorType.Validation, exception.Message, exception);
-        }
-        catch (OperationCanceledException exception)
-        {
-            throw new ServiceException(nameof(GetInquiriesByStudentId), ErrorType.Cancelled, "The operation was cancelled.", exception);
-        }
-        catch (Exception exception) when (exception is not ServiceException)
-        {
-            throw new ServiceException(nameof(GetInquiriesByStudentId), ErrorType.Unexpected, "The operation could not be completed.", exception);
         }
     }
 
@@ -73,18 +49,6 @@ public class InquiryService(IInquiryRepository repository) : IInquiryService
         {
             throw new ServiceException(nameof(GetInquiriesBySupervisorId), exception.Type, "The data operation could not be completed.", exception);
         }
-        catch (ValidationException exception)
-        {
-            throw new ServiceException(nameof(GetInquiriesBySupervisorId), ErrorType.Validation, exception.Message, exception);
-        }
-        catch (OperationCanceledException exception)
-        {
-            throw new ServiceException(nameof(GetInquiriesBySupervisorId), ErrorType.Cancelled, "The operation was cancelled.", exception);
-        }
-        catch (Exception exception) when (exception is not ServiceException)
-        {
-            throw new ServiceException(nameof(GetInquiriesBySupervisorId), ErrorType.Unexpected, "The operation could not be completed.", exception);
-        }
     }
 
     public async Task<IEnumerable<DTOs.Inquiry>> GetInquiriesByProjectId(Guid projectId, CancellationToken cancellationToken = default)
@@ -97,18 +61,6 @@ public class InquiryService(IInquiryRepository repository) : IInquiryService
         catch (RepositoryException exception)
         {
             throw new ServiceException(nameof(GetInquiriesByProjectId), exception.Type, "The data operation could not be completed.", exception);
-        }
-        catch (ValidationException exception)
-        {
-            throw new ServiceException(nameof(GetInquiriesByProjectId), ErrorType.Validation, exception.Message, exception);
-        }
-        catch (OperationCanceledException exception)
-        {
-            throw new ServiceException(nameof(GetInquiriesByProjectId), ErrorType.Cancelled, "The operation was cancelled.", exception);
-        }
-        catch (Exception exception) when (exception is not ServiceException)
-        {
-            throw new ServiceException(nameof(GetInquiriesByProjectId), ErrorType.Unexpected, "The operation could not be completed.", exception);
         }
     }
 
@@ -127,18 +79,6 @@ public class InquiryService(IInquiryRepository repository) : IInquiryService
         catch (RepositoryException exception)
         {
             throw new ServiceException(nameof(GetInquiryById), exception.Type, "The data operation could not be completed.", exception);
-        }
-        catch (ValidationException exception)
-        {
-            throw new ServiceException(nameof(GetInquiryById), ErrorType.Validation, exception.Message, exception);
-        }
-        catch (OperationCanceledException exception)
-        {
-            throw new ServiceException(nameof(GetInquiryById), ErrorType.Cancelled, "The operation was cancelled.", exception);
-        }
-        catch (Exception exception) when (exception is not ServiceException)
-        {
-            throw new ServiceException(nameof(GetInquiryById), ErrorType.Unexpected, "The operation could not be completed.", exception);
         }
     }
 
@@ -160,18 +100,6 @@ public class InquiryService(IInquiryRepository repository) : IInquiryService
         catch (RepositoryException exception)
         {
             throw new ServiceException(nameof(CreateInquiry), exception.Type, "The data operation could not be completed.", exception);
-        }
-        catch (ValidationException exception)
-        {
-            throw new ServiceException(nameof(CreateInquiry), ErrorType.Validation, exception.Message, exception);
-        }
-        catch (OperationCanceledException exception)
-        {
-            throw new ServiceException(nameof(CreateInquiry), ErrorType.Cancelled, "The operation was cancelled.", exception);
-        }
-        catch (Exception exception) when (exception is not ServiceException)
-        {
-            throw new ServiceException(nameof(CreateInquiry), ErrorType.Unexpected, "The operation could not be completed.", exception);
         }
     }
 }

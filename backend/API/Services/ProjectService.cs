@@ -22,18 +22,6 @@ public class ProjectService(IProjectRepository repository) : IProjectService
         {
             throw new ServiceException(nameof(GetProjects), exception.Type, "The data operation could not be completed.", exception);
         }
-        catch (ValidationException exception)
-        {
-            throw new ServiceException(nameof(GetProjects), ErrorType.Validation, exception.Message, exception);
-        }
-        catch (OperationCanceledException exception)
-        {
-            throw new ServiceException(nameof(GetProjects), ErrorType.Cancelled, "The operation was cancelled.", exception);
-        }
-        catch (Exception exception) when (exception is not ServiceException)
-        {
-            throw new ServiceException(nameof(GetProjects), ErrorType.Unexpected, "The operation could not be completed.", exception);
-        }
     }
 
     public async Task<IEnumerable<DTOs.Project>> GetProjectsBySupervisorId(Guid supervisorId, CancellationToken cancellationToken = default)
@@ -47,18 +35,6 @@ public class ProjectService(IProjectRepository repository) : IProjectService
         {
             throw new ServiceException(nameof(GetProjectsBySupervisorId), exception.Type, "The data operation could not be completed.", exception);
         }
-        catch (ValidationException exception)
-        {
-            throw new ServiceException(nameof(GetProjectsBySupervisorId), ErrorType.Validation, exception.Message, exception);
-        }
-        catch (OperationCanceledException exception)
-        {
-            throw new ServiceException(nameof(GetProjectsBySupervisorId), ErrorType.Cancelled, "The operation was cancelled.", exception);
-        }
-        catch (Exception exception) when (exception is not ServiceException)
-        {
-            throw new ServiceException(nameof(GetProjectsBySupervisorId), ErrorType.Unexpected, "The operation could not be completed.", exception);
-        }
     }
 
     public async Task<IEnumerable<DTOs.Project>> GetProjectsByTopicId(Guid topicId, CancellationToken cancellationToken = default)
@@ -71,18 +47,6 @@ public class ProjectService(IProjectRepository repository) : IProjectService
         catch (RepositoryException exception)
         {
             throw new ServiceException(nameof(GetProjectsByTopicId), exception.Type, "The data operation could not be completed.", exception);
-        }
-        catch (ValidationException exception)
-        {
-            throw new ServiceException(nameof(GetProjectsByTopicId), ErrorType.Validation, exception.Message, exception);
-        }
-        catch (OperationCanceledException exception)
-        {
-            throw new ServiceException(nameof(GetProjectsByTopicId), ErrorType.Cancelled, "The operation was cancelled.", exception);
-        }
-        catch (Exception exception) when (exception is not ServiceException)
-        {
-            throw new ServiceException(nameof(GetProjectsByTopicId), ErrorType.Unexpected, "The operation could not be completed.", exception);
         }
     }
 
@@ -102,18 +66,6 @@ public class ProjectService(IProjectRepository repository) : IProjectService
         {
             throw new ServiceException(nameof(GetProjectsByStatus), exception.Type, "The data operation could not be completed.", exception);
         }
-        catch (ValidationException exception)
-        {
-            throw new ServiceException(nameof(GetProjectsByStatus), ErrorType.Validation, exception.Message, exception);
-        }
-        catch (OperationCanceledException exception)
-        {
-            throw new ServiceException(nameof(GetProjectsByStatus), ErrorType.Cancelled, "The operation was cancelled.", exception);
-        }
-        catch (Exception exception) when (exception is not ServiceException)
-        {
-            throw new ServiceException(nameof(GetProjectsByStatus), ErrorType.Unexpected, "The operation could not be completed.", exception);
-        }
     }
 
     public async Task<DTOs.Project> GetProjectById(Guid projectId, CancellationToken cancellationToken = default)
@@ -131,18 +83,6 @@ public class ProjectService(IProjectRepository repository) : IProjectService
         catch (RepositoryException exception)
         {
             throw new ServiceException(nameof(GetProjectById), exception.Type, "The data operation could not be completed.", exception);
-        }
-        catch (ValidationException exception)
-        {
-            throw new ServiceException(nameof(GetProjectById), ErrorType.Validation, exception.Message, exception);
-        }
-        catch (OperationCanceledException exception)
-        {
-            throw new ServiceException(nameof(GetProjectById), ErrorType.Cancelled, "The operation was cancelled.", exception);
-        }
-        catch (Exception exception) when (exception is not ServiceException)
-        {
-            throw new ServiceException(nameof(GetProjectById), ErrorType.Unexpected, "The operation could not be completed.", exception);
         }
     }
 
@@ -165,18 +105,6 @@ public class ProjectService(IProjectRepository repository) : IProjectService
         catch (RepositoryException exception)
         {
             throw new ServiceException(nameof(CreateProject), exception.Type, "The data operation could not be completed.", exception);
-        }
-        catch (ValidationException exception)
-        {
-            throw new ServiceException(nameof(CreateProject), ErrorType.Validation, exception.Message, exception);
-        }
-        catch (OperationCanceledException exception)
-        {
-            throw new ServiceException(nameof(CreateProject), ErrorType.Cancelled, "The operation was cancelled.", exception);
-        }
-        catch (Exception exception) when (exception is not ServiceException)
-        {
-            throw new ServiceException(nameof(CreateProject), ErrorType.Unexpected, "The operation could not be completed.", exception);
         }
     }
 
@@ -202,18 +130,6 @@ public class ProjectService(IProjectRepository repository) : IProjectService
         {
             throw new ServiceException(nameof(UpdateProject), exception.Type, "The data operation could not be completed.", exception);
         }
-        catch (ValidationException exception)
-        {
-            throw new ServiceException(nameof(UpdateProject), ErrorType.Validation, exception.Message, exception);
-        }
-        catch (OperationCanceledException exception)
-        {
-            throw new ServiceException(nameof(UpdateProject), ErrorType.Cancelled, "The operation was cancelled.", exception);
-        }
-        catch (Exception exception) when (exception is not ServiceException)
-        {
-            throw new ServiceException(nameof(UpdateProject), ErrorType.Unexpected, "The operation could not be completed.", exception);
-        }
     }
 
     public async Task DeleteProject(Guid projectId, CancellationToken cancellationToken = default)
@@ -229,18 +145,6 @@ public class ProjectService(IProjectRepository repository) : IProjectService
         catch (RepositoryException exception)
         {
             throw new ServiceException(nameof(DeleteProject), exception.Type, "The data operation could not be completed.", exception);
-        }
-        catch (ValidationException exception)
-        {
-            throw new ServiceException(nameof(DeleteProject), ErrorType.Validation, exception.Message, exception);
-        }
-        catch (OperationCanceledException exception)
-        {
-            throw new ServiceException(nameof(DeleteProject), ErrorType.Cancelled, "The operation was cancelled.", exception);
-        }
-        catch (Exception exception) when (exception is not ServiceException)
-        {
-            throw new ServiceException(nameof(DeleteProject), ErrorType.Unexpected, "The operation could not be completed.", exception);
         }
     }
 }

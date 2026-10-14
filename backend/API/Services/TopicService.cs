@@ -21,17 +21,5 @@ public class TopicService(ITopicRepository repository) : ITopicService
         {
             throw new ServiceException(nameof(GetTopics), exception.Type, "The data operation could not be completed.", exception);
         }
-        catch (ValidationException exception)
-        {
-            throw new ServiceException(nameof(GetTopics), ErrorType.Validation, exception.Message, exception);
-        }
-        catch (OperationCanceledException exception)
-        {
-            throw new ServiceException(nameof(GetTopics), ErrorType.Cancelled, "The operation was cancelled.", exception);
-        }
-        catch (Exception exception) when (exception is not ServiceException)
-        {
-            throw new ServiceException(nameof(GetTopics), ErrorType.Unexpected, "The operation could not be completed.", exception);
-        }
     }
 }

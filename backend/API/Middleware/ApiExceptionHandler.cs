@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.ComponentModel.DataAnnotations;
 using API.Exceptions;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
@@ -58,6 +59,9 @@ public class ApiExceptionHandler(IProblemDetailsService problems, ILogger<ApiExc
         {
             ServiceException service => service.Type,
             OrchestrationException orchestration => orchestration.Type,
+            RepositoryException repository => repository.Type,
+            ValidationException => ErrorType.Validation,
+            OperationCanceledException => ErrorType.Cancelled,
             _ => ErrorType.Unexpected
         };
 

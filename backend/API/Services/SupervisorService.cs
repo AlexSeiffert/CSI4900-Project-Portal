@@ -22,18 +22,6 @@ public class SupervisorService(ISupervisorRepository repository) : ISupervisorSe
         {
             throw new ServiceException(nameof(GetSupervisors), exception.Type, "The data operation could not be completed.", exception);
         }
-        catch (ValidationException exception)
-        {
-            throw new ServiceException(nameof(GetSupervisors), ErrorType.Validation, exception.Message, exception);
-        }
-        catch (OperationCanceledException exception)
-        {
-            throw new ServiceException(nameof(GetSupervisors), ErrorType.Cancelled, "The operation was cancelled.", exception);
-        }
-        catch (Exception exception) when (exception is not ServiceException)
-        {
-            throw new ServiceException(nameof(GetSupervisors), ErrorType.Unexpected, "The operation could not be completed.", exception);
-        }
     }
 
     public async Task<DTOs.Supervisor> GetSupervisorById(Guid userId, CancellationToken cancellationToken = default)
@@ -51,18 +39,6 @@ public class SupervisorService(ISupervisorRepository repository) : ISupervisorSe
         catch (RepositoryException exception)
         {
             throw new ServiceException(nameof(GetSupervisorById), exception.Type, "The data operation could not be completed.", exception);
-        }
-        catch (ValidationException exception)
-        {
-            throw new ServiceException(nameof(GetSupervisorById), ErrorType.Validation, exception.Message, exception);
-        }
-        catch (OperationCanceledException exception)
-        {
-            throw new ServiceException(nameof(GetSupervisorById), ErrorType.Cancelled, "The operation was cancelled.", exception);
-        }
-        catch (Exception exception) when (exception is not ServiceException)
-        {
-            throw new ServiceException(nameof(GetSupervisorById), ErrorType.Unexpected, "The operation could not be completed.", exception);
         }
     }
 
@@ -88,18 +64,6 @@ public class SupervisorService(ISupervisorRepository repository) : ISupervisorSe
         catch (RepositoryException exception)
         {
             throw new ServiceException(nameof(UpdateSupervisor), exception.Type, "The data operation could not be completed.", exception);
-        }
-        catch (ValidationException exception)
-        {
-            throw new ServiceException(nameof(UpdateSupervisor), ErrorType.Validation, exception.Message, exception);
-        }
-        catch (OperationCanceledException exception)
-        {
-            throw new ServiceException(nameof(UpdateSupervisor), ErrorType.Cancelled, "The operation was cancelled.", exception);
-        }
-        catch (Exception exception) when (exception is not ServiceException)
-        {
-            throw new ServiceException(nameof(UpdateSupervisor), ErrorType.Unexpected, "The operation could not be completed.", exception);
         }
     }
 }

@@ -22,18 +22,6 @@ public class SavedProjectService(ISavedProjectRepository repository) : ISavedPro
         {
             throw new ServiceException(nameof(GetSavedProjects), exception.Type, "The data operation could not be completed.", exception);
         }
-        catch (ValidationException exception)
-        {
-            throw new ServiceException(nameof(GetSavedProjects), ErrorType.Validation, exception.Message, exception);
-        }
-        catch (OperationCanceledException exception)
-        {
-            throw new ServiceException(nameof(GetSavedProjects), ErrorType.Cancelled, "The operation was cancelled.", exception);
-        }
-        catch (Exception exception) when (exception is not ServiceException)
-        {
-            throw new ServiceException(nameof(GetSavedProjects), ErrorType.Unexpected, "The operation could not be completed.", exception);
-        }
     }
 
     public async Task SaveProject(Guid studentId, Guid projectId, CancellationToken cancellationToken = default)
@@ -46,18 +34,6 @@ public class SavedProjectService(ISavedProjectRepository repository) : ISavedPro
         {
             throw new ServiceException(nameof(SaveProject), exception.Type, "The data operation could not be completed.", exception);
         }
-        catch (ValidationException exception)
-        {
-            throw new ServiceException(nameof(SaveProject), ErrorType.Validation, exception.Message, exception);
-        }
-        catch (OperationCanceledException exception)
-        {
-            throw new ServiceException(nameof(SaveProject), ErrorType.Cancelled, "The operation was cancelled.", exception);
-        }
-        catch (Exception exception) when (exception is not ServiceException)
-        {
-            throw new ServiceException(nameof(SaveProject), ErrorType.Unexpected, "The operation could not be completed.", exception);
-        }
     }
 
     public async Task RemoveSavedProject(Guid studentId, Guid projectId, CancellationToken cancellationToken = default)
@@ -69,18 +45,6 @@ public class SavedProjectService(ISavedProjectRepository repository) : ISavedPro
         catch (RepositoryException exception)
         {
             throw new ServiceException(nameof(RemoveSavedProject), exception.Type, "The data operation could not be completed.", exception);
-        }
-        catch (ValidationException exception)
-        {
-            throw new ServiceException(nameof(RemoveSavedProject), ErrorType.Validation, exception.Message, exception);
-        }
-        catch (OperationCanceledException exception)
-        {
-            throw new ServiceException(nameof(RemoveSavedProject), ErrorType.Cancelled, "The operation was cancelled.", exception);
-        }
-        catch (Exception exception) when (exception is not ServiceException)
-        {
-            throw new ServiceException(nameof(RemoveSavedProject), ErrorType.Unexpected, "The operation could not be completed.", exception);
         }
     }
 }
