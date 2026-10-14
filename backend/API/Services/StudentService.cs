@@ -20,7 +20,7 @@ public class StudentService(IStudentRepository repository) : IStudentService
         }
         catch (RepositoryException exception)
         {
-            throw new ServiceException(nameof(GetStudents), exception.Kind, "The data operation could not be completed.", exception);
+            throw new ServiceException(nameof(GetStudents), exception.Type, "The data operation could not be completed.", exception);
         }
         catch (ValidationException exception)
         {
@@ -50,7 +50,7 @@ public class StudentService(IStudentRepository repository) : IStudentService
         }
         catch (RepositoryException exception)
         {
-            throw new ServiceException(nameof(GetStudentById), exception.Kind, "The data operation could not be completed.", exception);
+            throw new ServiceException(nameof(GetStudentById), exception.Type, "The data operation could not be completed.", exception);
         }
         catch (ValidationException exception)
         {
@@ -84,7 +84,7 @@ public class StudentService(IStudentRepository repository) : IStudentService
         }
         catch (RepositoryException exception)
         {
-            throw new ServiceException(nameof(UpdateStudent), exception.Kind, "The data operation could not be completed.", exception);
+            throw new ServiceException(nameof(UpdateStudent), exception.Type, "The data operation could not be completed.", exception);
         }
         catch (ValidationException exception)
         {
@@ -112,7 +112,7 @@ public class StudentService(IStudentRepository repository) : IStudentService
         }
         catch (RepositoryException exception)
         {
-            throw new ServiceException(nameof(ValidateStudentExists), exception.Kind, "The data operation could not be completed.", exception);
+            throw new ServiceException(nameof(ValidateStudentExists), exception.Type, "The data operation could not be completed.", exception);
         }
         catch (ValidationException exception)
         {

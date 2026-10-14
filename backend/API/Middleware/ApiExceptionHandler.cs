@@ -54,14 +54,14 @@ public class ApiExceptionHandler(IProblemDetailsService problems, ILogger<ApiExc
 
     private static ProblemDetails CreateProblemDetails(Exception exception)
     {
-        var kind = exception switch
+        var type = exception switch
         {
-            ServiceException service => service.Kind,
-            OrchestrationException orchestration => orchestration.Kind,
+            ServiceException service => service.Type,
+            OrchestrationException orchestration => orchestration.Type,
             _ => ErrorType.Unexpected
         };
 
-        return kind switch
+        return type switch
         {
             ErrorType.Validation => new ValidationProblemDetails(new Dictionary<string, string[]>
             {

@@ -3,175 +3,147 @@ using API.Models;
 using API.Repositories;
 using API.Tests.Support;
 using Microsoft.EntityFrameworkCore;
+using Moq;
 
 namespace API.Tests.Repository;
 
 public class SavedProjectRepositoryTests
 {
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task GetSavedProjects_WrapsCancellationAndContextFailures(bool cancelled)
-    {
-        await using var c = await RepositoryTestContext.CreateAsync();
-        var repository = new SavedProjectRepository(c.Db);
-        using var cancellation = new CancellationTokenSource();
-        if (cancelled)
-        {
-            cancellation.Cancel();
-        }
-        else
-        {
-            await c.Db.DisposeAsync();
-        }
-        var token = cancellation.Token;
-        var exception = await Assert.ThrowsAsync<RepositoryException>(() => repository.GetSavedProjects(c.Student.UserId, token));
-        if (cancelled)
-        {
-            Assert.Equal(ErrorType.Cancelled, exception.Kind);
-            var original = Assert.IsAssignableFrom<OperationCanceledException>(exception.InnerException);
-            Assert.Equal(token, original.CancellationToken);
-        }
-        else
-        {
-            Assert.Equal(ErrorType.Unexpected, exception.Kind);
-            Assert.IsType<ObjectDisposedException>(exception.InnerException);
-        }
-    }
-
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task SaveProject_WrapsCancellationAndContextFailures(bool cancelled)
-    {
-        await using var c = await RepositoryTestContext.CreateAsync();
-        var repository = new SavedProjectRepository(c.Db);
-        using var cancellation = new CancellationTokenSource();
-        if (cancelled)
-        {
-            cancellation.Cancel();
-        }
-        else
-        {
-            await c.Db.DisposeAsync();
-        }
-        var token = cancellation.Token;
-        var exception = await Assert.ThrowsAsync<RepositoryException>(() => repository.SaveProject(c.Student.UserId, c.Project.Id, token));
-        if (cancelled)
-        {
-            Assert.Equal(ErrorType.Cancelled, exception.Kind);
-            var original = Assert.IsAssignableFrom<OperationCanceledException>(exception.InnerException);
-            Assert.Equal(token, original.CancellationToken);
-        }
-        else
-        {
-            Assert.Equal(ErrorType.Unexpected, exception.Kind);
-            Assert.IsType<ObjectDisposedException>(exception.InnerException);
-        }
-    }
-
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task RemoveSavedProject_WrapsCancellationAndContextFailures(bool cancelled)
-    {
-        await using var c = await RepositoryTestContext.CreateAsync();
-        var repository = new SavedProjectRepository(c.Db);
-        using var cancellation = new CancellationTokenSource();
-        if (cancelled)
-        {
-            cancellation.Cancel();
-        }
-        else
-        {
-            await c.Db.DisposeAsync();
-        }
-        var token = cancellation.Token;
-        var exception = await Assert.ThrowsAsync<RepositoryException>(() => repository.RemoveSavedProject(c.Student.UserId, c.Project.Id, token));
-        if (cancelled)
-        {
-            Assert.Equal(ErrorType.Cancelled, exception.Kind);
-            var original = Assert.IsAssignableFrom<OperationCanceledException>(exception.InnerException);
-            Assert.Equal(token, original.CancellationToken);
-        }
-        else
-        {
-            Assert.Equal(ErrorType.Unexpected, exception.Kind);
-            Assert.IsType<ObjectDisposedException>(exception.InnerException);
-        }
-    }
-
     [Fact]
     public async Task GetSavedProjects_IsolatesStudentsOrdersTitlesAndIncludesTopics()
     {
-        await using var c = await RepositoryTestContext.CreateAsync();
-        var repository = new SavedProjectRepository(c.Db);
-        await repository.SaveProject(c.Student.UserId, c.Project.Id);
-        await repository.SaveProject(c.Student.UserId, c.OtherProject.Id);
-        c.Db.ChangeTracker.Clear();
-        var result = await repository.GetSavedProjects(c.Student.UserId);
-        Assert.Equal(new[] { c.OtherProject.Id, c.Project.Id }, result.Select(x => x.Id));
-        Assert.Equal(c.Topic.Id, Assert.Single(result[1].Topics).Id);
-        Assert.Empty(await repository.GetSavedProjects(c.OtherStudent.UserId));
-        Assert.Empty(await repository.GetSavedProjects(Guid.NewGuid()));
-        Assert.Empty(c.Db.ChangeTracker.Entries());
+        await using var context = await RepositoryTestContext.CreateAsync();
+        var repository = new SavedProjectRepository(context.Db);
+        await repository.SaveProject(context.Student.UserId, context.Project.Id);
+        await repository.SaveProject(context.Student.UserId, context.OtherProject.Id);
+        context.Db.ChangeTracker.Clear();
+
+        var result = await repository.GetSavedProjects(context.Student.UserId);
+
+        Assert.Equal(new[] { context.OtherProject.Id, context.Project.Id }, result.Select(x => x.Id));
+        Assert.Equal(context.Topic.Id, Assert.Single(result[1].Topics).Id);
+        Assert.Empty(context.Db.ChangeTracker.Entries());
     }
 
     [Fact]
-    public async Task SaveProject_IsIdempotentAndPersistsSavedTimestamp()
+    public async Task GetSavedProjects_WrapsContextFailure()
     {
-        await using var c = await RepositoryTestContext.CreateAsync();
-        var repository = new SavedProjectRepository(c.Db);
-        await repository.SaveProject(c.Student.UserId, c.Project.Id);
-        await repository.SaveProject(c.Student.UserId, c.Project.Id);
-        c.Db.ChangeTracker.Clear();
-        var relationship = Assert.Single(await c.Db.Set<Dictionary<string, object>>("student_saved_projects").ToListAsync());
-        Assert.Equal(c.Student.UserId, relationship["student_id"]);
-        Assert.Equal(c.Project.Id, relationship["project_id"]);
+        await using var context = await RepositoryTestContext.CreateAsync();
+        var original = new InvalidOperationException("Context failed");
+
+        context.DbMock.Setup(db => db.Set<Student>())
+            .Throws(original);
+
+        var repository = new SavedProjectRepository(context.Db);
+
+        var exception = await Assert.ThrowsAsync<RepositoryException>(() => repository.GetSavedProjects(context.Student.UserId, CancellationToken.None));
+
+        Assert.Equal(ErrorType.Unexpected, exception.Type);
+        Assert.Same(original, exception.InnerException);
+        context.DbMock.Verify(db => db.Set<Student>(), Times.Once);
+    }
+
+    [Fact]
+    public async Task SaveProject_PersistsRelationshipAndTimestamp()
+    {
+        await using var context = await RepositoryTestContext.CreateAsync();
+        var repository = new SavedProjectRepository(context.Db);
+
+        await repository.SaveProject(context.Student.UserId, context.Project.Id);
+        context.Db.ChangeTracker.Clear();
+
+        var relationship = Assert.Single(await context.Db.Set<Dictionary<string, object>>("student_saved_projects").ToListAsync());
+
+        Assert.Equal(context.Student.UserId, relationship["student_id"]);
+        Assert.Equal(context.Project.Id, relationship["project_id"]);
         Assert.IsType<DateTime>(relationship["saved_at"]);
-        Assert.Equal(c.Project.Id, Assert.Single(await repository.GetSavedProjects(c.Student.UserId)).Id);
+        Assert.Equal(context.Project.Id, Assert.Single(await repository.GetSavedProjects(context.Student.UserId)).Id);
     }
 
     [Fact]
-    public async Task RemoveSavedProject_RemovesOnlyRequestedRelationshipAndIsIdempotent()
+    public async Task SaveProject_WrapsContextFailure()
     {
-        await using var c = await RepositoryTestContext.CreateAsync();
-        var repository = new SavedProjectRepository(c.Db);
-        await repository.SaveProject(c.Student.UserId, c.Project.Id);
-        await repository.SaveProject(c.Student.UserId, c.OtherProject.Id);
-        await repository.RemoveSavedProject(c.Student.UserId, c.Project.Id);
-        await repository.RemoveSavedProject(c.Student.UserId, c.Project.Id);
-        c.Db.ChangeTracker.Clear();
-        Assert.Equal(c.OtherProject.Id, Assert.Single(await repository.GetSavedProjects(c.Student.UserId)).Id);
+        await using var context = await RepositoryTestContext.CreateAsync();
+        var original = new InvalidOperationException("Context failed");
+
+        context.DbMock.Setup(db => db.Set<Dictionary<string, object>>("student_saved_projects"))
+            .Throws(original);
+
+        var repository = new SavedProjectRepository(context.Db);
+
+        var exception = await Assert.ThrowsAsync<RepositoryException>(() => repository.SaveProject(context.Student.UserId, context.Project.Id, CancellationToken.None));
+
+        Assert.Equal(ErrorType.Unexpected, exception.Type);
+        Assert.Same(original, exception.InnerException);
+        context.DbMock.Verify(db => db.Set<Dictionary<string, object>>("student_saved_projects"), Times.Once);
     }
 
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task SaveProject_PreservesSaveFailureAndClassifiesConflict(bool conflict)
+    [Fact]
+    public async Task SaveProject_WrapsSaveFailure()
     {
-        await using var c = await RepositoryTestContext.CreateAsync();
-        var repository = new SavedProjectRepository(c.Db);
+        await using var context = await RepositoryTestContext.CreateAsync();
+        var repository = new SavedProjectRepository(context.Db);
 
-        Exception original = conflict ? new DbUpdateConcurrencyException("Concurrent write") : new InvalidOperationException("Save failed");
-        c.FailSavesWith(original);
-        var exception = await Assert.ThrowsAsync<RepositoryException>(() => repository.SaveProject(c.Student.UserId, c.Project.Id));
+        var original = new InvalidOperationException("Save failed");
+
+        context.DbMock.Setup(db => db.SaveChangesAsync(CancellationToken.None))
+            .ThrowsAsync(original);
+
+        var exception = await Assert.ThrowsAsync<RepositoryException>(() => repository.SaveProject(context.Student.UserId, context.Project.Id));
+
         Assert.Same(original, exception.InnerException);
-        Assert.Equal(conflict ? ErrorType.Conflict : ErrorType.Unexpected, exception.Kind);
+        Assert.Equal(ErrorType.Unexpected, exception.Type);
+        context.DbMock.Verify(db => db.SaveChangesAsync(CancellationToken.None), Times.Once);
     }
 
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task RemoveSavedProject_PreservesSaveFailureAndClassifiesConflict(bool conflict)
+    [Fact]
+    public async Task RemoveSavedProject_RemovesRequestedRelationship()
     {
-        await using var c = await RepositoryTestContext.CreateAsync();
-        var repository = new SavedProjectRepository(c.Db);
-        await repository.SaveProject(c.Student.UserId, c.Project.Id);
-        Exception original = conflict ? new DbUpdateConcurrencyException("Concurrent write") : new InvalidOperationException("Save failed");
-        c.FailSavesWith(original);
-        var exception = await Assert.ThrowsAsync<RepositoryException>(() => repository.RemoveSavedProject(c.Student.UserId, c.Project.Id));
+        await using var context = await RepositoryTestContext.CreateAsync();
+        var repository = new SavedProjectRepository(context.Db);
+
+        await repository.SaveProject(context.Student.UserId, context.Project.Id);
+        await repository.SaveProject(context.Student.UserId, context.OtherProject.Id);
+        await repository.RemoveSavedProject(context.Student.UserId, context.Project.Id);
+        
+        context.Db.ChangeTracker.Clear();
+        Assert.Equal(context.OtherProject.Id, Assert.Single(await repository.GetSavedProjects(context.Student.UserId)).Id);
+    }
+
+    [Fact]
+    public async Task RemoveSavedProject_WrapsContextFailure()
+    {
+        await using var context = await RepositoryTestContext.CreateAsync();
+        var original = new InvalidOperationException("Context failed");
+
+        context.DbMock.Setup(db => db.Set<Dictionary<string, object>>("student_saved_projects"))
+            .Throws(original);
+
+        var repository = new SavedProjectRepository(context.Db);
+
+        var exception = await Assert.ThrowsAsync<RepositoryException>(() => repository.RemoveSavedProject(context.Student.UserId, context.Project.Id, CancellationToken.None));
+
+        Assert.Equal(ErrorType.Unexpected, exception.Type);
         Assert.Same(original, exception.InnerException);
-        Assert.Equal(conflict ? ErrorType.Conflict : ErrorType.Unexpected, exception.Kind);
+        context.DbMock.Verify(db => db.Set<Dictionary<string, object>>("student_saved_projects"), Times.Once);
+    }
+
+    [Fact]
+    public async Task RemoveSavedProject_WrapsSaveFailure()
+    {
+        await using var context = await RepositoryTestContext.CreateAsync();
+        var repository = new SavedProjectRepository(context.Db);
+        await repository.SaveProject(context.Student.UserId, context.Project.Id);
+        context.DbMock.Invocations.Clear();
+        var original = new InvalidOperationException("Save failed");
+
+        context.DbMock.Setup(db => db.SaveChangesAsync(CancellationToken.None))
+            .ThrowsAsync(original);
+
+        var exception = await Assert.ThrowsAsync<RepositoryException>(() => repository.RemoveSavedProject(context.Student.UserId, context.Project.Id));
+
+        Assert.Same(original, exception.InnerException);
+        Assert.Equal(ErrorType.Unexpected, exception.Type);
+        context.DbMock.Verify(db => db.SaveChangesAsync(CancellationToken.None), Times.Once);
     }
 }

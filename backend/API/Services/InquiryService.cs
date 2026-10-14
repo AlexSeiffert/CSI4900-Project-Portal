@@ -21,7 +21,7 @@ public class InquiryService(IInquiryRepository repository) : IInquiryService
         }
         catch (RepositoryException exception)
         {
-            throw new ServiceException(nameof(GetInquiries), exception.Kind, "The data operation could not be completed.", exception);
+            throw new ServiceException(nameof(GetInquiries), exception.Type, "The data operation could not be completed.", exception);
         }
         catch (ValidationException exception)
         {
@@ -46,7 +46,7 @@ public class InquiryService(IInquiryRepository repository) : IInquiryService
         }
         catch (RepositoryException exception)
         {
-            throw new ServiceException(nameof(GetInquiriesByStudentId), exception.Kind, "The data operation could not be completed.", exception);
+            throw new ServiceException(nameof(GetInquiriesByStudentId), exception.Type, "The data operation could not be completed.", exception);
         }
         catch (ValidationException exception)
         {
@@ -71,7 +71,7 @@ public class InquiryService(IInquiryRepository repository) : IInquiryService
         }
         catch (RepositoryException exception)
         {
-            throw new ServiceException(nameof(GetInquiriesBySupervisorId), exception.Kind, "The data operation could not be completed.", exception);
+            throw new ServiceException(nameof(GetInquiriesBySupervisorId), exception.Type, "The data operation could not be completed.", exception);
         }
         catch (ValidationException exception)
         {
@@ -96,7 +96,7 @@ public class InquiryService(IInquiryRepository repository) : IInquiryService
         }
         catch (RepositoryException exception)
         {
-            throw new ServiceException(nameof(GetInquiriesByProjectId), exception.Kind, "The data operation could not be completed.", exception);
+            throw new ServiceException(nameof(GetInquiriesByProjectId), exception.Type, "The data operation could not be completed.", exception);
         }
         catch (ValidationException exception)
         {
@@ -126,7 +126,7 @@ public class InquiryService(IInquiryRepository repository) : IInquiryService
         }
         catch (RepositoryException exception)
         {
-            throw new ServiceException(nameof(GetInquiryById), exception.Kind, "The data operation could not be completed.", exception);
+            throw new ServiceException(nameof(GetInquiryById), exception.Type, "The data operation could not be completed.", exception);
         }
         catch (ValidationException exception)
         {
@@ -159,7 +159,7 @@ public class InquiryService(IInquiryRepository repository) : IInquiryService
         }
         catch (RepositoryException exception)
         {
-            throw new ServiceException(nameof(CreateInquiry), exception.Kind, "The data operation could not be completed.", exception);
+            throw new ServiceException(nameof(CreateInquiry), exception.Type, "The data operation could not be completed.", exception);
         }
         catch (ValidationException exception)
         {
@@ -191,7 +191,7 @@ public class InquiryService(IInquiryRepository repository) : IInquiryService
         }
         catch (RepositoryException exception)
         {
-            throw new ServiceException(nameof(UpdateInquiry), exception.Kind, "The data operation could not be completed.", exception);
+            throw new ServiceException(nameof(UpdateInquiry), exception.Type, "The data operation could not be completed.", exception);
         }
         catch (ValidationException exception)
         {

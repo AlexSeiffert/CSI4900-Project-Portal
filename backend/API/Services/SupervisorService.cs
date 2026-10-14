@@ -20,7 +20,7 @@ public class SupervisorService(ISupervisorRepository repository) : ISupervisorSe
         }
         catch (RepositoryException exception)
         {
-            throw new ServiceException(nameof(GetSupervisors), exception.Kind, "The data operation could not be completed.", exception);
+            throw new ServiceException(nameof(GetSupervisors), exception.Type, "The data operation could not be completed.", exception);
         }
         catch (ValidationException exception)
         {
@@ -50,7 +50,7 @@ public class SupervisorService(ISupervisorRepository repository) : ISupervisorSe
         }
         catch (RepositoryException exception)
         {
-            throw new ServiceException(nameof(GetSupervisorById), exception.Kind, "The data operation could not be completed.", exception);
+            throw new ServiceException(nameof(GetSupervisorById), exception.Type, "The data operation could not be completed.", exception);
         }
         catch (ValidationException exception)
         {
@@ -87,7 +87,7 @@ public class SupervisorService(ISupervisorRepository repository) : ISupervisorSe
         }
         catch (RepositoryException exception)
         {
-            throw new ServiceException(nameof(UpdateSupervisor), exception.Kind, "The data operation could not be completed.", exception);
+            throw new ServiceException(nameof(UpdateSupervisor), exception.Type, "The data operation could not be completed.", exception);
         }
         catch (ValidationException exception)
         {
@@ -115,7 +115,7 @@ public class SupervisorService(ISupervisorRepository repository) : ISupervisorSe
         }
         catch (RepositoryException exception)
         {
-            throw new ServiceException(nameof(ValidateSupervisorExists), exception.Kind, "The data operation could not be completed.", exception);
+            throw new ServiceException(nameof(ValidateSupervisorExists), exception.Type, "The data operation could not be completed.", exception);
         }
         catch (ValidationException exception)
         {

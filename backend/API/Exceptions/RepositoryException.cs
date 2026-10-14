@@ -5,14 +5,14 @@ namespace API.Exceptions;
 
 public class RepositoryException : Exception
 {
-    public ErrorType Kind { get; }
+    public ErrorType Type { get; }
 
     public RepositoryException(string operation, Exception innerException)
         : base($"Repository operation '{operation}' failed.", innerException)
     {
-        Kind = innerException switch
+        Type = innerException switch
         {
-            RepositoryException repository => repository.Kind,
+            RepositoryException repository => repository.Type,
             OperationCanceledException => ErrorType.Cancelled,
             DbUpdateConcurrencyException => ErrorType.Conflict,
             DbUpdateException { InnerException: PostgresException { SqlState: PostgresErrorCodes.UniqueViolation or PostgresErrorCodes.ForeignKeyViolation } } => ErrorType.Conflict,

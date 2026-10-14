@@ -20,7 +20,7 @@ public class SavedProjectService(ISavedProjectRepository repository) : ISavedPro
         }
         catch (RepositoryException exception)
         {
-            throw new ServiceException(nameof(GetSavedProjects), exception.Kind, "The data operation could not be completed.", exception);
+            throw new ServiceException(nameof(GetSavedProjects), exception.Type, "The data operation could not be completed.", exception);
         }
         catch (ValidationException exception)
         {
@@ -44,7 +44,7 @@ public class SavedProjectService(ISavedProjectRepository repository) : ISavedPro
         }
         catch (RepositoryException exception)
         {
-            throw new ServiceException(nameof(SaveProject), exception.Kind, "The data operation could not be completed.", exception);
+            throw new ServiceException(nameof(SaveProject), exception.Type, "The data operation could not be completed.", exception);
         }
         catch (ValidationException exception)
         {
@@ -68,7 +68,7 @@ public class SavedProjectService(ISavedProjectRepository repository) : ISavedPro
         }
         catch (RepositoryException exception)
         {
-            throw new ServiceException(nameof(RemoveSavedProject), exception.Kind, "The data operation could not be completed.", exception);
+            throw new ServiceException(nameof(RemoveSavedProject), exception.Type, "The data operation could not be completed.", exception);
         }
         catch (ValidationException exception)
         {

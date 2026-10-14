@@ -20,7 +20,7 @@ public class TopicService(ITopicRepository repository) : ITopicService
         }
         catch (RepositoryException exception)
         {
-            throw new ServiceException(nameof(GetTopics), exception.Kind, "The data operation could not be completed.", exception);
+            throw new ServiceException(nameof(GetTopics), exception.Type, "The data operation could not be completed.", exception);
         }
         catch (ValidationException exception)
         {
@@ -51,7 +51,7 @@ public class TopicService(ITopicRepository repository) : ITopicService
         }
         catch (RepositoryException exception)
         {
-            throw new ServiceException(nameof(ValidateTopicsExist), exception.Kind, "The data operation could not be completed.", exception);
+            throw new ServiceException(nameof(ValidateTopicsExist), exception.Type, "The data operation could not be completed.", exception);
         }
         catch (ValidationException exception)
         {

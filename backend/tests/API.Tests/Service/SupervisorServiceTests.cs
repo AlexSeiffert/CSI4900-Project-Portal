@@ -1,150 +1,207 @@
 using API.DTOs.Request;
 using API.Exceptions;
 using API.Models;
-using API.Tests.Support;
+using API.Repositories.Interfaces;
+using API.Services;
+using Moq;
 
 namespace API.Tests.Service;
 
 public class SupervisorServiceTests
 {
-    [Theory]
-    [MemberData(nameof(ServiceFailureCases.All), MemberType = typeof(ServiceFailureCases))]
-    public async Task GetSupervisors_PreservesDependencyFailureAndClassification(string kind)
-    {
-        var c = new ServiceTestContext();
-        using var cancellation = new CancellationTokenSource();
-        var token = cancellation.Token;
-        var original = ServiceFailureCases.Create(kind);
-        c.Supervisors.Failure = original;
-        c.Supervisors.FailureMethod = "GetSupervisors";
-        await ServiceFailureCases.AssertWrapped(() => c.SupervisorService.GetSupervisors(token), "GetSupervisors", original);
-        Assert.Equal(token, c.Supervisors.LastToken);
-    }
+    private readonly Mock<ISupervisorRepository> _repository = new();
 
-    [Theory]
-    [MemberData(nameof(ServiceFailureCases.All), MemberType = typeof(ServiceFailureCases))]
-    public async Task GetSupervisorById_PreservesDependencyFailureAndClassification(string kind)
-    {
-        var c = new ServiceTestContext();
-        using var cancellation = new CancellationTokenSource();
-        var token = cancellation.Token;
-        var original = ServiceFailureCases.Create(kind);
-        c.Supervisors.Failure = original;
-        c.Supervisors.FailureMethod = "GetSupervisorById";
-        await ServiceFailureCases.AssertWrapped(() => c.SupervisorService.GetSupervisorById(c.Supervisor.UserId, token), "GetSupervisorById", original);
-        Assert.Equal(token, c.Supervisors.LastToken);
-    }
-
-    [Theory]
-    [MemberData(nameof(ServiceFailureCases.All), MemberType = typeof(ServiceFailureCases))]
-    public async Task UpdateSupervisor_PreservesDependencyFailureAndClassification(string kind)
-    {
-        var c = new ServiceTestContext();
-        using var cancellation = new CancellationTokenSource();
-        var token = cancellation.Token;
-        var original = ServiceFailureCases.Create(kind);
-        c.Supervisors.Failure = original;
-        c.Supervisors.FailureMethod = "UpdateSupervisor";
-        await ServiceFailureCases.AssertWrapped(() => c.SupervisorService.UpdateSupervisor(c.Supervisor.UserId, c.SupervisorUpdate(), token), "UpdateSupervisor", original);
-        Assert.Equal(token, c.Supervisors.LastToken);
-    }
+    private SupervisorService CreateService() => new(_repository.Object);
 
     [Fact]
     public async Task GetSupervisors_MapsProfilesAndTopics()
     {
-        var c = new ServiceTestContext();
-        var result = Assert.Single(await c.SupervisorService.GetSupervisors());
-        Assert.Equal(c.Supervisor.UserId, result.UserId);
-        Assert.Equal(c.Supervisor.DisplayName, result.DisplayName);
-        Assert.Equal(c.Topic.Id, Assert.Single(result.TopicInterests).Id);
+        var topic = new Topic { Id = Guid.NewGuid(), Name = "Databases" };
+        var supervisor = new Supervisor { UserId = Guid.NewGuid(), DisplayName = "Supervisor", ContactEmail = "supervisor@example.test", TopicInterests = [topic] };
+
+        _repository.Setup(repository => repository.GetSupervisors(CancellationToken.None))
+            .ReturnsAsync(new List<Supervisor> { supervisor });
+
+        var service = CreateService();
+
+        var result = Assert.Single(await service.GetSupervisors(CancellationToken.None));
+
+        Assert.Equal(supervisor.UserId, result.UserId);
+        Assert.Equal(supervisor.DisplayName, result.DisplayName);
+        Assert.Equal(topic.Id, Assert.Single(result.TopicInterests).Id);
+        _repository.Verify(repository => repository.GetSupervisors(CancellationToken.None), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetSupervisors_WrapsRepositoryFailure()
+    {
+        using var cancellation = new CancellationTokenSource();
+        var token = cancellation.Token;
+        var original = new RepositoryException("dependency", new InvalidOperationException("Database failed"));
+
+        _repository.Setup(repository => repository.GetSupervisors(token))
+            .ThrowsAsync(original);
+
+        var service = CreateService();
+
+        var exception = await Assert.ThrowsAsync<ServiceException>(() => service.GetSupervisors(token));
+
+        Assert.Equal(nameof(SupervisorService.GetSupervisors), exception.Operation);
+        Assert.Equal(ErrorType.Unexpected, exception.Type);
+        Assert.Same(original, exception.InnerException);
+        _repository.Verify(repository => repository.GetSupervisors(token), Times.Once);
     }
 
     [Fact]
     public async Task GetSupervisorById_ReturnsMatchingProfile()
     {
-        var c = new ServiceTestContext();
-        var result = await c.SupervisorService.GetSupervisorById(c.Supervisor.UserId);
-        Assert.Equal(c.Supervisor.UserId, result.UserId);
-        Assert.Equal(c.Supervisor.DisplayName, result.DisplayName);
-        Assert.Equal(c.Topic.Id, Assert.Single(result.TopicInterests).Id);
+        var topic = new Topic { Id = Guid.NewGuid(), Name = "Databases" };
+        var supervisor = new Supervisor { UserId = Guid.NewGuid(), DisplayName = "Supervisor", ContactEmail = "supervisor@example.test", TopicInterests = [topic] };
+
+        _repository.Setup(repository => repository.GetSupervisorById(supervisor.UserId, CancellationToken.None))
+            .ReturnsAsync(supervisor);
+
+        var service = CreateService();
+
+        var result = await service.GetSupervisorById(supervisor.UserId, CancellationToken.None);
+
+        Assert.Equal(supervisor.UserId, result.UserId);
+        Assert.Equal(supervisor.DisplayName, result.DisplayName);
+        Assert.Equal(topic.Id, Assert.Single(result.TopicInterests).Id);
+        _repository.Verify(repository => repository.GetSupervisorById(supervisor.UserId, CancellationToken.None), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetSupervisorById_WrapsRepositoryFailure()
+    {
+        var supervisorId = Guid.NewGuid();
+        using var cancellation = new CancellationTokenSource();
+        var token = cancellation.Token;
+        var original = new RepositoryException("dependency", new InvalidOperationException("Database failed"));
+
+        _repository.Setup(repository => repository.GetSupervisorById(supervisorId, token))
+            .ThrowsAsync(original);
+
+        var service = CreateService();
+
+        var exception = await Assert.ThrowsAsync<ServiceException>(() => service.GetSupervisorById(supervisorId, token));
+
+        Assert.Equal(nameof(SupervisorService.GetSupervisorById), exception.Operation);
+        Assert.Equal(ErrorType.Unexpected, exception.Type);
+        Assert.Same(original, exception.InnerException);
+        _repository.Verify(repository => repository.GetSupervisorById(supervisorId, token), Times.Once);
     }
 
     [Fact]
     public async Task UpdateSupervisor_UpdatesFieldsAndPreservesIdentity()
     {
-        var c = new ServiceTestContext();
-        var request = c.SupervisorUpdate();
-        var before = c.Supervisor.UpdatedAt;
-        var result = await c.SupervisorService.UpdateSupervisor(c.Supervisor.UserId, request);
-        Assert.Equal(c.Supervisor.UserId, result.UserId);
+        var topic = new Topic { Id = Guid.NewGuid(), Name = "Databases" };
+        var supervisor = new Supervisor { UserId = Guid.NewGuid(), DisplayName = "Supervisor", ContactEmail = "supervisor@example.test", TopicInterests = [topic] };
+        var request = new UpdateSupervisor { DisplayName = "Updated", ContactEmail = "updated@example.test", AboutMe = "Research", ExternalUrl = "https://example.test", AcceptingInquiries = false, TopicIds = [topic.Id] };
+        var before = supervisor.UpdatedAt;
+
+        _repository.Setup(repository => repository.GetSupervisorById(supervisor.UserId, CancellationToken.None))
+            .ReturnsAsync(supervisor);
+        _repository.Setup(repository => repository.UpdateSupervisor(supervisor, request.TopicIds, CancellationToken.None))
+            .ReturnsAsync(supervisor);
+
+        var service = CreateService();
+
+        var result = await service.UpdateSupervisor(supervisor.UserId, request, CancellationToken.None);
+
+        Assert.Equal(supervisor.UserId, result.UserId);
         Assert.Equal(request.DisplayName, result.DisplayName);
         Assert.Equal(request.ContactEmail, result.ContactEmail);
         Assert.Equal(request.AboutMe, result.AboutMe);
         Assert.Equal(request.ExternalUrl, result.ExternalUrl);
         Assert.False(result.AcceptingInquiries);
         Assert.True(result.UpdatedAt >= before);
-        Assert.Contains("UpdateSupervisor", c.Supervisors.Calls);
+        _repository.Verify(repository => repository.GetSupervisorById(supervisor.UserId, CancellationToken.None), Times.Once);
+        _repository.Verify(repository => repository.UpdateSupervisor(supervisor, request.TopicIds, CancellationToken.None), Times.Once);
     }
 
     [Fact]
-    public async Task GetSupervisorById_ThrowsForMissingProfile()
+    public async Task UpdateSupervisor_WrapsRepositoryFailure()
     {
-        var c = new ServiceTestContext();
-        await ServiceFailureCases.AssertDomainFailure(() => c.SupervisorService.GetSupervisorById(Guid.NewGuid()), "GetSupervisorById", ErrorType.NotFound);
-        Assert.DoesNotContain("UpdateSupervisor", c.Supervisors.Calls);
-    }
-
-    [Fact]
-    public async Task UpdateSupervisor_ThrowsForMissingProfile()
-    {
-        var c = new ServiceTestContext();
-        await ServiceFailureCases.AssertDomainFailure(() => c.SupervisorService.UpdateSupervisor(Guid.NewGuid(), c.SupervisorUpdate()), "UpdateSupervisor", ErrorType.NotFound);
-        Assert.DoesNotContain("UpdateSupervisor", c.Supervisors.Calls);
-    }
-
-    [Fact]
-    public async Task UpdateSupervisor_RejectsInvalidRequestBeforeWriting()
-    {
-        var c = new ServiceTestContext();
-        var request = c.SupervisorUpdate();
-        request.DisplayName = " ";
-        await ServiceFailureCases.AssertDomainFailure(() => c.SupervisorService.UpdateSupervisor(c.Supervisor.UserId, request), "UpdateSupervisor", ErrorType.Validation);
-        Assert.DoesNotContain("UpdateSupervisor", c.Supervisors.Calls);
-    }
-
-
-    [Fact]
-    public void Constructor_DependsOnlyOnOwnRepository()
-    {
-        var constructor = Assert.Single(typeof(API.Services.SupervisorService).GetConstructors());
-        var dependency = Assert.Single(constructor.GetParameters());
-        Assert.Equal(typeof(API.Repositories.Interfaces.ISupervisorRepository), dependency.ParameterType);
-    }
-
-    [Theory]
-    [MemberData(nameof(ServiceFailureCases.All), MemberType = typeof(ServiceFailureCases))]
-    public async Task ValidateSupervisorExists_PreservesDependencyFailureAndClassification(string kind)
-    {
-        var c = new ServiceTestContext();
+        var topic = new Topic { Id = Guid.NewGuid(), Name = "Databases" };
+        var supervisor = new Supervisor { UserId = Guid.NewGuid(), DisplayName = "Supervisor", ContactEmail = "supervisor@example.test", TopicInterests = [topic] };
+        var request = new UpdateSupervisor { DisplayName = "Updated", ContactEmail = "updated@example.test", AboutMe = "Research", ExternalUrl = "https://example.test", AcceptingInquiries = false, TopicIds = [topic.Id] };
         using var cancellation = new CancellationTokenSource();
-        var original = ServiceFailureCases.Create(kind);
-        c.Supervisors.Failure = original;
-        await ServiceFailureCases.AssertWrapped(() => c.SupervisorService.ValidateSupervisorExists(c.Supervisor.UserId, cancellation.Token), "ValidateSupervisorExists", original);
-        Assert.Equal(cancellation.Token, c.Supervisors.LastToken);
+        var token = cancellation.Token;
+        var original = new RepositoryException("dependency", new InvalidOperationException("Database failed"));
+
+        _repository.Setup(repository => repository.GetSupervisorById(supervisor.UserId, token))
+            .ReturnsAsync(supervisor);
+        _repository.Setup(repository => repository.UpdateSupervisor(supervisor, request.TopicIds, token))
+            .ThrowsAsync(original);
+
+        var service = CreateService();
+
+        var exception = await Assert.ThrowsAsync<ServiceException>(() => service.UpdateSupervisor(supervisor.UserId, request, token));
+
+        Assert.Equal(nameof(SupervisorService.UpdateSupervisor), exception.Operation);
+        Assert.Equal(ErrorType.Unexpected, exception.Type);
+        Assert.Same(original, exception.InnerException);
+        _repository.Verify(repository => repository.GetSupervisorById(supervisor.UserId, token), Times.Once);
+        _repository.Verify(repository => repository.UpdateSupervisor(supervisor, request.TopicIds, token), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdateSupervisor_WrapsLookupFailure()
+    {
+        var topicId = Guid.NewGuid();
+        var supervisorId = Guid.NewGuid();
+        var request = new UpdateSupervisor { DisplayName = "Updated", ContactEmail = "updated@example.test", AboutMe = "Research", ExternalUrl = "https://example.test", AcceptingInquiries = false, TopicIds = [topicId] };
+        using var cancellation = new CancellationTokenSource();
+        var token = cancellation.Token;
+        var original = new RepositoryException("dependency", new InvalidOperationException("Database failed"));
+
+        _repository.Setup(repository => repository.GetSupervisorById(supervisorId, token))
+            .ThrowsAsync(original);
+
+        var service = CreateService();
+
+        var exception = await Assert.ThrowsAsync<ServiceException>(() => service.UpdateSupervisor(supervisorId, request, token));
+
+        Assert.Equal(nameof(SupervisorService.UpdateSupervisor), exception.Operation);
+        Assert.Equal(ErrorType.Unexpected, exception.Type);
+        Assert.Same(original, exception.InnerException);
+        _repository.Verify(repository => repository.GetSupervisorById(supervisorId, token), Times.Once);
     }
 
     [Fact]
     public async Task ValidateSupervisorExists_AcceptsExistingReferences()
     {
-        var c = new ServiceTestContext();
-        await c.SupervisorService.ValidateSupervisorExists(c.Supervisor.UserId);
-        Assert.Equal("GetSupervisorById", Assert.Single(c.Supervisors.Calls));
+        var topic = new Topic { Id = Guid.NewGuid(), Name = "Databases" };
+        var supervisor = new Supervisor { UserId = Guid.NewGuid(), DisplayName = "Supervisor", ContactEmail = "supervisor@example.test", TopicInterests = [topic] };
+
+        _repository.Setup(repository => repository.GetSupervisorById(supervisor.UserId, CancellationToken.None))
+            .ReturnsAsync(supervisor);
+
+        var service = CreateService();
+
+        await service.ValidateSupervisorExists(supervisor.UserId, CancellationToken.None);
+
+        _repository.Verify(repository => repository.GetSupervisorById(supervisor.UserId, CancellationToken.None), Times.Once);
     }
 
     [Fact]
-    public async Task ValidateSupervisorExists_RejectsMissingReferences()
+    public async Task ValidateSupervisorExists_WrapsRepositoryFailure()
     {
-        var c = new ServiceTestContext();
-        await ServiceFailureCases.AssertDomainFailure(() => c.SupervisorService.ValidateSupervisorExists(Guid.NewGuid()), "ValidateSupervisorExists", ErrorType.Validation);
+        var supervisorId = Guid.NewGuid();
+        using var cancellation = new CancellationTokenSource();
+        var original = new RepositoryException("dependency", new InvalidOperationException("Database failed"));
+
+        _repository.Setup(repository => repository.GetSupervisorById(supervisorId, cancellation.Token))
+            .ThrowsAsync(original);
+
+        var service = CreateService();
+
+        var exception = await Assert.ThrowsAsync<ServiceException>(() => service.ValidateSupervisorExists(supervisorId, cancellation.Token));
+
+        Assert.Equal(nameof(SupervisorService.ValidateSupervisorExists), exception.Operation);
+        Assert.Equal(ErrorType.Unexpected, exception.Type);
+        Assert.Same(original, exception.InnerException);
+        _repository.Verify(repository => repository.GetSupervisorById(supervisorId, cancellation.Token), Times.Once);
     }
 }

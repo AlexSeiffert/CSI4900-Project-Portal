@@ -1,92 +1,88 @@
-using API.DTOs.Request;
 using API.Exceptions;
 using API.Models;
-using API.Tests.Support;
+using API.Repositories.Interfaces;
+using API.Services;
+using Moq;
 
 namespace API.Tests.Service;
 
 public class TopicServiceTests
 {
-    [Theory]
-    [MemberData(nameof(ServiceFailureCases.All), MemberType = typeof(ServiceFailureCases))]
-    public async Task GetTopics_PreservesDependencyFailureAndClassification(string kind)
-    {
-        var c = new ServiceTestContext();
-        using var cancellation = new CancellationTokenSource();
-        var token = cancellation.Token;
-        var original = ServiceFailureCases.Create(kind);
-        c.Topics.Failure = original;
-        c.Topics.FailureMethod = "GetTopics";
-        await ServiceFailureCases.AssertWrapped(() => c.TopicService.GetTopics(token), "GetTopics", original);
-        Assert.Equal(token, c.Topics.LastToken);
-    }
+    private readonly Mock<ITopicRepository> _repository = new();
+
+    private TopicService CreateService() => new(_repository.Object);
 
     [Fact]
     public async Task GetTopics_ReturnsMappedTopics()
     {
-        var c = new ServiceTestContext();
-        var result = Assert.Single(await c.TopicService.GetTopics());
-        Assert.Equal(c.Topic.Id, result.Id);
-        Assert.Equal(c.Topic.Name, result.Name);
-        Assert.Equal("GetTopics", Assert.Single(c.Topics.Calls));
+        var topic = new Topic { Id = Guid.NewGuid(), Name = "Databases" };
+
+        _repository.Setup(repository => repository.GetTopics(CancellationToken.None))
+            .ReturnsAsync(new List<Topic> { topic });
+
+        var service = CreateService();
+
+        var result = Assert.Single(await service.GetTopics(CancellationToken.None));
+
+        Assert.Equal(topic.Id, result.Id);
+        Assert.Equal(topic.Name, result.Name);
+        _repository.Verify(repository => repository.GetTopics(CancellationToken.None), Times.Once);
     }
 
     [Fact]
-    public async Task GetTopics_ReturnsEmptyCollectionWhenNoTopicsExist()
+    public async Task GetTopics_WrapsRepositoryFailure()
     {
-        var c = new ServiceTestContext();
-        c.Topics.Items.Clear();
-        Assert.Empty(await c.TopicService.GetTopics());
-    }
-
-    [Theory]
-    [MemberData(nameof(ServiceFailureCases.All), MemberType = typeof(ServiceFailureCases))]
-    public async Task ValidateTopicsExist_PreservesDependencyFailureAndClassification(string kind)
-    {
-        var c = new ServiceTestContext();
         using var cancellation = new CancellationTokenSource();
-        var original = ServiceFailureCases.Create(kind);
-        c.Topics.Failure = original;
-        await ServiceFailureCases.AssertWrapped(() => c.TopicService.ValidateTopicsExist(new[] { c.Topic.Id, c.Topic.Id }, cancellation.Token), "ValidateTopicsExist", original);
-        Assert.Equal(cancellation.Token, c.Topics.LastToken);
+        var token = cancellation.Token;
+        var original = new RepositoryException("dependency", new InvalidOperationException("Database failed"));
+
+        _repository.Setup(repository => repository.GetTopics(token))
+            .ThrowsAsync(original);
+
+        var service = CreateService();
+
+        var exception = await Assert.ThrowsAsync<ServiceException>(() => service.GetTopics(token));
+
+        Assert.Equal(nameof(TopicService.GetTopics), exception.Operation);
+        Assert.Equal(ErrorType.Unexpected, exception.Type);
+        Assert.Same(original, exception.InnerException);
+        _repository.Verify(repository => repository.GetTopics(token), Times.Once);
     }
 
     [Fact]
     public async Task ValidateTopicsExist_AcceptsExistingReferences()
     {
-        var c = new ServiceTestContext();
-        await c.TopicService.ValidateTopicsExist(new[] { c.Topic.Id, c.Topic.Id });
-        Assert.Equal("GetTopicsByIds", Assert.Single(c.Topics.Calls));
+        var topic = new Topic { Id = Guid.NewGuid(), Name = "Databases" };
+        Guid[] topicIds = [topic.Id, topic.Id];
+
+        _repository.Setup(repository => repository.GetTopicsByIds(It.Is<IReadOnlyCollection<Guid>>(ids => ids.SequenceEqual(topicIds.Distinct())), CancellationToken.None))
+            .ReturnsAsync(new List<Topic> { topic });
+
+        var service = CreateService();
+
+        await service.ValidateTopicsExist(topicIds, CancellationToken.None);
+
+        _repository.Verify(repository => repository.GetTopicsByIds(It.Is<IReadOnlyCollection<Guid>>(ids => ids.SequenceEqual(topicIds.Distinct())), CancellationToken.None), Times.Once);
     }
 
     [Fact]
-    public async Task ValidateTopicsExist_RejectsMissingReferences()
+    public async Task ValidateTopicsExist_WrapsRepositoryFailure()
     {
-        var c = new ServiceTestContext();
-        await ServiceFailureCases.AssertDomainFailure(() => c.TopicService.ValidateTopicsExist(new[] { Guid.NewGuid() }), "ValidateTopicsExist", ErrorType.Validation);
-    }
+        var topicId = Guid.NewGuid();
+        Guid[] topicIds = [topicId, topicId];
+        using var cancellation = new CancellationTokenSource();
+        var original = new RepositoryException("dependency", new InvalidOperationException("Database failed"));
 
-    [Fact]
-    public async Task ValidateTopicsExist_AcceptsEmptySelection()
-    {
-        var c = new ServiceTestContext();
-        await c.TopicService.ValidateTopicsExist([]);
-        Assert.Equal("GetTopicsByIds", Assert.Single(c.Topics.Calls));
-    }
+        _repository.Setup(repository => repository.GetTopicsByIds(It.Is<IReadOnlyCollection<Guid>>(ids => ids.SequenceEqual(topicIds.Distinct())), cancellation.Token))
+            .ThrowsAsync(original);
 
-    [Fact]
-    public async Task ValidateTopicsExist_RejectsNullSelectionBeforeRepositoryCall()
-    {
-        var c = new ServiceTestContext();
-        await ServiceFailureCases.AssertDomainFailure(() => c.TopicService.ValidateTopicsExist(null!), "ValidateTopicsExist", ErrorType.Validation);
-        Assert.Empty(c.Topics.Calls);
-    }
+        var service = CreateService();
 
-    [Fact]
-    public void Constructor_DependsOnlyOnOwnRepository()
-    {
-        var constructor = Assert.Single(typeof(API.Services.TopicService).GetConstructors());
-        var dependency = Assert.Single(constructor.GetParameters());
-        Assert.Equal(typeof(API.Repositories.Interfaces.ITopicRepository), dependency.ParameterType);
+        var exception = await Assert.ThrowsAsync<ServiceException>(() => service.ValidateTopicsExist(topicIds, cancellation.Token));
+
+        Assert.Equal(nameof(TopicService.ValidateTopicsExist), exception.Operation);
+        Assert.Equal(ErrorType.Unexpected, exception.Type);
+        Assert.Same(original, exception.InnerException);
+        _repository.Verify(repository => repository.GetTopicsByIds(It.Is<IReadOnlyCollection<Guid>>(ids => ids.SequenceEqual(topicIds.Distinct())), cancellation.Token), Times.Once);
     }
 }

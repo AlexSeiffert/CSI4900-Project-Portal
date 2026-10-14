@@ -1,14 +1,14 @@
 using API.Models;
 using API.Models.Data;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
+using Moq;
 
 namespace API.Tests.Support;
 
 internal sealed class RepositoryTestContext : IAsyncDisposable
 {
-    private readonly FailureInterceptor _failure = new();
-    public ApplicationDbContext Db { get; }
+    public Mock<ApplicationDbContext> DbMock { get; }
+    public ApplicationDbContext Db => DbMock.Object;
     public Topic Topic { get; } = new() { Id = Guid.NewGuid(), Name = "Zoology" };
     public Topic OtherTopic { get; } = new() { Id = Guid.NewGuid(), Name = "Algorithms" };
     public Student Student { get; } = new() { UserId = Guid.NewGuid(), DisplayName = "Zoe", Program = "CS" };
@@ -22,8 +22,9 @@ internal sealed class RepositoryTestContext : IAsyncDisposable
 
     private RepositoryTestContext()
     {
-        Db = new(new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString()).AddInterceptors(_failure).Options);
+        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString()).Options;
+        DbMock = new Mock<ApplicationDbContext>(options) { CallBase = true };
         Student.TopicInterests.Add(Topic);
         Supervisor.TopicInterests.Add(Topic);
         Project = new() { Id = Guid.NewGuid(), SupervisorId = Supervisor.UserId, Title = "Zoology portal", Description = "Research", Topics = [Topic], CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc) };
@@ -39,23 +40,12 @@ internal sealed class RepositoryTestContext : IAsyncDisposable
             context.Topic, context.OtherTopic, context.Project, context.OtherProject, context.Inquiry, context.OtherInquiry);
         await context.Db.SaveChangesAsync();
         context.Db.ChangeTracker.Clear();
+        context.DbMock.Invocations.Clear();
         return context;
     }
 
-    public void FailSavesWith(Exception exception) => _failure.Failure = exception;
-    public ValueTask DisposeAsync() => Db.DisposeAsync();
-
-    private sealed class FailureInterceptor : SaveChangesInterceptor
+    public ValueTask DisposeAsync()
     {
-        public Exception? Failure { get; set; }
-        public override ValueTask<InterceptionResult<int>> SavingChangesAsync(
-            DbContextEventData eventData, InterceptionResult<int> result, CancellationToken cancellationToken = default)
-        {
-            if (Failure != null)
-            {
-                throw Failure;
-            }
-            return ValueTask.FromResult(result);
-        }
+        return Db.DisposeAsync();
     }
 }

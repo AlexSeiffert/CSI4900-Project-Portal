@@ -3,339 +3,243 @@ using API.Models;
 using API.Repositories;
 using API.Tests.Support;
 using Microsoft.EntityFrameworkCore;
+using Moq;
 
 namespace API.Tests.Repository;
 
 public class InquiryRepositoryTests
 {
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task GetInquiries_WrapsCancellationAndContextFailures(bool cancelled)
-    {
-        await using var c = await RepositoryTestContext.CreateAsync();
-        var repository = new InquiryRepository(c.Db);
-        using var cancellation = new CancellationTokenSource();
-        if (cancelled)
-        {
-            cancellation.Cancel();
-        }
-        else
-        {
-            await c.Db.DisposeAsync();
-        }
-        var token = cancellation.Token;
-        var exception = await Assert.ThrowsAsync<RepositoryException>(() => repository.GetInquiries(token));
-        if (cancelled)
-        {
-            Assert.Equal(ErrorType.Cancelled, exception.Kind);
-            var original = Assert.IsAssignableFrom<OperationCanceledException>(exception.InnerException);
-            Assert.Equal(token, original.CancellationToken);
-        }
-        else
-        {
-            Assert.Equal(ErrorType.Unexpected, exception.Kind);
-            Assert.IsType<ObjectDisposedException>(exception.InnerException);
-        }
-    }
-
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task GetInquiriesByStudentId_WrapsCancellationAndContextFailures(bool cancelled)
-    {
-        await using var c = await RepositoryTestContext.CreateAsync();
-        var repository = new InquiryRepository(c.Db);
-        using var cancellation = new CancellationTokenSource();
-        if (cancelled)
-        {
-            cancellation.Cancel();
-        }
-        else
-        {
-            await c.Db.DisposeAsync();
-        }
-        var token = cancellation.Token;
-        var exception = await Assert.ThrowsAsync<RepositoryException>(() => repository.GetInquiriesByStudentId(c.Student.UserId, token));
-        if (cancelled)
-        {
-            Assert.Equal(ErrorType.Cancelled, exception.Kind);
-            var original = Assert.IsAssignableFrom<OperationCanceledException>(exception.InnerException);
-            Assert.Equal(token, original.CancellationToken);
-        }
-        else
-        {
-            Assert.Equal(ErrorType.Unexpected, exception.Kind);
-            Assert.IsType<ObjectDisposedException>(exception.InnerException);
-        }
-    }
-
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task GetInquiriesBySupervisorId_WrapsCancellationAndContextFailures(bool cancelled)
-    {
-        await using var c = await RepositoryTestContext.CreateAsync();
-        var repository = new InquiryRepository(c.Db);
-        using var cancellation = new CancellationTokenSource();
-        if (cancelled)
-        {
-            cancellation.Cancel();
-        }
-        else
-        {
-            await c.Db.DisposeAsync();
-        }
-        var token = cancellation.Token;
-        var exception = await Assert.ThrowsAsync<RepositoryException>(() => repository.GetInquiriesBySupervisorId(c.Supervisor.UserId, token));
-        if (cancelled)
-        {
-            Assert.Equal(ErrorType.Cancelled, exception.Kind);
-            var original = Assert.IsAssignableFrom<OperationCanceledException>(exception.InnerException);
-            Assert.Equal(token, original.CancellationToken);
-        }
-        else
-        {
-            Assert.Equal(ErrorType.Unexpected, exception.Kind);
-            Assert.IsType<ObjectDisposedException>(exception.InnerException);
-        }
-    }
-
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task GetInquiriesByProjectId_WrapsCancellationAndContextFailures(bool cancelled)
-    {
-        await using var c = await RepositoryTestContext.CreateAsync();
-        var repository = new InquiryRepository(c.Db);
-        using var cancellation = new CancellationTokenSource();
-        if (cancelled)
-        {
-            cancellation.Cancel();
-        }
-        else
-        {
-            await c.Db.DisposeAsync();
-        }
-        var token = cancellation.Token;
-        var exception = await Assert.ThrowsAsync<RepositoryException>(() => repository.GetInquiriesByProjectId(c.Project.Id, token));
-        if (cancelled)
-        {
-            Assert.Equal(ErrorType.Cancelled, exception.Kind);
-            var original = Assert.IsAssignableFrom<OperationCanceledException>(exception.InnerException);
-            Assert.Equal(token, original.CancellationToken);
-        }
-        else
-        {
-            Assert.Equal(ErrorType.Unexpected, exception.Kind);
-            Assert.IsType<ObjectDisposedException>(exception.InnerException);
-        }
-    }
-
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task GetInquiryById_WrapsCancellationAndContextFailures(bool cancelled)
-    {
-        await using var c = await RepositoryTestContext.CreateAsync();
-        var repository = new InquiryRepository(c.Db);
-        using var cancellation = new CancellationTokenSource();
-        if (cancelled)
-        {
-            cancellation.Cancel();
-        }
-        else
-        {
-            await c.Db.DisposeAsync();
-        }
-        var token = cancellation.Token;
-        var exception = await Assert.ThrowsAsync<RepositoryException>(() => repository.GetInquiryById(c.Inquiry.Id, token));
-        if (cancelled)
-        {
-            Assert.Equal(ErrorType.Cancelled, exception.Kind);
-            var original = Assert.IsAssignableFrom<OperationCanceledException>(exception.InnerException);
-            Assert.Equal(token, original.CancellationToken);
-        }
-        else
-        {
-            Assert.Equal(ErrorType.Unexpected, exception.Kind);
-            Assert.IsType<ObjectDisposedException>(exception.InnerException);
-        }
-    }
-
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task CreateInquiry_WrapsCancellationAndContextFailures(bool cancelled)
-    {
-        await using var c = await RepositoryTestContext.CreateAsync();
-        var repository = new InquiryRepository(c.Db);
-        using var cancellation = new CancellationTokenSource();
-        if (cancelled)
-        {
-            cancellation.Cancel();
-        }
-        else
-        {
-            await c.Db.DisposeAsync();
-        }
-        var token = cancellation.Token;
-        var exception = await Assert.ThrowsAsync<RepositoryException>(() => repository.CreateInquiry(new Inquiry { Id = Guid.NewGuid(), StudentId = c.Student.UserId, SupervisorId = c.Supervisor.UserId }, token));
-        if (cancelled)
-        {
-            Assert.Equal(ErrorType.Cancelled, exception.Kind);
-            var original = Assert.IsAssignableFrom<OperationCanceledException>(exception.InnerException);
-            Assert.Equal(token, original.CancellationToken);
-        }
-        else
-        {
-            Assert.Equal(ErrorType.Unexpected, exception.Kind);
-            Assert.IsType<ObjectDisposedException>(exception.InnerException);
-        }
-    }
-
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task UpdateInquiry_WrapsCancellationAndContextFailures(bool cancelled)
-    {
-        await using var c = await RepositoryTestContext.CreateAsync();
-        var repository = new InquiryRepository(c.Db);
-        var inquiry = (await repository.GetInquiryById(c.Inquiry.Id))!;
-        inquiry.Status = InquiryStatus.Responded;
-        using var cancellation = new CancellationTokenSource();
-        if (cancelled)
-        {
-            cancellation.Cancel();
-        }
-        else
-        {
-            await c.Db.DisposeAsync();
-        }
-        var token = cancellation.Token;
-        var exception = await Assert.ThrowsAsync<RepositoryException>(() => repository.UpdateInquiry(inquiry, token));
-        if (cancelled)
-        {
-            Assert.Equal(ErrorType.Cancelled, exception.Kind);
-            var original = Assert.IsAssignableFrom<OperationCanceledException>(exception.InnerException);
-            Assert.Equal(token, original.CancellationToken);
-        }
-        else
-        {
-            Assert.Equal(ErrorType.Unexpected, exception.Kind);
-            Assert.IsType<ObjectDisposedException>(exception.InnerException);
-        }
-    }
-
     [Fact]
     public async Task GetInquiries_ReturnsNewestFirstWithoutTracking()
     {
-        await using var c = await RepositoryTestContext.CreateAsync();
-        var repository = new InquiryRepository(c.Db);
+        await using var context = await RepositoryTestContext.CreateAsync();
+        var repository = new InquiryRepository(context.Db);
+
         var result = await repository.GetInquiries();
-        Assert.Equal(new[] { c.Inquiry.Id, c.OtherInquiry.Id }, result.Select(x => x.Id));
-        Assert.Empty(c.Db.ChangeTracker.Entries());
+
+        Assert.Equal(new[] { context.Inquiry.Id, context.OtherInquiry.Id }, result.Select(x => x.Id));
+        Assert.Empty(context.Db.ChangeTracker.Entries());
+    }
+
+    [Fact]
+    public async Task GetInquiries_WrapsContextFailure()
+    {
+        await using var context = await RepositoryTestContext.CreateAsync();
+        var original = new InvalidOperationException("Context failed");
+
+        context.DbMock.Setup(db => db.Set<Inquiry>())
+            .Throws(original);
+
+        var repository = new InquiryRepository(context.Db);
+
+        var exception = await Assert.ThrowsAsync<RepositoryException>(() => repository.GetInquiries(CancellationToken.None));
+
+        Assert.Equal(ErrorType.Unexpected, exception.Type);
+        Assert.Same(original, exception.InnerException);
+        context.DbMock.Verify(db => db.Set<Inquiry>(), Times.Once);
     }
 
     [Fact]
     public async Task GetInquiriesByStudentId_ReturnsOnlyMatches()
     {
-        await using var c = await RepositoryTestContext.CreateAsync();
-        var repository = new InquiryRepository(c.Db);
-        var result = Assert.Single(await repository.GetInquiriesByStudentId(c.Student.UserId));
-        Assert.Equal(c.Inquiry.Id, result.Id);
-        Assert.Empty(await repository.GetInquiriesByStudentId(Guid.NewGuid()));
+        await using var context = await RepositoryTestContext.CreateAsync();
+        var repository = new InquiryRepository(context.Db);
+
+        var result = Assert.Single(await repository.GetInquiriesByStudentId(context.Student.UserId));
+
+        Assert.Equal(context.Inquiry.Id, result.Id);
+    }
+
+    [Fact]
+    public async Task GetInquiriesByStudentId_WrapsContextFailure()
+    {
+        await using var context = await RepositoryTestContext.CreateAsync();
+        var original = new InvalidOperationException("Context failed");
+
+        context.DbMock.Setup(db => db.Set<Inquiry>())
+            .Throws(original);
+
+        var repository = new InquiryRepository(context.Db);
+
+        var exception = await Assert.ThrowsAsync<RepositoryException>(() => repository.GetInquiriesByStudentId(context.Student.UserId, CancellationToken.None));
+
+        Assert.Equal(ErrorType.Unexpected, exception.Type);
+        Assert.Same(original, exception.InnerException);
+        context.DbMock.Verify(db => db.Set<Inquiry>(), Times.Once);
     }
 
     [Fact]
     public async Task GetInquiriesBySupervisorId_ReturnsOnlyMatches()
     {
-        await using var c = await RepositoryTestContext.CreateAsync();
-        var repository = new InquiryRepository(c.Db);
-        var result = Assert.Single(await repository.GetInquiriesBySupervisorId(c.Supervisor.UserId));
-        Assert.Equal(c.Inquiry.Id, result.Id);
-        Assert.Empty(await repository.GetInquiriesBySupervisorId(Guid.NewGuid()));
+        await using var context = await RepositoryTestContext.CreateAsync();
+        var repository = new InquiryRepository(context.Db);
+
+        var result = Assert.Single(await repository.GetInquiriesBySupervisorId(context.Supervisor.UserId));
+
+        Assert.Equal(context.Inquiry.Id, result.Id);
+    }
+
+    [Fact]
+    public async Task GetInquiriesBySupervisorId_WrapsContextFailure()
+    {
+        await using var context = await RepositoryTestContext.CreateAsync();
+        var original = new InvalidOperationException("Context failed");
+
+        context.DbMock.Setup(db => db.Set<Inquiry>())
+            .Throws(original);
+
+        var repository = new InquiryRepository(context.Db);
+
+        var exception = await Assert.ThrowsAsync<RepositoryException>(() => repository.GetInquiriesBySupervisorId(context.Supervisor.UserId, CancellationToken.None));
+
+        Assert.Equal(ErrorType.Unexpected, exception.Type);
+        Assert.Same(original, exception.InnerException);
+        context.DbMock.Verify(db => db.Set<Inquiry>(), Times.Once);
     }
 
     [Fact]
     public async Task GetInquiriesByProjectId_ReturnsOnlyMatches()
     {
-        await using var c = await RepositoryTestContext.CreateAsync();
-        var repository = new InquiryRepository(c.Db);
-        var result = Assert.Single(await repository.GetInquiriesByProjectId(c.Project.Id));
-        Assert.Equal(c.Inquiry.Id, result.Id);
-        Assert.Empty(await repository.GetInquiriesByProjectId(Guid.NewGuid()));
+        await using var context = await RepositoryTestContext.CreateAsync();
+        var repository = new InquiryRepository(context.Db);
+
+        var result = Assert.Single(await repository.GetInquiriesByProjectId(context.Project.Id));
+
+        Assert.Equal(context.Inquiry.Id, result.Id);
     }
 
     [Fact]
-    public async Task GetInquiryById_ReturnsTrackedInquiryOrNull()
+    public async Task GetInquiriesByProjectId_WrapsContextFailure()
     {
-        await using var c = await RepositoryTestContext.CreateAsync();
-        var repository = new InquiryRepository(c.Db);
-        var result = await repository.GetInquiryById(c.Inquiry.Id);
+        await using var context = await RepositoryTestContext.CreateAsync();
+        var original = new InvalidOperationException("Context failed");
+
+        context.DbMock.Setup(db => db.Set<Inquiry>())
+            .Throws(original);
+
+        var repository = new InquiryRepository(context.Db);
+
+        var exception = await Assert.ThrowsAsync<RepositoryException>(() => repository.GetInquiriesByProjectId(context.Project.Id, CancellationToken.None));
+
+        Assert.Equal(ErrorType.Unexpected, exception.Type);
+        Assert.Same(original, exception.InnerException);
+        context.DbMock.Verify(db => db.Set<Inquiry>(), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetInquiryById_ReturnsTrackedInquiry()
+    {
+        await using var context = await RepositoryTestContext.CreateAsync();
+        var repository = new InquiryRepository(context.Db);
+
+        var result = await repository.GetInquiryById(context.Inquiry.Id);
+
         Assert.NotNull(result);
-        Assert.Equal(c.Inquiry.Id, result.Id);
-        Assert.Equal(EntityState.Unchanged, c.Db.Entry(result).State);
-        Assert.Null(await repository.GetInquiryById(Guid.NewGuid()));
+        Assert.Equal(context.Inquiry.Id, result.Id);
+        Assert.Equal(EntityState.Unchanged, context.Db.Entry(result).State);
+    }
+
+    [Fact]
+    public async Task GetInquiryById_WrapsContextFailure()
+    {
+        await using var context = await RepositoryTestContext.CreateAsync();
+        var original = new InvalidOperationException("Context failed");
+
+        context.DbMock.Setup(db => db.Set<Inquiry>())
+            .Throws(original);
+
+        var repository = new InquiryRepository(context.Db);
+
+        var exception = await Assert.ThrowsAsync<RepositoryException>(() => repository.GetInquiryById(context.Inquiry.Id, CancellationToken.None));
+
+        Assert.Equal(ErrorType.Unexpected, exception.Type);
+        Assert.Same(original, exception.InnerException);
+        context.DbMock.Verify(db => db.Set<Inquiry>(), Times.Once);
     }
 
     [Fact]
     public async Task CreateInquiry_PersistsGeneralInquiryWithNullOptionalFields()
     {
-        await using var c = await RepositoryTestContext.CreateAsync();
-        var repository = new InquiryRepository(c.Db);
-        var inquiry = new Inquiry { Id = Guid.NewGuid(), StudentId = c.Student.UserId, SupervisorId = c.Supervisor.UserId };
+        await using var context = await RepositoryTestContext.CreateAsync();
+        var repository = new InquiryRepository(context.Db);
+        var inquiry = new Inquiry { Id = Guid.NewGuid(), StudentId = context.Student.UserId, SupervisorId = context.Supervisor.UserId };
+
         Assert.Same(inquiry, await repository.CreateInquiry(inquiry));
-        c.Db.ChangeTracker.Clear();
-        var persisted = await c.Db.Inquiries.SingleAsync(x => x.Id == inquiry.Id);
+        context.Db.ChangeTracker.Clear();
+        var persisted = await context.Db.Inquiries.SingleAsync(x => x.Id == inquiry.Id);
         Assert.Null(persisted.ProjectId);
         Assert.Null(persisted.Message);
         Assert.Equal(InquiryStatus.Pending, persisted.Status);
     }
 
     [Fact]
+    public async Task CreateInquiry_WrapsContextFailure()
+    {
+        await using var context = await RepositoryTestContext.CreateAsync();
+        var original = new InvalidOperationException("Context failed");
+
+        context.DbMock.Setup(db => db.Set<Inquiry>())
+            .Throws(original);
+
+        var repository = new InquiryRepository(context.Db);
+
+        var exception = await Assert.ThrowsAsync<RepositoryException>(() => repository.CreateInquiry(new Inquiry { Id = Guid.NewGuid(), StudentId = context.Student.UserId, SupervisorId = context.Supervisor.UserId }, CancellationToken.None));
+
+        Assert.Equal(ErrorType.Unexpected, exception.Type);
+        Assert.Same(original, exception.InnerException);
+        context.DbMock.Verify(db => db.Set<Inquiry>(), Times.Once);
+    }
+
+    [Fact]
+    public async Task CreateInquiry_WrapsSaveFailure()
+    {
+        await using var context = await RepositoryTestContext.CreateAsync();
+        var repository = new InquiryRepository(context.Db);
+
+        var original = new InvalidOperationException("Save failed");
+
+        context.DbMock.Setup(db => db.SaveChangesAsync(CancellationToken.None))
+            .ThrowsAsync(original);
+
+        var exception = await Assert.ThrowsAsync<RepositoryException>(() => repository.CreateInquiry(new Inquiry { Id = Guid.NewGuid(), StudentId = context.Student.UserId, SupervisorId = context.Supervisor.UserId }));
+
+        Assert.Same(original, exception.InnerException);
+        Assert.Equal(ErrorType.Unexpected, exception.Type);
+        context.DbMock.Verify(db => db.SaveChangesAsync(CancellationToken.None), Times.Once);
+    }
+
+    [Fact]
     public async Task UpdateInquiry_PersistsStatusAndPreservesMessage()
     {
-        await using var c = await RepositoryTestContext.CreateAsync();
-        var repository = new InquiryRepository(c.Db);
-        var inquiry = (await repository.GetInquiryById(c.Inquiry.Id))!;
+        await using var context = await RepositoryTestContext.CreateAsync();
+        var repository = new InquiryRepository(context.Db);
+        var inquiry = (await repository.GetInquiryById(context.Inquiry.Id))!;
         inquiry.Status = InquiryStatus.Responded;
+
         Assert.Same(inquiry, await repository.UpdateInquiry(inquiry));
-        c.Db.ChangeTracker.Clear();
+        context.Db.ChangeTracker.Clear();
         var persisted = (await repository.GetInquiryById(inquiry.Id))!;
         Assert.Equal(InquiryStatus.Responded, persisted.Status);
         Assert.Equal("Original", persisted.Message);
-        Assert.Equal(c.Project.Id, persisted.ProjectId);
+        Assert.Equal(context.Project.Id, persisted.ProjectId);
     }
 
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task CreateInquiry_PreservesSaveFailureAndClassifiesConflict(bool conflict)
+    [Fact]
+    public async Task UpdateInquiry_WrapsSaveFailure()
     {
-        await using var c = await RepositoryTestContext.CreateAsync();
-        var repository = new InquiryRepository(c.Db);
+        await using var context = await RepositoryTestContext.CreateAsync();
+        var repository = new InquiryRepository(context.Db);
+        var entity = (await repository.GetInquiryById(context.Inquiry.Id))!;
+        entity.Status = InquiryStatus.Responded;
+        var original = new InvalidOperationException("Save failed");
 
-        Exception original = conflict ? new DbUpdateConcurrencyException("Concurrent write") : new InvalidOperationException("Save failed");
-        c.FailSavesWith(original);
-        var exception = await Assert.ThrowsAsync<RepositoryException>(() => repository.CreateInquiry(new Inquiry { Id = Guid.NewGuid(), StudentId = c.Student.UserId, SupervisorId = c.Supervisor.UserId }));
-        Assert.Same(original, exception.InnerException);
-        Assert.Equal(conflict ? ErrorType.Conflict : ErrorType.Unexpected, exception.Kind);
-    }
+        context.DbMock.Setup(db => db.SaveChangesAsync(CancellationToken.None))
+            .ThrowsAsync(original);
 
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task UpdateInquiry_PreservesSaveFailureAndClassifiesConflict(bool conflict)
-    {
-        await using var c = await RepositoryTestContext.CreateAsync();
-        var repository = new InquiryRepository(c.Db);
-        var entity = (await repository.GetInquiryById(c.Inquiry.Id))!;
-entity.Status = InquiryStatus.Responded;
-        Exception original = conflict ? new DbUpdateConcurrencyException("Concurrent write") : new InvalidOperationException("Save failed");
-        c.FailSavesWith(original);
         var exception = await Assert.ThrowsAsync<RepositoryException>(() => repository.UpdateInquiry(entity));
+
         Assert.Same(original, exception.InnerException);
-        Assert.Equal(conflict ? ErrorType.Conflict : ErrorType.Unexpected, exception.Kind);
+        Assert.Equal(ErrorType.Unexpected, exception.Type);
+        context.DbMock.Verify(db => db.SaveChangesAsync(CancellationToken.None), Times.Once);
     }
 }

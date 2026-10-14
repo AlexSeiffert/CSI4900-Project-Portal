@@ -20,7 +20,7 @@ public class ProjectService(IProjectRepository repository) : IProjectService
         }
         catch (RepositoryException exception)
         {
-            throw new ServiceException(nameof(GetProjects), exception.Kind, "The data operation could not be completed.", exception);
+            throw new ServiceException(nameof(GetProjects), exception.Type, "The data operation could not be completed.", exception);
         }
         catch (ValidationException exception)
         {
@@ -45,7 +45,7 @@ public class ProjectService(IProjectRepository repository) : IProjectService
         }
         catch (RepositoryException exception)
         {
-            throw new ServiceException(nameof(GetProjectsBySupervisorId), exception.Kind, "The data operation could not be completed.", exception);
+            throw new ServiceException(nameof(GetProjectsBySupervisorId), exception.Type, "The data operation could not be completed.", exception);
         }
         catch (ValidationException exception)
         {
@@ -70,7 +70,7 @@ public class ProjectService(IProjectRepository repository) : IProjectService
         }
         catch (RepositoryException exception)
         {
-            throw new ServiceException(nameof(GetProjectsByTopicId), exception.Kind, "The data operation could not be completed.", exception);
+            throw new ServiceException(nameof(GetProjectsByTopicId), exception.Type, "The data operation could not be completed.", exception);
         }
         catch (ValidationException exception)
         {
@@ -100,7 +100,7 @@ public class ProjectService(IProjectRepository repository) : IProjectService
         }
         catch (RepositoryException exception)
         {
-            throw new ServiceException(nameof(GetProjectsByStatus), exception.Kind, "The data operation could not be completed.", exception);
+            throw new ServiceException(nameof(GetProjectsByStatus), exception.Type, "The data operation could not be completed.", exception);
         }
         catch (ValidationException exception)
         {
@@ -130,7 +130,7 @@ public class ProjectService(IProjectRepository repository) : IProjectService
         }
         catch (RepositoryException exception)
         {
-            throw new ServiceException(nameof(GetProjectById), exception.Kind, "The data operation could not be completed.", exception);
+            throw new ServiceException(nameof(GetProjectById), exception.Type, "The data operation could not be completed.", exception);
         }
         catch (ValidationException exception)
         {
@@ -164,7 +164,7 @@ public class ProjectService(IProjectRepository repository) : IProjectService
         }
         catch (RepositoryException exception)
         {
-            throw new ServiceException(nameof(CreateProject), exception.Kind, "The data operation could not be completed.", exception);
+            throw new ServiceException(nameof(CreateProject), exception.Type, "The data operation could not be completed.", exception);
         }
         catch (ValidationException exception)
         {
@@ -200,7 +200,7 @@ public class ProjectService(IProjectRepository repository) : IProjectService
         }
         catch (RepositoryException exception)
         {
-            throw new ServiceException(nameof(UpdateProject), exception.Kind, "The data operation could not be completed.", exception);
+            throw new ServiceException(nameof(UpdateProject), exception.Type, "The data operation could not be completed.", exception);
         }
         catch (ValidationException exception)
         {
@@ -228,7 +228,7 @@ public class ProjectService(IProjectRepository repository) : IProjectService
         }
         catch (RepositoryException exception)
         {
-            throw new ServiceException(nameof(DeleteProject), exception.Kind, "The data operation could not be completed.", exception);
+            throw new ServiceException(nameof(DeleteProject), exception.Type, "The data operation could not be completed.", exception);
         }
         catch (ValidationException exception)
         {
@@ -261,7 +261,7 @@ public class ProjectService(IProjectRepository repository) : IProjectService
         }
         catch (RepositoryException exception)
         {
-            throw new ServiceException(nameof(ValidateProjectSupervisor), exception.Kind, "The data operation could not be completed.", exception);
+            throw new ServiceException(nameof(ValidateProjectSupervisor), exception.Type, "The data operation could not be completed.", exception);
         }
         catch (ValidationException exception)
         {

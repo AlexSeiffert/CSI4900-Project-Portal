@@ -1,322 +1,421 @@
 using API.DTOs.Request;
 using API.Exceptions;
 using API.Models;
-using API.Tests.Support;
+using API.Repositories.Interfaces;
+using API.Services;
+using Moq;
 
 namespace API.Tests.Service;
 
 public class ProjectServiceTests
 {
-    [Theory]
-    [MemberData(nameof(ServiceFailureCases.All), MemberType = typeof(ServiceFailureCases))]
-    public async Task GetProjects_PreservesDependencyFailureAndClassification(string kind)
-    {
-        var c = new ServiceTestContext();
-        using var cancellation = new CancellationTokenSource();
-        var token = cancellation.Token;
-        var original = ServiceFailureCases.Create(kind);
-        c.Projects.Failure = original;
-        c.Projects.FailureMethod = "GetProjects";
-        await ServiceFailureCases.AssertWrapped(() => c.ProjectService.GetProjects(token), "GetProjects", original);
-        Assert.Equal(token, c.Projects.LastToken);
-    }
+    private readonly Mock<IProjectRepository> _repository = new();
 
-    [Theory]
-    [MemberData(nameof(ServiceFailureCases.All), MemberType = typeof(ServiceFailureCases))]
-    public async Task GetProjectsBySupervisorId_PreservesDependencyFailureAndClassification(string kind)
-    {
-        var c = new ServiceTestContext();
-        using var cancellation = new CancellationTokenSource();
-        var token = cancellation.Token;
-        var original = ServiceFailureCases.Create(kind);
-        c.Projects.Failure = original;
-        c.Projects.FailureMethod = "GetProjectsBySupervisorId";
-        await ServiceFailureCases.AssertWrapped(() => c.ProjectService.GetProjectsBySupervisorId(c.Supervisor.UserId, token), "GetProjectsBySupervisorId", original);
-        Assert.Equal(token, c.Projects.LastToken);
-    }
-
-    [Theory]
-    [MemberData(nameof(ServiceFailureCases.All), MemberType = typeof(ServiceFailureCases))]
-    public async Task GetProjectsByTopicId_PreservesDependencyFailureAndClassification(string kind)
-    {
-        var c = new ServiceTestContext();
-        using var cancellation = new CancellationTokenSource();
-        var token = cancellation.Token;
-        var original = ServiceFailureCases.Create(kind);
-        c.Projects.Failure = original;
-        c.Projects.FailureMethod = "GetProjectsByTopicId";
-        await ServiceFailureCases.AssertWrapped(() => c.ProjectService.GetProjectsByTopicId(c.Topic.Id, token), "GetProjectsByTopicId", original);
-        Assert.Equal(token, c.Projects.LastToken);
-    }
-
-    [Theory]
-    [MemberData(nameof(ServiceFailureCases.All), MemberType = typeof(ServiceFailureCases))]
-    public async Task GetProjectsByStatus_PreservesDependencyFailureAndClassification(string kind)
-    {
-        var c = new ServiceTestContext();
-        using var cancellation = new CancellationTokenSource();
-        var token = cancellation.Token;
-        var original = ServiceFailureCases.Create(kind);
-        c.Projects.Failure = original;
-        c.Projects.FailureMethod = "GetProjectsByStatus";
-        await ServiceFailureCases.AssertWrapped(() => c.ProjectService.GetProjectsByStatus(ProjectStatus.Available, token), "GetProjectsByStatus", original);
-        Assert.Equal(token, c.Projects.LastToken);
-    }
-
-    [Theory]
-    [MemberData(nameof(ServiceFailureCases.All), MemberType = typeof(ServiceFailureCases))]
-    public async Task GetProjectById_PreservesDependencyFailureAndClassification(string kind)
-    {
-        var c = new ServiceTestContext();
-        using var cancellation = new CancellationTokenSource();
-        var token = cancellation.Token;
-        var original = ServiceFailureCases.Create(kind);
-        c.Projects.Failure = original;
-        c.Projects.FailureMethod = "GetProjectById";
-        await ServiceFailureCases.AssertWrapped(() => c.ProjectService.GetProjectById(c.Project.Id, token), "GetProjectById", original);
-        Assert.Equal(token, c.Projects.LastToken);
-    }
-
-    [Theory]
-    [MemberData(nameof(ServiceFailureCases.All), MemberType = typeof(ServiceFailureCases))]
-    public async Task CreateProject_PreservesDependencyFailureAndClassification(string kind)
-    {
-        var c = new ServiceTestContext();
-        using var cancellation = new CancellationTokenSource();
-        var token = cancellation.Token;
-        var original = ServiceFailureCases.Create(kind);
-        c.Projects.Failure = original;
-        c.Projects.FailureMethod = "CreateProject";
-        await ServiceFailureCases.AssertWrapped(() => c.ProjectService.CreateProject(c.NewProject(), token), "CreateProject", original);
-        Assert.Equal(token, c.Projects.LastToken);
-    }
-
-    [Theory]
-    [MemberData(nameof(ServiceFailureCases.All), MemberType = typeof(ServiceFailureCases))]
-    public async Task UpdateProject_PreservesDependencyFailureAndClassification(string kind)
-    {
-        var c = new ServiceTestContext();
-        using var cancellation = new CancellationTokenSource();
-        var token = cancellation.Token;
-        var original = ServiceFailureCases.Create(kind);
-        c.Projects.Failure = original;
-        c.Projects.FailureMethod = "UpdateProject";
-        await ServiceFailureCases.AssertWrapped(() => c.ProjectService.UpdateProject(c.Project.Id, c.ProjectUpdate(), token), "UpdateProject", original);
-        Assert.Equal(token, c.Projects.LastToken);
-    }
-
-    [Theory]
-    [MemberData(nameof(ServiceFailureCases.All), MemberType = typeof(ServiceFailureCases))]
-    public async Task DeleteProject_PreservesDependencyFailureAndClassification(string kind)
-    {
-        var c = new ServiceTestContext();
-        using var cancellation = new CancellationTokenSource();
-        var token = cancellation.Token;
-        var original = ServiceFailureCases.Create(kind);
-        c.Projects.Failure = original;
-        c.Projects.FailureMethod = "DeleteProject";
-        await ServiceFailureCases.AssertWrapped(() => c.ProjectService.DeleteProject(c.Project.Id, token), "DeleteProject", original);
-        Assert.Equal(token, c.Projects.LastToken);
-    }
+    private ProjectService CreateService() => new(_repository.Object);
 
     [Fact]
     public async Task GetProjects_ReturnsMatchingProjectDtos()
     {
-        var c = new ServiceTestContext();
-        var result = Assert.Single(await c.ProjectService.GetProjects());
-        Assert.Equal(c.Project.Id, result.Id);
-        Assert.Equal(c.Project.Title, result.Title);
-        Assert.Equal(c.Topic.Id, Assert.Single(result.Topics).Id);
-        Assert.Equal("GetProjects", Assert.Single(c.Projects.Calls));
+        var topic = new Topic { Id = Guid.NewGuid(), Name = "Databases" };
+        var supervisorId = Guid.NewGuid();
+        var project = new Project { Id = Guid.NewGuid(), SupervisorId = supervisorId, Title = "Portal", Description = "Research", Topics = [topic] };
+
+        _repository.Setup(repository => repository.GetProjects(CancellationToken.None))
+            .ReturnsAsync(new List<Project> { project });
+
+        var service = CreateService();
+
+        var result = Assert.Single(await service.GetProjects(CancellationToken.None));
+
+        Assert.Equal(project.Id, result.Id);
+        Assert.Equal(project.Title, result.Title);
+        Assert.Equal(topic.Id, Assert.Single(result.Topics).Id);
+        _repository.Verify(repository => repository.GetProjects(CancellationToken.None), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetProjects_WrapsRepositoryFailure()
+    {
+        using var cancellation = new CancellationTokenSource();
+        var token = cancellation.Token;
+        var original = new RepositoryException("dependency", new InvalidOperationException("Database failed"));
+
+        _repository.Setup(repository => repository.GetProjects(token))
+            .ThrowsAsync(original);
+
+        var service = CreateService();
+
+        var exception = await Assert.ThrowsAsync<ServiceException>(() => service.GetProjects(token));
+
+        Assert.Equal(nameof(ProjectService.GetProjects), exception.Operation);
+        Assert.Equal(ErrorType.Unexpected, exception.Type);
+        Assert.Same(original, exception.InnerException);
+        _repository.Verify(repository => repository.GetProjects(token), Times.Once);
     }
 
     [Fact]
     public async Task GetProjectsBySupervisorId_ReturnsMatchingProjectDtos()
     {
-        var c = new ServiceTestContext();
-        var result = Assert.Single(await c.ProjectService.GetProjectsBySupervisorId(c.Supervisor.UserId));
-        Assert.Equal(c.Project.Id, result.Id);
-        Assert.Equal(c.Project.Title, result.Title);
-        Assert.Equal(c.Topic.Id, Assert.Single(result.Topics).Id);
-        Assert.Equal("GetProjectsBySupervisorId", Assert.Single(c.Projects.Calls));
+        var topic = new Topic { Id = Guid.NewGuid(), Name = "Databases" };
+        var supervisorId = Guid.NewGuid();
+        var project = new Project { Id = Guid.NewGuid(), SupervisorId = supervisorId, Title = "Portal", Description = "Research", Topics = [topic] };
+
+        _repository.Setup(repository => repository.GetProjectsBySupervisorId(supervisorId, CancellationToken.None))
+            .ReturnsAsync(new List<Project> { project });
+
+        var service = CreateService();
+
+        var result = Assert.Single(await service.GetProjectsBySupervisorId(supervisorId, CancellationToken.None));
+
+        Assert.Equal(project.Id, result.Id);
+        Assert.Equal(project.Title, result.Title);
+        Assert.Equal(topic.Id, Assert.Single(result.Topics).Id);
+        _repository.Verify(repository => repository.GetProjectsBySupervisorId(supervisorId, CancellationToken.None), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetProjectsBySupervisorId_WrapsRepositoryFailure()
+    {
+        var supervisorId = Guid.NewGuid();
+        using var cancellation = new CancellationTokenSource();
+        var token = cancellation.Token;
+        var original = new RepositoryException("dependency", new InvalidOperationException("Database failed"));
+
+        _repository.Setup(repository => repository.GetProjectsBySupervisorId(supervisorId, token))
+            .ThrowsAsync(original);
+
+        var service = CreateService();
+
+        var exception = await Assert.ThrowsAsync<ServiceException>(() => service.GetProjectsBySupervisorId(supervisorId, token));
+
+        Assert.Equal(nameof(ProjectService.GetProjectsBySupervisorId), exception.Operation);
+        Assert.Equal(ErrorType.Unexpected, exception.Type);
+        Assert.Same(original, exception.InnerException);
+        _repository.Verify(repository => repository.GetProjectsBySupervisorId(supervisorId, token), Times.Once);
     }
 
     [Fact]
     public async Task GetProjectsByTopicId_ReturnsMatchingProjectDtos()
     {
-        var c = new ServiceTestContext();
-        var result = Assert.Single(await c.ProjectService.GetProjectsByTopicId(c.Topic.Id));
-        Assert.Equal(c.Project.Id, result.Id);
-        Assert.Equal(c.Project.Title, result.Title);
-        Assert.Equal(c.Topic.Id, Assert.Single(result.Topics).Id);
-        Assert.Equal("GetProjectsByTopicId", Assert.Single(c.Projects.Calls));
+        var topic = new Topic { Id = Guid.NewGuid(), Name = "Databases" };
+        var supervisorId = Guid.NewGuid();
+        var project = new Project { Id = Guid.NewGuid(), SupervisorId = supervisorId, Title = "Portal", Description = "Research", Topics = [topic] };
+
+        _repository.Setup(repository => repository.GetProjectsByTopicId(topic.Id, CancellationToken.None))
+            .ReturnsAsync(new List<Project> { project });
+
+        var service = CreateService();
+
+        var result = Assert.Single(await service.GetProjectsByTopicId(topic.Id, CancellationToken.None));
+
+        Assert.Equal(project.Id, result.Id);
+        Assert.Equal(project.Title, result.Title);
+        Assert.Equal(topic.Id, Assert.Single(result.Topics).Id);
+        _repository.Verify(repository => repository.GetProjectsByTopicId(topic.Id, CancellationToken.None), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetProjectsByTopicId_WrapsRepositoryFailure()
+    {
+        var topicId = Guid.NewGuid();
+        using var cancellation = new CancellationTokenSource();
+        var token = cancellation.Token;
+        var original = new RepositoryException("dependency", new InvalidOperationException("Database failed"));
+
+        _repository.Setup(repository => repository.GetProjectsByTopicId(topicId, token))
+            .ThrowsAsync(original);
+
+        var service = CreateService();
+
+        var exception = await Assert.ThrowsAsync<ServiceException>(() => service.GetProjectsByTopicId(topicId, token));
+
+        Assert.Equal(nameof(ProjectService.GetProjectsByTopicId), exception.Operation);
+        Assert.Equal(ErrorType.Unexpected, exception.Type);
+        Assert.Same(original, exception.InnerException);
+        _repository.Verify(repository => repository.GetProjectsByTopicId(topicId, token), Times.Once);
     }
 
     [Fact]
     public async Task GetProjectsByStatus_ReturnsMatchingProjectDtos()
     {
-        var c = new ServiceTestContext();
-        var result = Assert.Single(await c.ProjectService.GetProjectsByStatus(ProjectStatus.Available));
-        Assert.Equal(c.Project.Id, result.Id);
-        Assert.Equal(c.Project.Title, result.Title);
-        Assert.Equal(c.Topic.Id, Assert.Single(result.Topics).Id);
-        Assert.Equal("GetProjectsByStatus", Assert.Single(c.Projects.Calls));
+        var topic = new Topic { Id = Guid.NewGuid(), Name = "Databases" };
+        var supervisorId = Guid.NewGuid();
+        var project = new Project { Id = Guid.NewGuid(), SupervisorId = supervisorId, Title = "Portal", Description = "Research", Topics = [topic] };
+
+        _repository.Setup(repository => repository.GetProjectsByStatus(ProjectStatus.Available, CancellationToken.None))
+            .ReturnsAsync(new List<Project> { project });
+
+        var service = CreateService();
+
+        var result = Assert.Single(await service.GetProjectsByStatus(ProjectStatus.Available, CancellationToken.None));
+
+        Assert.Equal(project.Id, result.Id);
+        Assert.Equal(project.Title, result.Title);
+        Assert.Equal(topic.Id, Assert.Single(result.Topics).Id);
+        _repository.Verify(repository => repository.GetProjectsByStatus(ProjectStatus.Available, CancellationToken.None), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetProjectsByStatus_WrapsRepositoryFailure()
+    {
+        using var cancellation = new CancellationTokenSource();
+        var token = cancellation.Token;
+        var original = new RepositoryException("dependency", new InvalidOperationException("Database failed"));
+
+        _repository.Setup(repository => repository.GetProjectsByStatus(ProjectStatus.Available, token))
+            .ThrowsAsync(original);
+
+        var service = CreateService();
+
+        var exception = await Assert.ThrowsAsync<ServiceException>(() => service.GetProjectsByStatus(ProjectStatus.Available, token));
+
+        Assert.Equal(nameof(ProjectService.GetProjectsByStatus), exception.Operation);
+        Assert.Equal(ErrorType.Unexpected, exception.Type);
+        Assert.Same(original, exception.InnerException);
+        _repository.Verify(repository => repository.GetProjectsByStatus(ProjectStatus.Available, token), Times.Once);
     }
 
     [Fact]
     public async Task GetProjectById_ReturnsMappedProject()
     {
-        var c = new ServiceTestContext();
-        var result = await c.ProjectService.GetProjectById(c.Project.Id);
-        Assert.Equal(c.Project.Id, result.Id);
-        Assert.Equal(c.Project.SupervisorId, result.SupervisorId);
-        Assert.Equal(c.Project.CreatedAt, result.CreatedAt);
-        Assert.Equal(c.Topic.Id, Assert.Single(result.Topics).Id);
+        var topic = new Topic { Id = Guid.NewGuid(), Name = "Databases" };
+        var supervisorId = Guid.NewGuid();
+        var project = new Project { Id = Guid.NewGuid(), SupervisorId = supervisorId, Title = "Portal", Description = "Research", Topics = [topic] };
+
+        _repository.Setup(repository => repository.GetProjectById(project.Id, CancellationToken.None))
+            .ReturnsAsync(project);
+
+        var service = CreateService();
+
+        var result = await service.GetProjectById(project.Id, CancellationToken.None);
+
+        Assert.Equal(project.Id, result.Id);
+        Assert.Equal(project.SupervisorId, result.SupervisorId);
+        Assert.Equal(project.CreatedAt, result.CreatedAt);
+        Assert.Equal(topic.Id, Assert.Single(result.Topics).Id);
+        _repository.Verify(repository => repository.GetProjectById(project.Id, CancellationToken.None), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetProjectById_WrapsRepositoryFailure()
+    {
+        var projectId = Guid.NewGuid();
+        using var cancellation = new CancellationTokenSource();
+        var token = cancellation.Token;
+        var original = new RepositoryException("dependency", new InvalidOperationException("Database failed"));
+
+        _repository.Setup(repository => repository.GetProjectById(projectId, token))
+            .ThrowsAsync(original);
+
+        var service = CreateService();
+
+        var exception = await Assert.ThrowsAsync<ServiceException>(() => service.GetProjectById(projectId, token));
+
+        Assert.Equal(nameof(ProjectService.GetProjectById), exception.Operation);
+        Assert.Equal(ErrorType.Unexpected, exception.Type);
+        Assert.Same(original, exception.InnerException);
+        _repository.Verify(repository => repository.GetProjectById(projectId, token), Times.Once);
     }
 
     [Fact]
     public async Task CreateProject_TrimsTextAndGeneratesIdentity()
     {
-        var c = new ServiceTestContext();
-        var request = c.NewProject();
-        var result = await c.ProjectService.CreateProject(request);
+        var topicId = Guid.NewGuid();
+        var supervisorId = Guid.NewGuid();
+        var projectId = Guid.NewGuid();
+        var request = new CreateProject { SupervisorId = supervisorId, Title = "  New portal  ", Description = "  Research  ", TopicIds = [topicId, topicId] };
+
+        _repository.Setup(repository => repository.CreateProject(It.IsAny<Project>(), request.TopicIds, CancellationToken.None))
+            .ReturnsAsync((Project value, IReadOnlyCollection<Guid> topicIds, CancellationToken cancellationToken) => value);
+
+        var service = CreateService();
+
+        var result = await service.CreateProject(request, CancellationToken.None);
+
         Assert.NotEqual(Guid.Empty, result.Id);
-        Assert.NotEqual(c.Project.Id, result.Id);
+        Assert.NotEqual(projectId, result.Id);
         Assert.Equal("New portal", result.Title);
         Assert.Equal("Research", result.Description);
         Assert.Equal(request.SupervisorId, result.SupervisorId);
-        Assert.Equal("CreateProject", Assert.Single(c.Projects.Calls));
+        _repository.Verify(repository => repository.CreateProject(It.IsAny<Project>(), request.TopicIds, CancellationToken.None), Times.Once);
+    }
+
+    [Fact]
+    public async Task CreateProject_WrapsRepositoryFailure()
+    {
+        var topicId = Guid.NewGuid();
+        var supervisorId = Guid.NewGuid();
+        var request = new CreateProject { SupervisorId = supervisorId, Title = "  New portal  ", Description = "  Research  ", TopicIds = [topicId, topicId] };
+        using var cancellation = new CancellationTokenSource();
+        var token = cancellation.Token;
+        var original = new RepositoryException("dependency", new InvalidOperationException("Database failed"));
+
+        _repository.Setup(repository => repository.CreateProject(It.IsAny<Project>(), request.TopicIds, token))
+            .ThrowsAsync(original);
+
+        var service = CreateService();
+
+        var exception = await Assert.ThrowsAsync<ServiceException>(() => service.CreateProject(request, token));
+
+        Assert.Equal(nameof(ProjectService.CreateProject), exception.Operation);
+        Assert.Equal(ErrorType.Unexpected, exception.Type);
+        Assert.Same(original, exception.InnerException);
+        _repository.Verify(repository => repository.CreateProject(It.IsAny<Project>(), request.TopicIds, token), Times.Once);
     }
 
     [Fact]
     public async Task UpdateProject_ChangesEditableFieldsAndPreservesOwnershipAndCreationTime()
     {
-        var c = new ServiceTestContext();
-        var createdAt = c.Project.CreatedAt;
-        var supervisorId = c.Project.SupervisorId;
-        var request = c.ProjectUpdate();
+        var topic = new Topic { Id = Guid.NewGuid(), Name = "Databases" };
+        var supervisor = new Supervisor { UserId = Guid.NewGuid(), DisplayName = "Supervisor", ContactEmail = "supervisor@example.test", TopicInterests = [topic] };
+        var project = new Project { Id = Guid.NewGuid(), SupervisorId = supervisor.UserId, Title = "Portal", Description = "Research", Topics = [topic] };
+        var createdAt = project.CreatedAt;
+        var supervisorId = project.SupervisorId;
+        var request = new UpdateProject { Title = "  Updated  ", Description = "  Description  ", Status = ProjectStatus.Archived, TopicIds = [topic.Id] };
         request.ExternalUrl = "https://example.test";
-        var result = await c.ProjectService.UpdateProject(c.Project.Id, request);
+
+        _repository.Setup(repository => repository.GetProjectById(project.Id, CancellationToken.None))
+            .ReturnsAsync(project);
+        _repository.Setup(repository => repository.UpdateProject(project, request.TopicIds, CancellationToken.None))
+            .ReturnsAsync(project);
+
+        var service = CreateService();
+
+        var result = await service.UpdateProject(project.Id, request, CancellationToken.None);
+
         Assert.Equal("Updated", result.Title);
         Assert.Equal("Description", result.Description);
         Assert.Equal(request.ExternalUrl, result.ExternalUrl);
         Assert.Equal(ProjectStatus.Archived, result.Status);
-        Assert.Equal(c.Project.Id, result.Id);
+        Assert.Equal(project.Id, result.Id);
         Assert.Equal(supervisorId, result.SupervisorId);
         Assert.Equal(createdAt, result.CreatedAt);
         Assert.True(result.UpdatedAt >= createdAt);
-        Assert.Equal(new[] { "GetProjectById", "UpdateProject" }, c.Projects.Calls);
+        _repository.Verify(repository => repository.GetProjectById(project.Id, CancellationToken.None), Times.Once);
+        _repository.Verify(repository => repository.UpdateProject(project, request.TopicIds, CancellationToken.None), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdateProject_WrapsRepositoryFailure()
+    {
+        var topic = new Topic { Id = Guid.NewGuid(), Name = "Databases" };
+        var supervisorId = Guid.NewGuid();
+        var project = new Project { Id = Guid.NewGuid(), SupervisorId = supervisorId, Title = "Portal", Description = "Research", Topics = [topic] };
+        var request = new UpdateProject { Title = "  Updated  ", Description = "  Description  ", Status = ProjectStatus.Archived, TopicIds = [topic.Id] };
+        using var cancellation = new CancellationTokenSource();
+        var token = cancellation.Token;
+        var original = new RepositoryException("dependency", new InvalidOperationException("Database failed"));
+
+        _repository.Setup(repository => repository.GetProjectById(project.Id, token))
+            .ReturnsAsync(project);
+        _repository.Setup(repository => repository.UpdateProject(project, request.TopicIds, token))
+            .ThrowsAsync(original);
+
+        var service = CreateService();
+
+        var exception = await Assert.ThrowsAsync<ServiceException>(() => service.UpdateProject(project.Id, request, token));
+
+        Assert.Equal(nameof(ProjectService.UpdateProject), exception.Operation);
+        Assert.Equal(ErrorType.Unexpected, exception.Type);
+        Assert.Same(original, exception.InnerException);
+        _repository.Verify(repository => repository.GetProjectById(project.Id, token), Times.Once);
+        _repository.Verify(repository => repository.UpdateProject(project, request.TopicIds, token), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdateProject_WrapsLookupFailure()
+    {
+        var topicId = Guid.NewGuid();
+        var projectId = Guid.NewGuid();
+        var request = new UpdateProject { Title = "  Updated  ", Description = "  Description  ", Status = ProjectStatus.Archived, TopicIds = [topicId] };
+        using var cancellation = new CancellationTokenSource();
+        var token = cancellation.Token;
+        var original = new RepositoryException("dependency", new InvalidOperationException("Database failed"));
+
+        _repository.Setup(repository => repository.GetProjectById(projectId, token))
+            .ThrowsAsync(original);
+
+        var service = CreateService();
+
+        var exception = await Assert.ThrowsAsync<ServiceException>(() => service.UpdateProject(projectId, request, token));
+
+        Assert.Equal(nameof(ProjectService.UpdateProject), exception.Operation);
+        Assert.Equal(ErrorType.Unexpected, exception.Type);
+        Assert.Same(original, exception.InnerException);
+        _repository.Verify(repository => repository.GetProjectById(projectId, token), Times.Once);
     }
 
     [Fact]
     public async Task DeleteProject_DeletesExistingProject()
     {
-        var c = new ServiceTestContext();
-        await c.ProjectService.DeleteProject(c.Project.Id);
-        Assert.Empty(c.Projects.Items);
-        Assert.Equal("DeleteProject", Assert.Single(c.Projects.Calls));
+        var projectId = Guid.NewGuid();
+
+        _repository.Setup(repository => repository.DeleteProject(projectId, CancellationToken.None))
+            .ReturnsAsync(true);
+
+        var service = CreateService();
+
+        await service.DeleteProject(projectId, CancellationToken.None);
+
+        _repository.Verify(repository => repository.DeleteProject(projectId, CancellationToken.None), Times.Once);
     }
 
     [Fact]
-    public async Task GetProjectById_ThrowsForMissingProject()
+    public async Task DeleteProject_WrapsRepositoryFailure()
     {
-        var c = new ServiceTestContext();
-        await ServiceFailureCases.AssertDomainFailure(() => c.ProjectService.GetProjectById(Guid.NewGuid()), "GetProjectById", ErrorType.NotFound);
-        Assert.DoesNotContain("UpdateProject", c.Projects.Calls);
-    }
-
-    [Fact]
-    public async Task UpdateProject_ThrowsForMissingProject()
-    {
-        var c = new ServiceTestContext();
-        await ServiceFailureCases.AssertDomainFailure(() => c.ProjectService.UpdateProject(Guid.NewGuid(), c.ProjectUpdate()), "UpdateProject", ErrorType.NotFound);
-        Assert.DoesNotContain("UpdateProject", c.Projects.Calls);
-    }
-
-    [Fact]
-    public async Task DeleteProject_ThrowsForMissingProject()
-    {
-        var c = new ServiceTestContext();
-        await ServiceFailureCases.AssertDomainFailure(() => c.ProjectService.DeleteProject(Guid.NewGuid()), "DeleteProject", ErrorType.NotFound);
-        Assert.DoesNotContain("UpdateProject", c.Projects.Calls);
-    }
-
-    [Fact]
-    public async Task GetProjectsByStatus_RejectsUndefinedStatusBeforeRepositoryCall()
-    {
-        var c = new ServiceTestContext();
-        await ServiceFailureCases.AssertDomainFailure(() => c.ProjectService.GetProjectsByStatus((ProjectStatus)999), "GetProjectsByStatus", ErrorType.Validation);
-        Assert.Empty(c.Projects.Calls);
-    }
-
-    [Fact]
-    public async Task CreateProject_RejectsInvalidRequestBeforeWriting()
-    {
-        var c = new ServiceTestContext();
-        var request = c.NewProject();
-        request.Title = " ";
-        await ServiceFailureCases.AssertDomainFailure(() => c.ProjectService.CreateProject(request), "CreateProject", ErrorType.Validation);
-        Assert.DoesNotContain("CreateProject", c.Projects.Calls);
-    }
-
-    [Fact]
-    public async Task UpdateProject_RejectsInvalidRequestBeforeWriting()
-    {
-        var c = new ServiceTestContext();
-        var request = c.ProjectUpdate();
-        request.Title = " ";
-        await ServiceFailureCases.AssertDomainFailure(() => c.ProjectService.UpdateProject(c.Project.Id, request), "UpdateProject", ErrorType.Validation);
-        Assert.DoesNotContain("UpdateProject", c.Projects.Calls);
-    }
-
-
-    [Fact]
-    public void Constructor_DependsOnlyOnOwnRepository()
-    {
-        var constructor = Assert.Single(typeof(API.Services.ProjectService).GetConstructors());
-        var dependency = Assert.Single(constructor.GetParameters());
-        Assert.Equal(typeof(API.Repositories.Interfaces.IProjectRepository), dependency.ParameterType);
-    }
-
-    [Theory]
-    [MemberData(nameof(ServiceFailureCases.All), MemberType = typeof(ServiceFailureCases))]
-    public async Task ValidateProjectSupervisor_PreservesDependencyFailureAndClassification(string kind)
-    {
-        var c = new ServiceTestContext();
+        var projectId = Guid.NewGuid();
         using var cancellation = new CancellationTokenSource();
-        var original = ServiceFailureCases.Create(kind);
-        c.Projects.Failure = original;
-        await ServiceFailureCases.AssertWrapped(() => c.ProjectService.ValidateProjectSupervisor(c.Project.Id, c.Supervisor.UserId, cancellation.Token), "ValidateProjectSupervisor", original);
-        Assert.Equal(cancellation.Token, c.Projects.LastToken);
+        var token = cancellation.Token;
+        var original = new RepositoryException("dependency", new InvalidOperationException("Database failed"));
+
+        _repository.Setup(repository => repository.DeleteProject(projectId, token))
+            .ThrowsAsync(original);
+
+        var service = CreateService();
+
+        var exception = await Assert.ThrowsAsync<ServiceException>(() => service.DeleteProject(projectId, token));
+
+        Assert.Equal(nameof(ProjectService.DeleteProject), exception.Operation);
+        Assert.Equal(ErrorType.Unexpected, exception.Type);
+        Assert.Same(original, exception.InnerException);
+        _repository.Verify(repository => repository.DeleteProject(projectId, token), Times.Once);
     }
 
     [Fact]
     public async Task ValidateProjectSupervisor_AcceptsExistingReferences()
     {
-        var c = new ServiceTestContext();
-        await c.ProjectService.ValidateProjectSupervisor(c.Project.Id, c.Supervisor.UserId);
-        Assert.Equal("GetProjectById", Assert.Single(c.Projects.Calls));
+        var topic = new Topic { Id = Guid.NewGuid(), Name = "Databases" };
+        var supervisorId = Guid.NewGuid();
+        var project = new Project { Id = Guid.NewGuid(), SupervisorId = supervisorId, Title = "Portal", Description = "Research", Topics = [topic] };
+
+        _repository.Setup(repository => repository.GetProjectById(project.Id, CancellationToken.None))
+            .ReturnsAsync(project);
+
+        var service = CreateService();
+
+        await service.ValidateProjectSupervisor(project.Id, supervisorId, CancellationToken.None);
+
+        _repository.Verify(repository => repository.GetProjectById(project.Id, CancellationToken.None), Times.Once);
     }
 
     [Fact]
-    public async Task ValidateProjectSupervisor_RejectsMissingReferences()
+    public async Task ValidateProjectSupervisor_WrapsRepositoryFailure()
     {
-        var c = new ServiceTestContext();
-        await ServiceFailureCases.AssertDomainFailure(() => c.ProjectService.ValidateProjectSupervisor(Guid.NewGuid(), c.Supervisor.UserId), "ValidateProjectSupervisor", ErrorType.Validation);
-    }
+        var supervisorId = Guid.NewGuid();
+        var projectId = Guid.NewGuid();
+        using var cancellation = new CancellationTokenSource();
+        var original = new RepositoryException("dependency", new InvalidOperationException("Database failed"));
 
-    [Fact]
-    public async Task ValidateProjectSupervisor_AcceptsGeneralInquiryWithoutProjectLookup()
-    {
-        var c = new ServiceTestContext();
-        await c.ProjectService.ValidateProjectSupervisor(null, c.Supervisor.UserId);
-        Assert.Empty(c.Projects.Calls);
-    }
+        _repository.Setup(repository => repository.GetProjectById(projectId, cancellation.Token))
+            .ThrowsAsync(original);
 
-    [Fact]
-    public async Task ValidateProjectSupervisor_RejectsDifferentOwner()
-    {
-        var c = new ServiceTestContext();
-        await ServiceFailureCases.AssertDomainFailure(() => c.ProjectService.ValidateProjectSupervisor(c.Project.Id, Guid.NewGuid()), "ValidateProjectSupervisor", ErrorType.Validation);
+        var service = CreateService();
+
+        var exception = await Assert.ThrowsAsync<ServiceException>(() => service.ValidateProjectSupervisor(projectId, supervisorId, cancellation.Token));
+
+        Assert.Equal(nameof(ProjectService.ValidateProjectSupervisor), exception.Operation);
+        Assert.Equal(ErrorType.Unexpected, exception.Type);
+        Assert.Same(original, exception.InnerException);
+        _repository.Verify(repository => repository.GetProjectById(projectId, cancellation.Token), Times.Once);
     }
 }

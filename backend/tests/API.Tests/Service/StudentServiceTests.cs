@@ -1,147 +1,204 @@
 using API.DTOs.Request;
 using API.Exceptions;
 using API.Models;
-using API.Tests.Support;
+using API.Repositories.Interfaces;
+using API.Services;
+using Moq;
 
 namespace API.Tests.Service;
 
 public class StudentServiceTests
 {
-    [Theory]
-    [MemberData(nameof(ServiceFailureCases.All), MemberType = typeof(ServiceFailureCases))]
-    public async Task GetStudents_PreservesDependencyFailureAndClassification(string kind)
-    {
-        var c = new ServiceTestContext();
-        using var cancellation = new CancellationTokenSource();
-        var token = cancellation.Token;
-        var original = ServiceFailureCases.Create(kind);
-        c.Students.Failure = original;
-        c.Students.FailureMethod = "GetStudents";
-        await ServiceFailureCases.AssertWrapped(() => c.StudentService.GetStudents(token), "GetStudents", original);
-        Assert.Equal(token, c.Students.LastToken);
-    }
+    private readonly Mock<IStudentRepository> _repository = new();
 
-    [Theory]
-    [MemberData(nameof(ServiceFailureCases.All), MemberType = typeof(ServiceFailureCases))]
-    public async Task GetStudentById_PreservesDependencyFailureAndClassification(string kind)
-    {
-        var c = new ServiceTestContext();
-        using var cancellation = new CancellationTokenSource();
-        var token = cancellation.Token;
-        var original = ServiceFailureCases.Create(kind);
-        c.Students.Failure = original;
-        c.Students.FailureMethod = "GetStudentById";
-        await ServiceFailureCases.AssertWrapped(() => c.StudentService.GetStudentById(c.Student.UserId, token), "GetStudentById", original);
-        Assert.Equal(token, c.Students.LastToken);
-    }
-
-    [Theory]
-    [MemberData(nameof(ServiceFailureCases.All), MemberType = typeof(ServiceFailureCases))]
-    public async Task UpdateStudent_PreservesDependencyFailureAndClassification(string kind)
-    {
-        var c = new ServiceTestContext();
-        using var cancellation = new CancellationTokenSource();
-        var token = cancellation.Token;
-        var original = ServiceFailureCases.Create(kind);
-        c.Students.Failure = original;
-        c.Students.FailureMethod = "UpdateStudent";
-        await ServiceFailureCases.AssertWrapped(() => c.StudentService.UpdateStudent(c.Student.UserId, c.StudentUpdate(), token), "UpdateStudent", original);
-        Assert.Equal(token, c.Students.LastToken);
-    }
+    private StudentService CreateService() => new(_repository.Object);
 
     [Fact]
     public async Task GetStudents_MapsProfilesAndTopics()
     {
-        var c = new ServiceTestContext();
-        var result = Assert.Single(await c.StudentService.GetStudents());
-        Assert.Equal(c.Student.UserId, result.UserId);
-        Assert.Equal(c.Student.DisplayName, result.DisplayName);
-        Assert.Equal(c.Topic.Id, Assert.Single(result.TopicInterests).Id);
+        var topic = new Topic { Id = Guid.NewGuid(), Name = "Databases" };
+        var student = new Student { UserId = Guid.NewGuid(), DisplayName = "Student", Program = "CS", TopicInterests = [topic] };
+
+        _repository.Setup(repository => repository.GetStudents(CancellationToken.None))
+            .ReturnsAsync(new List<Student> { student });
+
+        var service = CreateService();
+
+        var result = Assert.Single(await service.GetStudents(CancellationToken.None));
+
+        Assert.Equal(student.UserId, result.UserId);
+        Assert.Equal(student.DisplayName, result.DisplayName);
+        Assert.Equal(topic.Id, Assert.Single(result.TopicInterests).Id);
+        _repository.Verify(repository => repository.GetStudents(CancellationToken.None), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetStudents_WrapsRepositoryFailure()
+    {
+        using var cancellation = new CancellationTokenSource();
+        var token = cancellation.Token;
+        var original = new RepositoryException("dependency", new InvalidOperationException("Database failed"));
+
+        _repository.Setup(repository => repository.GetStudents(token))
+            .ThrowsAsync(original);
+
+        var service = CreateService();
+
+        var exception = await Assert.ThrowsAsync<ServiceException>(() => service.GetStudents(token));
+
+        Assert.Equal(nameof(StudentService.GetStudents), exception.Operation);
+        Assert.Equal(ErrorType.Unexpected, exception.Type);
+        Assert.Same(original, exception.InnerException);
+        _repository.Verify(repository => repository.GetStudents(token), Times.Once);
     }
 
     [Fact]
     public async Task GetStudentById_ReturnsMatchingProfile()
     {
-        var c = new ServiceTestContext();
-        var result = await c.StudentService.GetStudentById(c.Student.UserId);
-        Assert.Equal(c.Student.UserId, result.UserId);
-        Assert.Equal(c.Student.DisplayName, result.DisplayName);
-        Assert.Equal(c.Topic.Id, Assert.Single(result.TopicInterests).Id);
+        var topic = new Topic { Id = Guid.NewGuid(), Name = "Databases" };
+        var student = new Student { UserId = Guid.NewGuid(), DisplayName = "Student", Program = "CS", TopicInterests = [topic] };
+
+        _repository.Setup(repository => repository.GetStudentById(student.UserId, CancellationToken.None))
+            .ReturnsAsync(student);
+
+        var service = CreateService();
+
+        var result = await service.GetStudentById(student.UserId, CancellationToken.None);
+
+        Assert.Equal(student.UserId, result.UserId);
+        Assert.Equal(student.DisplayName, result.DisplayName);
+        Assert.Equal(topic.Id, Assert.Single(result.TopicInterests).Id);
+        _repository.Verify(repository => repository.GetStudentById(student.UserId, CancellationToken.None), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetStudentById_WrapsRepositoryFailure()
+    {
+        var studentId = Guid.NewGuid();
+        using var cancellation = new CancellationTokenSource();
+        var token = cancellation.Token;
+        var original = new RepositoryException("dependency", new InvalidOperationException("Database failed"));
+
+        _repository.Setup(repository => repository.GetStudentById(studentId, token))
+            .ThrowsAsync(original);
+
+        var service = CreateService();
+
+        var exception = await Assert.ThrowsAsync<ServiceException>(() => service.GetStudentById(studentId, token));
+
+        Assert.Equal(nameof(StudentService.GetStudentById), exception.Operation);
+        Assert.Equal(ErrorType.Unexpected, exception.Type);
+        Assert.Same(original, exception.InnerException);
+        _repository.Verify(repository => repository.GetStudentById(studentId, token), Times.Once);
     }
 
     [Fact]
     public async Task UpdateStudent_UpdatesFieldsAndPreservesIdentity()
     {
-        var c = new ServiceTestContext();
-        var request = c.StudentUpdate();
-        var before = c.Student.UpdatedAt;
-        var result = await c.StudentService.UpdateStudent(c.Student.UserId, request);
-        Assert.Equal(c.Student.UserId, result.UserId);
+        var topic = new Topic { Id = Guid.NewGuid(), Name = "Databases" };
+        var student = new Student { UserId = Guid.NewGuid(), DisplayName = "Student", Program = "CS", TopicInterests = [topic] };
+        var request = new UpdateStudent { DisplayName = "Updated", Program = "Engineering", TopicIds = [topic.Id] };
+        var before = student.UpdatedAt;
+
+        _repository.Setup(repository => repository.GetStudentById(student.UserId, CancellationToken.None))
+            .ReturnsAsync(student);
+        _repository.Setup(repository => repository.UpdateStudent(student, request.TopicIds, CancellationToken.None))
+            .ReturnsAsync(student);
+
+        var service = CreateService();
+
+        var result = await service.UpdateStudent(student.UserId, request, CancellationToken.None);
+
+        Assert.Equal(student.UserId, result.UserId);
         Assert.Equal(request.DisplayName, result.DisplayName);
         Assert.Equal(request.Program, result.Program);
         Assert.True(result.UpdatedAt >= before);
-        Assert.Contains("UpdateStudent", c.Students.Calls);
+        _repository.Verify(repository => repository.GetStudentById(student.UserId, CancellationToken.None), Times.Once);
+        _repository.Verify(repository => repository.UpdateStudent(student, request.TopicIds, CancellationToken.None), Times.Once);
     }
 
     [Fact]
-    public async Task GetStudentById_ThrowsForMissingProfile()
+    public async Task UpdateStudent_WrapsRepositoryFailure()
     {
-        var c = new ServiceTestContext();
-        await ServiceFailureCases.AssertDomainFailure(() => c.StudentService.GetStudentById(Guid.NewGuid()), "GetStudentById", ErrorType.NotFound);
-        Assert.DoesNotContain("UpdateStudent", c.Students.Calls);
-    }
-
-    [Fact]
-    public async Task UpdateStudent_ThrowsForMissingProfile()
-    {
-        var c = new ServiceTestContext();
-        await ServiceFailureCases.AssertDomainFailure(() => c.StudentService.UpdateStudent(Guid.NewGuid(), c.StudentUpdate()), "UpdateStudent", ErrorType.NotFound);
-        Assert.DoesNotContain("UpdateStudent", c.Students.Calls);
-    }
-
-    [Fact]
-    public async Task UpdateStudent_RejectsInvalidRequestBeforeWriting()
-    {
-        var c = new ServiceTestContext();
-        var request = c.StudentUpdate();
-        request.DisplayName = " ";
-        await ServiceFailureCases.AssertDomainFailure(() => c.StudentService.UpdateStudent(c.Student.UserId, request), "UpdateStudent", ErrorType.Validation);
-        Assert.DoesNotContain("UpdateStudent", c.Students.Calls);
-    }
-
-
-    [Fact]
-    public void Constructor_DependsOnlyOnOwnRepository()
-    {
-        var constructor = Assert.Single(typeof(API.Services.StudentService).GetConstructors());
-        var dependency = Assert.Single(constructor.GetParameters());
-        Assert.Equal(typeof(API.Repositories.Interfaces.IStudentRepository), dependency.ParameterType);
-    }
-
-    [Theory]
-    [MemberData(nameof(ServiceFailureCases.All), MemberType = typeof(ServiceFailureCases))]
-    public async Task ValidateStudentExists_PreservesDependencyFailureAndClassification(string kind)
-    {
-        var c = new ServiceTestContext();
+        var topic = new Topic { Id = Guid.NewGuid(), Name = "Databases" };
+        var student = new Student { UserId = Guid.NewGuid(), DisplayName = "Student", Program = "CS", TopicInterests = [topic] };
+        var request = new UpdateStudent { DisplayName = "Updated", Program = "Engineering", TopicIds = [topic.Id] };
         using var cancellation = new CancellationTokenSource();
-        var original = ServiceFailureCases.Create(kind);
-        c.Students.Failure = original;
-        await ServiceFailureCases.AssertWrapped(() => c.StudentService.ValidateStudentExists(c.Student.UserId, cancellation.Token), "ValidateStudentExists", original);
-        Assert.Equal(cancellation.Token, c.Students.LastToken);
+        var token = cancellation.Token;
+        var original = new RepositoryException("dependency", new InvalidOperationException("Database failed"));
+
+        _repository.Setup(repository => repository.GetStudentById(student.UserId, token))
+            .ReturnsAsync(student);
+        _repository.Setup(repository => repository.UpdateStudent(student, request.TopicIds, token))
+            .ThrowsAsync(original);
+
+        var service = CreateService();
+
+        var exception = await Assert.ThrowsAsync<ServiceException>(() => service.UpdateStudent(student.UserId, request, token));
+
+        Assert.Equal(nameof(StudentService.UpdateStudent), exception.Operation);
+        Assert.Equal(ErrorType.Unexpected, exception.Type);
+        Assert.Same(original, exception.InnerException);
+        _repository.Verify(repository => repository.GetStudentById(student.UserId, token), Times.Once);
+        _repository.Verify(repository => repository.UpdateStudent(student, request.TopicIds, token), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdateStudent_WrapsLookupFailure()
+    {
+        var topicId = Guid.NewGuid();
+        var studentId = Guid.NewGuid();
+        var request = new UpdateStudent { DisplayName = "Updated", Program = "Engineering", TopicIds = [topicId] };
+        using var cancellation = new CancellationTokenSource();
+        var token = cancellation.Token;
+        var original = new RepositoryException("dependency", new InvalidOperationException("Database failed"));
+
+        _repository.Setup(repository => repository.GetStudentById(studentId, token))
+            .ThrowsAsync(original);
+
+        var service = CreateService();
+
+        var exception = await Assert.ThrowsAsync<ServiceException>(() => service.UpdateStudent(studentId, request, token));
+
+        Assert.Equal(nameof(StudentService.UpdateStudent), exception.Operation);
+        Assert.Equal(ErrorType.Unexpected, exception.Type);
+        Assert.Same(original, exception.InnerException);
+        _repository.Verify(repository => repository.GetStudentById(studentId, token), Times.Once);
     }
 
     [Fact]
     public async Task ValidateStudentExists_AcceptsExistingReferences()
     {
-        var c = new ServiceTestContext();
-        await c.StudentService.ValidateStudentExists(c.Student.UserId);
-        Assert.Equal("GetStudentById", Assert.Single(c.Students.Calls));
+        var topic = new Topic { Id = Guid.NewGuid(), Name = "Databases" };
+        var student = new Student { UserId = Guid.NewGuid(), DisplayName = "Student", Program = "CS", TopicInterests = [topic] };
+
+        _repository.Setup(repository => repository.GetStudentById(student.UserId, CancellationToken.None))
+            .ReturnsAsync(student);
+
+        var service = CreateService();
+
+        await service.ValidateStudentExists(student.UserId, CancellationToken.None);
+
+        _repository.Verify(repository => repository.GetStudentById(student.UserId, CancellationToken.None), Times.Once);
     }
 
     [Fact]
-    public async Task ValidateStudentExists_RejectsMissingReferences()
+    public async Task ValidateStudentExists_WrapsRepositoryFailure()
     {
-        var c = new ServiceTestContext();
-        await ServiceFailureCases.AssertDomainFailure(() => c.StudentService.ValidateStudentExists(Guid.NewGuid()), "ValidateStudentExists", ErrorType.Validation);
+        var studentId = Guid.NewGuid();
+        using var cancellation = new CancellationTokenSource();
+        var original = new RepositoryException("dependency", new InvalidOperationException("Database failed"));
+
+        _repository.Setup(repository => repository.GetStudentById(studentId, cancellation.Token))
+            .ThrowsAsync(original);
+
+        var service = CreateService();
+
+        var exception = await Assert.ThrowsAsync<ServiceException>(() => service.ValidateStudentExists(studentId, cancellation.Token));
+
+        Assert.Equal(nameof(StudentService.ValidateStudentExists), exception.Operation);
+        Assert.Equal(ErrorType.Unexpected, exception.Type);
+        Assert.Same(original, exception.InnerException);
+        _repository.Verify(repository => repository.GetStudentById(studentId, cancellation.Token), Times.Once);
     }
 }

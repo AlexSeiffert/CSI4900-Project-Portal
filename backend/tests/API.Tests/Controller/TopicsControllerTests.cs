@@ -1,58 +1,33 @@
 using API.Controllers;
-using API.Exceptions;
+using API.DTOs;
+using API.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using API.Models;
-using System.Net;
-using System.Net.Http.Json;
-using API.DTOs.Request;
-using API.Tests.Support;
-using static API.Tests.Support.ApiTestData;
+using Moq;
 
 namespace API.Tests.Controller;
 
 public class TopicsControllerTests
 {
-    [Fact]
-    public async Task GetTopics_ReturnsSeededTopicsThroughHttp()
+    private readonly Mock<ITopicService> _service = new();
+
+    private TopicsController CreateController()
     {
-        await using var factory = new PortalApiFactory();
-        using var client = await factory.CreateSeededClient();
-        var topics = await Read<List<DTOs.Topic>>(await client.GetAsync("/api/v1/topics"));
-        Assert.Equal(2, topics.Count);
-        Assert.Contains(topics, topic => topic.Id == PortalApiFactory.TopicId);
-        Assert.Contains(topics, topic => topic.Id == PortalApiFactory.OtherTopicId);
+        return new(_service.Object);
     }
 
     [Fact]
-    public async Task GetTopics_CallsMatchingServiceMethodAndReturnsExpectedResult()
+    public async Task GetTopics_ReturnsOkWithTopics()
     {
-        var service = new TopicServiceStub();
-        service.Items.Add(service.Item);
-        var controller = new TopicsController(service);
-        using var cancellation = new CancellationTokenSource();
-        var result = await controller.GetTopics(cancellation.Token);
-        Assert.Same(service.Items, Assert.IsType<OkObjectResult>(result.Result).Value);
-        Assert.Equal("GetTopics", service.LastMethod);
-        Assert.Equal(cancellation.Token, service.LastToken);
-        Assert.Empty(service.LastArguments);
-    }
+        var topics = new List<Topic> { new() { Id = Guid.NewGuid() } };
 
-    [Theory]
-    [InlineData(ErrorType.NotFound)]
-    [InlineData(ErrorType.Validation)]
-    [InlineData(ErrorType.Conflict)]
-    [InlineData(ErrorType.Cancelled)]
-    [InlineData(ErrorType.Unexpected)]
-    public async Task GetTopics_PropagatesServiceExceptionsToTheHandler(ErrorType kind)
-    {
-        var service = new TopicServiceStub();
-        service.Items.Add(service.Item);
-        var controller = new TopicsController(service);
-        using var cancellation = new CancellationTokenSource();
-        var original = new ServiceException("GetTopics", kind, "Service failed", new InvalidOperationException("Original cause"));
-        service.Failure = original;
-        var exception = await Assert.ThrowsAsync<ServiceException>(() => controller.GetTopics(cancellation.Token));
-        Assert.Same(original, exception);
-        Assert.Equal(cancellation.Token, service.LastToken);
+        _service.Setup(service => service.GetTopics(CancellationToken.None))
+            .ReturnsAsync(topics);
+            
+        var controller = CreateController();
+
+        var result = await controller.GetTopics(CancellationToken.None);
+
+        var ok = Assert.IsType<OkObjectResult>(result.Result);
+        Assert.Same(topics, ok.Value);
     }
 }

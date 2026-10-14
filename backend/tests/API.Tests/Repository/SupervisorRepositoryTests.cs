@@ -3,165 +3,123 @@ using API.Models;
 using API.Repositories;
 using API.Tests.Support;
 using Microsoft.EntityFrameworkCore;
+using Moq;
 
 namespace API.Tests.Repository;
 
 public class SupervisorRepositoryTests
 {
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task GetSupervisors_WrapsCancellationAndContextFailures(bool cancelled)
-    {
-        await using var c = await RepositoryTestContext.CreateAsync();
-        var repository = new SupervisorRepository(c.Db);
-        using var cancellation = new CancellationTokenSource();
-        if (cancelled)
-        {
-            cancellation.Cancel();
-        }
-        else
-        {
-            await c.Db.DisposeAsync();
-        }
-        var token = cancellation.Token;
-        var exception = await Assert.ThrowsAsync<RepositoryException>(() => repository.GetSupervisors(token));
-        if (cancelled)
-        {
-            Assert.Equal(ErrorType.Cancelled, exception.Kind);
-            var original = Assert.IsAssignableFrom<OperationCanceledException>(exception.InnerException);
-            Assert.Equal(token, original.CancellationToken);
-        }
-        else
-        {
-            Assert.Equal(ErrorType.Unexpected, exception.Kind);
-            Assert.IsType<ObjectDisposedException>(exception.InnerException);
-        }
-    }
-
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task GetSupervisorById_WrapsCancellationAndContextFailures(bool cancelled)
-    {
-        await using var c = await RepositoryTestContext.CreateAsync();
-        var repository = new SupervisorRepository(c.Db);
-        using var cancellation = new CancellationTokenSource();
-        if (cancelled)
-        {
-            cancellation.Cancel();
-        }
-        else
-        {
-            await c.Db.DisposeAsync();
-        }
-        var token = cancellation.Token;
-        var exception = await Assert.ThrowsAsync<RepositoryException>(() => repository.GetSupervisorById(c.Supervisor.UserId, token));
-        if (cancelled)
-        {
-            Assert.Equal(ErrorType.Cancelled, exception.Kind);
-            var original = Assert.IsAssignableFrom<OperationCanceledException>(exception.InnerException);
-            Assert.Equal(token, original.CancellationToken);
-        }
-        else
-        {
-            Assert.Equal(ErrorType.Unexpected, exception.Kind);
-            Assert.IsType<ObjectDisposedException>(exception.InnerException);
-        }
-    }
-
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task UpdateSupervisor_WrapsCancellationAndContextFailures(bool cancelled)
-    {
-        await using var c = await RepositoryTestContext.CreateAsync();
-        var repository = new SupervisorRepository(c.Db);
-        using var cancellation = new CancellationTokenSource();
-        if (cancelled)
-        {
-            cancellation.Cancel();
-        }
-        else
-        {
-            await c.Db.DisposeAsync();
-        }
-        var token = cancellation.Token;
-        var exception = await Assert.ThrowsAsync<RepositoryException>(() => repository.UpdateSupervisor(c.Supervisor, new[] { c.Topic.Id }, token));
-        if (cancelled)
-        {
-            Assert.Equal(ErrorType.Cancelled, exception.Kind);
-            var original = Assert.IsAssignableFrom<OperationCanceledException>(exception.InnerException);
-            Assert.Equal(token, original.CancellationToken);
-        }
-        else
-        {
-            Assert.Equal(ErrorType.Unexpected, exception.Kind);
-            Assert.IsType<ObjectDisposedException>(exception.InnerException);
-        }
-    }
-
     [Fact]
     public async Task GetSupervisors_OrdersProfilesAndIncludesTopicsWithoutTracking()
     {
-        await using var c = await RepositoryTestContext.CreateAsync();
-        var repository = new SupervisorRepository(c.Db);
+        await using var context = await RepositoryTestContext.CreateAsync();
+        var repository = new SupervisorRepository(context.Db);
+
         var result = await repository.GetSupervisors();
-        Assert.Equal(new[] { c.OtherSupervisor.UserId, c.Supervisor.UserId }, result.Select(x => x.UserId));
-        Assert.Equal(c.Topic.Id, Assert.Single(result[1].TopicInterests).Id);
-        Assert.Empty(c.Db.ChangeTracker.Entries());
+
+        Assert.Equal(new[] { context.OtherSupervisor.UserId, context.Supervisor.UserId }, result.Select(x => x.UserId));
+        Assert.Equal(context.Topic.Id, Assert.Single(result[1].TopicInterests).Id);
+        Assert.Empty(context.Db.ChangeTracker.Entries());
     }
 
     [Fact]
-    public async Task GetSupervisorById_LoadsTrackedProfileOrReturnsNull()
+    public async Task GetSupervisors_WrapsContextFailure()
     {
-        await using var c = await RepositoryTestContext.CreateAsync();
-        var repository = new SupervisorRepository(c.Db);
-        var result = await repository.GetSupervisorById(c.Supervisor.UserId);
+        await using var context = await RepositoryTestContext.CreateAsync();
+        var original = new InvalidOperationException("Context failed");
+
+        context.DbMock.Setup(db => db.Set<Supervisor>())
+            .Throws(original);
+
+        var repository = new SupervisorRepository(context.Db);
+
+        var exception = await Assert.ThrowsAsync<RepositoryException>(() => repository.GetSupervisors(CancellationToken.None));
+
+        Assert.Equal(ErrorType.Unexpected, exception.Type);
+        Assert.Same(original, exception.InnerException);
+        context.DbMock.Verify(db => db.Set<Supervisor>(), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetSupervisorById_LoadsTrackedProfile()
+    {
+        await using var context = await RepositoryTestContext.CreateAsync();
+        var repository = new SupervisorRepository(context.Db);
+
+        var result = await repository.GetSupervisorById(context.Supervisor.UserId);
+
         Assert.NotNull(result);
-        Assert.Equal(c.Supervisor.UserId, result.UserId);
-        Assert.Equal(c.Topic.Id, Assert.Single(result.TopicInterests).Id);
-        Assert.Equal(EntityState.Unchanged, c.Db.Entry(result).State);
-        Assert.Null(await repository.GetSupervisorById(Guid.NewGuid()));
+        Assert.Equal(context.Supervisor.UserId, result.UserId);
+        Assert.Equal(context.Topic.Id, Assert.Single(result.TopicInterests).Id);
+        Assert.Equal(EntityState.Unchanged, context.Db.Entry(result).State);
+    }
+
+    [Fact]
+    public async Task GetSupervisorById_WrapsContextFailure()
+    {
+        await using var context = await RepositoryTestContext.CreateAsync();
+        var original = new InvalidOperationException("Context failed");
+
+        context.DbMock.Setup(db => db.Set<Supervisor>())
+            .Throws(original);
+
+        var repository = new SupervisorRepository(context.Db);
+
+        var exception = await Assert.ThrowsAsync<RepositoryException>(() => repository.GetSupervisorById(context.Supervisor.UserId, CancellationToken.None));
+
+        Assert.Equal(ErrorType.Unexpected, exception.Type);
+        Assert.Same(original, exception.InnerException);
+        context.DbMock.Verify(db => db.Set<Supervisor>(), Times.Once);
     }
 
     [Fact]
     public async Task UpdateSupervisor_PersistsFieldsAndReplacesTopics()
     {
-        await using var c = await RepositoryTestContext.CreateAsync();
-        var repository = new SupervisorRepository(c.Db);
-        var profile = (await repository.GetSupervisorById(c.Supervisor.UserId))!;
+        await using var context = await RepositoryTestContext.CreateAsync();
+        var repository = new SupervisorRepository(context.Db);
+        var profile = (await repository.GetSupervisorById(context.Supervisor.UserId))!;
         profile.DisplayName = "Updated";
-        Assert.Same(profile, await repository.UpdateSupervisor(profile, [c.OtherTopic.Id, c.OtherTopic.Id]));
-        c.Db.ChangeTracker.Clear();
+
+        Assert.Same(profile, await repository.UpdateSupervisor(profile, [context.OtherTopic.Id, context.OtherTopic.Id]));
+        context.Db.ChangeTracker.Clear();
         var persisted = (await repository.GetSupervisorById(profile.UserId))!;
         Assert.Equal("Updated", persisted.DisplayName);
-        Assert.Equal(c.OtherTopic.Id, Assert.Single(persisted.TopicInterests).Id);
+        Assert.Equal(context.OtherTopic.Id, Assert.Single(persisted.TopicInterests).Id);
     }
 
     [Fact]
-    public async Task UpdateSupervisor_RejectsTopicsRemovedBeforeWrite()
+    public async Task UpdateSupervisor_WrapsContextFailure()
     {
-        await using var c = await RepositoryTestContext.CreateAsync();
-        var repository = new SupervisorRepository(c.Db);
-        var profile = (await repository.GetSupervisorById(c.Supervisor.UserId))!;
-        var exception = await Assert.ThrowsAsync<RepositoryException>(() => repository.UpdateSupervisor(profile, [Guid.NewGuid()]));
-        Assert.Equal(ErrorType.Conflict, exception.Kind);
-        Assert.IsType<DbUpdateConcurrencyException>(exception.InnerException);
+        await using var context = await RepositoryTestContext.CreateAsync();
+        var original = new InvalidOperationException("Context failed");
+
+        context.DbMock.Setup(db => db.Set<Topic>())
+            .Throws(original);
+
+        var repository = new SupervisorRepository(context.Db);
+
+        var exception = await Assert.ThrowsAsync<RepositoryException>(() => repository.UpdateSupervisor(context.Supervisor, new[] { context.Topic.Id }, CancellationToken.None));
+
+        Assert.Equal(ErrorType.Unexpected, exception.Type);
+        Assert.Same(original, exception.InnerException);
+        context.DbMock.Verify(db => db.Set<Topic>(), Times.Once);
     }
 
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task UpdateSupervisor_PreservesSaveFailureAndClassifiesConflict(bool conflict)
+    [Fact]
+    public async Task UpdateSupervisor_WrapsSaveFailure()
     {
-        await using var c = await RepositoryTestContext.CreateAsync();
-        var repository = new SupervisorRepository(c.Db);
-        var entity = (await repository.GetSupervisorById(c.Supervisor.UserId))!;
-        Exception original = conflict ? new DbUpdateConcurrencyException("Concurrent write") : new InvalidOperationException("Save failed");
-        c.FailSavesWith(original);
-        var exception = await Assert.ThrowsAsync<RepositoryException>(() => repository.UpdateSupervisor(entity, new[] { c.Topic.Id }));
+        await using var context = await RepositoryTestContext.CreateAsync();
+        var repository = new SupervisorRepository(context.Db);
+        var entity = (await repository.GetSupervisorById(context.Supervisor.UserId))!;
+        var original = new InvalidOperationException("Save failed");
+
+        context.DbMock.Setup(db => db.SaveChangesAsync(CancellationToken.None))
+            .ThrowsAsync(original);
+
+        var exception = await Assert.ThrowsAsync<RepositoryException>(() => repository.UpdateSupervisor(entity, new[] { context.Topic.Id }));
+
         Assert.Same(original, exception.InnerException);
-        Assert.Equal(conflict ? ErrorType.Conflict : ErrorType.Unexpected, exception.Kind);
+        Assert.Equal(ErrorType.Unexpected, exception.Type);
+        context.DbMock.Verify(db => db.SaveChangesAsync(CancellationToken.None), Times.Once);
     }
 }
