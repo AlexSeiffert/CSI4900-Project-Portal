@@ -5,14 +5,14 @@ namespace API.Tests.Support;
 
 internal static class OrchestrationFailureCases
 {
-    internal static async Task AssertDomainFailure(Func<Task> action, string operation, ErrorKind kind)
+    internal static async Task AssertDomainFailure(Func<Task> action, string operation, ErrorType kind)
     {
         var exception = await Assert.ThrowsAsync<OrchestrationException>(action);
         Assert.Equal(operation, exception.Operation);
         Assert.Equal(kind, exception.Kind);
         var service = Assert.IsType<ServiceException>(exception.InnerException);
         Assert.Equal(kind, service.Kind);
-        if (kind == ErrorKind.NotFound)
+        if (kind == ErrorType.NotFound)
         {
             Assert.IsType<KeyNotFoundException>(service.InnerException);
         }

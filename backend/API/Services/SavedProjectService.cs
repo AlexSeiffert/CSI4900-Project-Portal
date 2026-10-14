@@ -24,15 +24,15 @@ public class SavedProjectService(ISavedProjectRepository repository) : ISavedPro
         }
         catch (ValidationException exception)
         {
-            throw new ServiceException(nameof(GetSavedProjects), ErrorKind.Validation, exception.Message, exception);
+            throw new ServiceException(nameof(GetSavedProjects), ErrorType.Validation, exception.Message, exception);
         }
         catch (OperationCanceledException exception)
         {
-            throw new ServiceException(nameof(GetSavedProjects), ErrorKind.Cancelled, "The operation was cancelled.", exception);
+            throw new ServiceException(nameof(GetSavedProjects), ErrorType.Cancelled, "The operation was cancelled.", exception);
         }
         catch (Exception exception) when (exception is not ServiceException)
         {
-            throw new ServiceException(nameof(GetSavedProjects), ErrorKind.Unexpected, "The operation could not be completed.", exception);
+            throw new ServiceException(nameof(GetSavedProjects), ErrorType.Unexpected, "The operation could not be completed.", exception);
         }
     }
 
@@ -48,15 +48,15 @@ public class SavedProjectService(ISavedProjectRepository repository) : ISavedPro
         }
         catch (ValidationException exception)
         {
-            throw new ServiceException(nameof(SaveProject), ErrorKind.Validation, exception.Message, exception);
+            throw new ServiceException(nameof(SaveProject), ErrorType.Validation, exception.Message, exception);
         }
         catch (OperationCanceledException exception)
         {
-            throw new ServiceException(nameof(SaveProject), ErrorKind.Cancelled, "The operation was cancelled.", exception);
+            throw new ServiceException(nameof(SaveProject), ErrorType.Cancelled, "The operation was cancelled.", exception);
         }
         catch (Exception exception) when (exception is not ServiceException)
         {
-            throw new ServiceException(nameof(SaveProject), ErrorKind.Unexpected, "The operation could not be completed.", exception);
+            throw new ServiceException(nameof(SaveProject), ErrorType.Unexpected, "The operation could not be completed.", exception);
         }
     }
 
@@ -72,15 +72,15 @@ public class SavedProjectService(ISavedProjectRepository repository) : ISavedPro
         }
         catch (ValidationException exception)
         {
-            throw new ServiceException(nameof(RemoveSavedProject), ErrorKind.Validation, exception.Message, exception);
+            throw new ServiceException(nameof(RemoveSavedProject), ErrorType.Validation, exception.Message, exception);
         }
         catch (OperationCanceledException exception)
         {
-            throw new ServiceException(nameof(RemoveSavedProject), ErrorKind.Cancelled, "The operation was cancelled.", exception);
+            throw new ServiceException(nameof(RemoveSavedProject), ErrorType.Cancelled, "The operation was cancelled.", exception);
         }
         catch (Exception exception) when (exception is not ServiceException)
         {
-            throw new ServiceException(nameof(RemoveSavedProject), ErrorKind.Unexpected, "The operation could not be completed.", exception);
+            throw new ServiceException(nameof(RemoveSavedProject), ErrorType.Unexpected, "The operation could not be completed.", exception);
         }
     }
 }

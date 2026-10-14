@@ -72,12 +72,12 @@ public class StudentsControllerTests
     }
 
     [Theory]
-    [InlineData(ErrorKind.NotFound)]
-    [InlineData(ErrorKind.Validation)]
-    [InlineData(ErrorKind.Conflict)]
-    [InlineData(ErrorKind.Cancelled)]
-    [InlineData(ErrorKind.Unexpected)]
-    public async Task GetStudents_PropagatesServiceExceptionsToTheHandler(ErrorKind kind)
+    [InlineData(ErrorType.NotFound)]
+    [InlineData(ErrorType.Validation)]
+    [InlineData(ErrorType.Conflict)]
+    [InlineData(ErrorType.Cancelled)]
+    [InlineData(ErrorType.Unexpected)]
+    public async Task GetStudents_PropagatesServiceExceptionsToTheHandler(ErrorType kind)
     {
         var service = new StudentServiceStub();
         service.Items.Add(service.Item);
@@ -107,12 +107,12 @@ public class StudentsControllerTests
     }
 
     [Theory]
-    [InlineData(ErrorKind.NotFound)]
-    [InlineData(ErrorKind.Validation)]
-    [InlineData(ErrorKind.Conflict)]
-    [InlineData(ErrorKind.Cancelled)]
-    [InlineData(ErrorKind.Unexpected)]
-    public async Task GetStudentById_PropagatesServiceExceptionsToTheHandler(ErrorKind kind)
+    [InlineData(ErrorType.NotFound)]
+    [InlineData(ErrorType.Validation)]
+    [InlineData(ErrorType.Conflict)]
+    [InlineData(ErrorType.Cancelled)]
+    [InlineData(ErrorType.Unexpected)]
+    public async Task GetStudentById_PropagatesServiceExceptionsToTheHandler(ErrorType kind)
     {
         var service = new StudentServiceStub();
         service.Items.Add(service.Item);
@@ -145,12 +145,12 @@ public class StudentsControllerTests
     }
 
     [Theory]
-    [InlineData(ErrorKind.NotFound)]
-    [InlineData(ErrorKind.Validation)]
-    [InlineData(ErrorKind.Conflict)]
-    [InlineData(ErrorKind.Cancelled)]
-    [InlineData(ErrorKind.Unexpected)]
-    public async Task UpdateStudent_PropagatesOrchestrationExceptionsToTheHandler(ErrorKind kind)
+    [InlineData(ErrorType.NotFound)]
+    [InlineData(ErrorType.Validation)]
+    [InlineData(ErrorType.Conflict)]
+    [InlineData(ErrorType.Cancelled)]
+    [InlineData(ErrorType.Unexpected)]
+    public async Task UpdateStudent_PropagatesOrchestrationExceptionsToTheHandler(ErrorType kind)
     {
         var service = new StudentOrchestrationStub();
         service.Items.Add(service.Item);

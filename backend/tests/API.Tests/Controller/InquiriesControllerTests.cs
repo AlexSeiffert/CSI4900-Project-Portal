@@ -63,12 +63,12 @@ public class InquiriesControllerTests
     }
 
     [Theory]
-    [InlineData(ErrorKind.NotFound)]
-    [InlineData(ErrorKind.Validation)]
-    [InlineData(ErrorKind.Conflict)]
-    [InlineData(ErrorKind.Cancelled)]
-    [InlineData(ErrorKind.Unexpected)]
-    public async Task GetInquiries_PropagatesServiceExceptionsToTheHandler(ErrorKind kind)
+    [InlineData(ErrorType.NotFound)]
+    [InlineData(ErrorType.Validation)]
+    [InlineData(ErrorType.Conflict)]
+    [InlineData(ErrorType.Cancelled)]
+    [InlineData(ErrorType.Unexpected)]
+    public async Task GetInquiries_PropagatesServiceExceptionsToTheHandler(ErrorType kind)
     {
         var service = new InquiryServiceStub();
         service.Items.Add(service.Item);
@@ -98,12 +98,12 @@ public class InquiriesControllerTests
     }
 
     [Theory]
-    [InlineData(ErrorKind.NotFound)]
-    [InlineData(ErrorKind.Validation)]
-    [InlineData(ErrorKind.Conflict)]
-    [InlineData(ErrorKind.Cancelled)]
-    [InlineData(ErrorKind.Unexpected)]
-    public async Task GetInquiriesByStudentId_PropagatesServiceExceptionsToTheHandler(ErrorKind kind)
+    [InlineData(ErrorType.NotFound)]
+    [InlineData(ErrorType.Validation)]
+    [InlineData(ErrorType.Conflict)]
+    [InlineData(ErrorType.Cancelled)]
+    [InlineData(ErrorType.Unexpected)]
+    public async Task GetInquiriesByStudentId_PropagatesServiceExceptionsToTheHandler(ErrorType kind)
     {
         var service = new InquiryServiceStub();
         service.Items.Add(service.Item);
@@ -134,12 +134,12 @@ public class InquiriesControllerTests
     }
 
     [Theory]
-    [InlineData(ErrorKind.NotFound)]
-    [InlineData(ErrorKind.Validation)]
-    [InlineData(ErrorKind.Conflict)]
-    [InlineData(ErrorKind.Cancelled)]
-    [InlineData(ErrorKind.Unexpected)]
-    public async Task GetInquiriesBySupervisorId_PropagatesServiceExceptionsToTheHandler(ErrorKind kind)
+    [InlineData(ErrorType.NotFound)]
+    [InlineData(ErrorType.Validation)]
+    [InlineData(ErrorType.Conflict)]
+    [InlineData(ErrorType.Cancelled)]
+    [InlineData(ErrorType.Unexpected)]
+    public async Task GetInquiriesBySupervisorId_PropagatesServiceExceptionsToTheHandler(ErrorType kind)
     {
         var service = new InquiryServiceStub();
         service.Items.Add(service.Item);
@@ -170,12 +170,12 @@ public class InquiriesControllerTests
     }
 
     [Theory]
-    [InlineData(ErrorKind.NotFound)]
-    [InlineData(ErrorKind.Validation)]
-    [InlineData(ErrorKind.Conflict)]
-    [InlineData(ErrorKind.Cancelled)]
-    [InlineData(ErrorKind.Unexpected)]
-    public async Task GetInquiriesByProjectId_PropagatesServiceExceptionsToTheHandler(ErrorKind kind)
+    [InlineData(ErrorType.NotFound)]
+    [InlineData(ErrorType.Validation)]
+    [InlineData(ErrorType.Conflict)]
+    [InlineData(ErrorType.Cancelled)]
+    [InlineData(ErrorType.Unexpected)]
+    public async Task GetInquiriesByProjectId_PropagatesServiceExceptionsToTheHandler(ErrorType kind)
     {
         var service = new InquiryServiceStub();
         service.Items.Add(service.Item);
@@ -206,12 +206,12 @@ public class InquiriesControllerTests
     }
 
     [Theory]
-    [InlineData(ErrorKind.NotFound)]
-    [InlineData(ErrorKind.Validation)]
-    [InlineData(ErrorKind.Conflict)]
-    [InlineData(ErrorKind.Cancelled)]
-    [InlineData(ErrorKind.Unexpected)]
-    public async Task GetInquiryById_PropagatesServiceExceptionsToTheHandler(ErrorKind kind)
+    [InlineData(ErrorType.NotFound)]
+    [InlineData(ErrorType.Validation)]
+    [InlineData(ErrorType.Conflict)]
+    [InlineData(ErrorType.Cancelled)]
+    [InlineData(ErrorType.Unexpected)]
+    public async Task GetInquiryById_PropagatesServiceExceptionsToTheHandler(ErrorType kind)
     {
         var service = new InquiryServiceStub();
         service.Items.Add(service.Item);
@@ -245,12 +245,12 @@ public class InquiriesControllerTests
     }
 
     [Theory]
-    [InlineData(ErrorKind.NotFound)]
-    [InlineData(ErrorKind.Validation)]
-    [InlineData(ErrorKind.Conflict)]
-    [InlineData(ErrorKind.Cancelled)]
-    [InlineData(ErrorKind.Unexpected)]
-    public async Task CreateInquiry_PropagatesOrchestrationExceptionsToTheHandler(ErrorKind kind)
+    [InlineData(ErrorType.NotFound)]
+    [InlineData(ErrorType.Validation)]
+    [InlineData(ErrorType.Conflict)]
+    [InlineData(ErrorType.Cancelled)]
+    [InlineData(ErrorType.Unexpected)]
+    public async Task CreateInquiry_PropagatesOrchestrationExceptionsToTheHandler(ErrorType kind)
     {
         var service = new InquiryOrchestrationStub();
         service.Items.Add(service.Item);
@@ -283,12 +283,12 @@ public class InquiriesControllerTests
     }
 
     [Theory]
-    [InlineData(ErrorKind.NotFound)]
-    [InlineData(ErrorKind.Validation)]
-    [InlineData(ErrorKind.Conflict)]
-    [InlineData(ErrorKind.Cancelled)]
-    [InlineData(ErrorKind.Unexpected)]
-    public async Task UpdateInquiry_PropagatesServiceExceptionsToTheHandler(ErrorKind kind)
+    [InlineData(ErrorType.NotFound)]
+    [InlineData(ErrorType.Validation)]
+    [InlineData(ErrorType.Conflict)]
+    [InlineData(ErrorType.Cancelled)]
+    [InlineData(ErrorType.Unexpected)]
+    public async Task UpdateInquiry_PropagatesServiceExceptionsToTheHandler(ErrorType kind)
     {
         var service = new InquiryServiceStub();
         service.Items.Add(service.Item);

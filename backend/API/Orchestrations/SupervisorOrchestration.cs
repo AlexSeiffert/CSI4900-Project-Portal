@@ -23,11 +23,11 @@ public class SupervisorOrchestration(ISupervisorService supervisors, ITopicServi
         }
         catch (OperationCanceledException exception)
         {
-            throw new OrchestrationException(nameof(UpdateSupervisor), ErrorKind.Cancelled, "The operation was cancelled.", exception);
+            throw new OrchestrationException(nameof(UpdateSupervisor), ErrorType.Cancelled, "The operation was cancelled.", exception);
         }
         catch (Exception exception) when (exception is not OrchestrationException)
         {
-            throw new OrchestrationException(nameof(UpdateSupervisor), ErrorKind.Unexpected, "The operation could not be completed.", exception);
+            throw new OrchestrationException(nameof(UpdateSupervisor), ErrorType.Unexpected, "The operation could not be completed.", exception);
         }
     }
 }

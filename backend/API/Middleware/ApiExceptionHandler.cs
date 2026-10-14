@@ -58,12 +58,12 @@ public class ApiExceptionHandler(IProblemDetailsService problems, ILogger<ApiExc
         {
             ServiceException service => service.Kind,
             OrchestrationException orchestration => orchestration.Kind,
-            _ => ErrorKind.Unexpected
+            _ => ErrorType.Unexpected
         };
 
         return kind switch
         {
-            ErrorKind.Validation => new ValidationProblemDetails(new Dictionary<string, string[]>
+            ErrorType.Validation => new ValidationProblemDetails(new Dictionary<string, string[]>
             {
                 ["request"] = [exception.Message]
             })
@@ -71,19 +71,19 @@ public class ApiExceptionHandler(IProblemDetailsService problems, ILogger<ApiExc
                 Status = StatusCodes.Status400BadRequest,
                 Title = "One or more validation errors occurred."
             },
-            ErrorKind.NotFound => new ProblemDetails
+            ErrorType.NotFound => new ProblemDetails
             {
                 Status = StatusCodes.Status404NotFound,
                 Title = "Resource not found",
                 Detail = exception.Message
             },
-            ErrorKind.Cancelled => new ProblemDetails
+            ErrorType.Cancelled => new ProblemDetails
             {
                 Status = StatusCodes.Status499ClientClosedRequest,
                 Title = "The operation was cancelled",
                 Detail = "The request was cancelled before it could complete."
             },
-            ErrorKind.Conflict => new ProblemDetails
+            ErrorType.Conflict => new ProblemDetails
             {
                 Status = StatusCodes.Status409Conflict,
                 Title = "The operation conflicts with existing data",

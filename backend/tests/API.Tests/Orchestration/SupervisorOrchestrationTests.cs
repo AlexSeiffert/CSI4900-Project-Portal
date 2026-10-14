@@ -13,7 +13,7 @@ public class SupervisorOrchestrationTests
         var c = new ServiceTestContext();
         var request = c.SupervisorUpdate();
         request.TopicIds = [Guid.NewGuid()];
-        await OrchestrationFailureCases.AssertDomainFailure(() => c.SupervisorOrchestration.UpdateSupervisor(c.Supervisor.UserId, request), "UpdateSupervisor", ErrorKind.Validation);
+        await OrchestrationFailureCases.AssertDomainFailure(() => c.SupervisorOrchestration.UpdateSupervisor(c.Supervisor.UserId, request), "UpdateSupervisor", ErrorType.Validation);
         Assert.DoesNotContain("UpdateSupervisor", c.Supervisors.Calls);
     }
 
@@ -45,12 +45,12 @@ public class SupervisorOrchestrationTests
     }
 
     [Theory]
-    [InlineData(ErrorKind.Validation)]
-    [InlineData(ErrorKind.NotFound)]
-    [InlineData(ErrorKind.Conflict)]
-    [InlineData(ErrorKind.Cancelled)]
-    [InlineData(ErrorKind.Unexpected)]
-    public async Task UpdateSupervisor_WrapsTopicsFailureAndStopsRemainingCalls(ErrorKind kind)
+    [InlineData(ErrorType.Validation)]
+    [InlineData(ErrorType.NotFound)]
+    [InlineData(ErrorType.Conflict)]
+    [InlineData(ErrorType.Cancelled)]
+    [InlineData(ErrorType.Unexpected)]
+    public async Task UpdateSupervisor_WrapsTopicsFailureAndStopsRemainingCalls(ErrorType kind)
     {
         var c = new OrchestrationTestContext();
         using var cancellation = new CancellationTokenSource();
@@ -81,18 +81,18 @@ public class SupervisorOrchestrationTests
         c.Topics.Failure = original;
         var exception = await Assert.ThrowsAsync<OrchestrationException>(() => c.SupervisorOrchestration.UpdateSupervisor(id, request, cancellation.Token));
         Assert.Equal("UpdateSupervisor", exception.Operation);
-        Assert.Equal(cancelled ? ErrorKind.Cancelled : ErrorKind.Unexpected, exception.Kind);
+        Assert.Equal(cancelled ? ErrorType.Cancelled : ErrorType.Unexpected, exception.Kind);
         Assert.Same(original, exception.InnerException);
         Assert.Equal(new[] { "Topics.ValidateTopicsExist" }, c.Calls);
     }
 
     [Theory]
-    [InlineData(ErrorKind.Validation)]
-    [InlineData(ErrorKind.NotFound)]
-    [InlineData(ErrorKind.Conflict)]
-    [InlineData(ErrorKind.Cancelled)]
-    [InlineData(ErrorKind.Unexpected)]
-    public async Task UpdateSupervisor_WrapsSupervisorsFailureAndStopsRemainingCalls(ErrorKind kind)
+    [InlineData(ErrorType.Validation)]
+    [InlineData(ErrorType.NotFound)]
+    [InlineData(ErrorType.Conflict)]
+    [InlineData(ErrorType.Cancelled)]
+    [InlineData(ErrorType.Unexpected)]
+    public async Task UpdateSupervisor_WrapsSupervisorsFailureAndStopsRemainingCalls(ErrorType kind)
     {
         var c = new OrchestrationTestContext();
         using var cancellation = new CancellationTokenSource();
@@ -123,7 +123,7 @@ public class SupervisorOrchestrationTests
         c.Supervisors.Failure = original;
         var exception = await Assert.ThrowsAsync<OrchestrationException>(() => c.SupervisorOrchestration.UpdateSupervisor(id, request, cancellation.Token));
         Assert.Equal("UpdateSupervisor", exception.Operation);
-        Assert.Equal(cancelled ? ErrorKind.Cancelled : ErrorKind.Unexpected, exception.Kind);
+        Assert.Equal(cancelled ? ErrorType.Cancelled : ErrorType.Unexpected, exception.Kind);
         Assert.Same(original, exception.InnerException);
         Assert.Equal(new[] { "Topics.ValidateTopicsExist", "Supervisors.UpdateSupervisor" }, c.Calls);
     }

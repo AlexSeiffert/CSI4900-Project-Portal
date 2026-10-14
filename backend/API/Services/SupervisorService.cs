@@ -24,15 +24,15 @@ public class SupervisorService(ISupervisorRepository repository) : ISupervisorSe
         }
         catch (ValidationException exception)
         {
-            throw new ServiceException(nameof(GetSupervisors), ErrorKind.Validation, exception.Message, exception);
+            throw new ServiceException(nameof(GetSupervisors), ErrorType.Validation, exception.Message, exception);
         }
         catch (OperationCanceledException exception)
         {
-            throw new ServiceException(nameof(GetSupervisors), ErrorKind.Cancelled, "The operation was cancelled.", exception);
+            throw new ServiceException(nameof(GetSupervisors), ErrorType.Cancelled, "The operation was cancelled.", exception);
         }
         catch (Exception exception) when (exception is not ServiceException)
         {
-            throw new ServiceException(nameof(GetSupervisors), ErrorKind.Unexpected, "The operation could not be completed.", exception);
+            throw new ServiceException(nameof(GetSupervisors), ErrorType.Unexpected, "The operation could not be completed.", exception);
         }
     }
 
@@ -44,7 +44,7 @@ public class SupervisorService(ISupervisorRepository repository) : ISupervisorSe
             if (profile == null)
             {
                 var exception = new KeyNotFoundException($"Supervisor '{userId}' was not found.");
-                throw new ServiceException(nameof(GetSupervisorById), ErrorKind.NotFound, exception.Message, exception);
+                throw new ServiceException(nameof(GetSupervisorById), ErrorType.NotFound, exception.Message, exception);
             }
             return profile.ToDto();
         }
@@ -54,15 +54,15 @@ public class SupervisorService(ISupervisorRepository repository) : ISupervisorSe
         }
         catch (ValidationException exception)
         {
-            throw new ServiceException(nameof(GetSupervisorById), ErrorKind.Validation, exception.Message, exception);
+            throw new ServiceException(nameof(GetSupervisorById), ErrorType.Validation, exception.Message, exception);
         }
         catch (OperationCanceledException exception)
         {
-            throw new ServiceException(nameof(GetSupervisorById), ErrorKind.Cancelled, "The operation was cancelled.", exception);
+            throw new ServiceException(nameof(GetSupervisorById), ErrorType.Cancelled, "The operation was cancelled.", exception);
         }
         catch (Exception exception) when (exception is not ServiceException)
         {
-            throw new ServiceException(nameof(GetSupervisorById), ErrorKind.Unexpected, "The operation could not be completed.", exception);
+            throw new ServiceException(nameof(GetSupervisorById), ErrorType.Unexpected, "The operation could not be completed.", exception);
         }
     }
 
@@ -75,7 +75,7 @@ public class SupervisorService(ISupervisorRepository repository) : ISupervisorSe
             if (profile == null)
             {
                 var exception = new KeyNotFoundException($"Supervisor '{userId}' was not found.");
-                throw new ServiceException(nameof(UpdateSupervisor), ErrorKind.NotFound, exception.Message, exception);
+                throw new ServiceException(nameof(UpdateSupervisor), ErrorType.NotFound, exception.Message, exception);
             }
             profile.DisplayName = request.DisplayName;
             profile.ContactEmail = request.ContactEmail;
@@ -91,15 +91,15 @@ public class SupervisorService(ISupervisorRepository repository) : ISupervisorSe
         }
         catch (ValidationException exception)
         {
-            throw new ServiceException(nameof(UpdateSupervisor), ErrorKind.Validation, exception.Message, exception);
+            throw new ServiceException(nameof(UpdateSupervisor), ErrorType.Validation, exception.Message, exception);
         }
         catch (OperationCanceledException exception)
         {
-            throw new ServiceException(nameof(UpdateSupervisor), ErrorKind.Cancelled, "The operation was cancelled.", exception);
+            throw new ServiceException(nameof(UpdateSupervisor), ErrorType.Cancelled, "The operation was cancelled.", exception);
         }
         catch (Exception exception) when (exception is not ServiceException)
         {
-            throw new ServiceException(nameof(UpdateSupervisor), ErrorKind.Unexpected, "The operation could not be completed.", exception);
+            throw new ServiceException(nameof(UpdateSupervisor), ErrorType.Unexpected, "The operation could not be completed.", exception);
         }
     }
 
@@ -110,7 +110,7 @@ public class SupervisorService(ISupervisorRepository repository) : ISupervisorSe
             if (await _repository.GetSupervisorById(supervisorId, cancellationToken) == null)
             {
                 var exception = new ValidationException("Supervisor does not exist.");
-                throw new ServiceException(nameof(ValidateSupervisorExists), ErrorKind.Validation, exception.Message, exception);
+                throw new ServiceException(nameof(ValidateSupervisorExists), ErrorType.Validation, exception.Message, exception);
             }
         }
         catch (RepositoryException exception)
@@ -119,15 +119,15 @@ public class SupervisorService(ISupervisorRepository repository) : ISupervisorSe
         }
         catch (ValidationException exception)
         {
-            throw new ServiceException(nameof(ValidateSupervisorExists), ErrorKind.Validation, exception.Message, exception);
+            throw new ServiceException(nameof(ValidateSupervisorExists), ErrorType.Validation, exception.Message, exception);
         }
         catch (OperationCanceledException exception)
         {
-            throw new ServiceException(nameof(ValidateSupervisorExists), ErrorKind.Cancelled, "The operation was cancelled.", exception);
+            throw new ServiceException(nameof(ValidateSupervisorExists), ErrorType.Cancelled, "The operation was cancelled.", exception);
         }
         catch (Exception exception) when (exception is not ServiceException)
         {
-            throw new ServiceException(nameof(ValidateSupervisorExists), ErrorKind.Unexpected, "The operation could not be completed.", exception);
+            throw new ServiceException(nameof(ValidateSupervisorExists), ErrorType.Unexpected, "The operation could not be completed.", exception);
         }
     }
 }

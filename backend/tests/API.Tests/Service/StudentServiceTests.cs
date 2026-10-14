@@ -87,7 +87,7 @@ public class StudentServiceTests
     public async Task GetStudentById_ThrowsForMissingProfile()
     {
         var c = new ServiceTestContext();
-        await ServiceFailureCases.AssertDomainFailure(() => c.StudentService.GetStudentById(Guid.NewGuid()), "GetStudentById", ErrorKind.NotFound);
+        await ServiceFailureCases.AssertDomainFailure(() => c.StudentService.GetStudentById(Guid.NewGuid()), "GetStudentById", ErrorType.NotFound);
         Assert.DoesNotContain("UpdateStudent", c.Students.Calls);
     }
 
@@ -95,7 +95,7 @@ public class StudentServiceTests
     public async Task UpdateStudent_ThrowsForMissingProfile()
     {
         var c = new ServiceTestContext();
-        await ServiceFailureCases.AssertDomainFailure(() => c.StudentService.UpdateStudent(Guid.NewGuid(), c.StudentUpdate()), "UpdateStudent", ErrorKind.NotFound);
+        await ServiceFailureCases.AssertDomainFailure(() => c.StudentService.UpdateStudent(Guid.NewGuid(), c.StudentUpdate()), "UpdateStudent", ErrorType.NotFound);
         Assert.DoesNotContain("UpdateStudent", c.Students.Calls);
     }
 
@@ -105,7 +105,7 @@ public class StudentServiceTests
         var c = new ServiceTestContext();
         var request = c.StudentUpdate();
         request.DisplayName = " ";
-        await ServiceFailureCases.AssertDomainFailure(() => c.StudentService.UpdateStudent(c.Student.UserId, request), "UpdateStudent", ErrorKind.Validation);
+        await ServiceFailureCases.AssertDomainFailure(() => c.StudentService.UpdateStudent(c.Student.UserId, request), "UpdateStudent", ErrorType.Validation);
         Assert.DoesNotContain("UpdateStudent", c.Students.Calls);
     }
 
@@ -142,6 +142,6 @@ public class StudentServiceTests
     public async Task ValidateStudentExists_RejectsMissingReferences()
     {
         var c = new ServiceTestContext();
-        await ServiceFailureCases.AssertDomainFailure(() => c.StudentService.ValidateStudentExists(Guid.NewGuid()), "ValidateStudentExists", ErrorKind.Validation);
+        await ServiceFailureCases.AssertDomainFailure(() => c.StudentService.ValidateStudentExists(Guid.NewGuid()), "ValidateStudentExists", ErrorType.Validation);
     }
 }

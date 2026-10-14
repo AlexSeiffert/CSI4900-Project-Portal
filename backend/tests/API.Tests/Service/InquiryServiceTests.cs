@@ -215,7 +215,7 @@ public class InquiryServiceTests
     public async Task GetInquiryById_ThrowsForMissingInquiry()
     {
         var c = new ServiceTestContext();
-        await ServiceFailureCases.AssertDomainFailure(() => c.InquiryService.GetInquiryById(Guid.NewGuid()), "GetInquiryById", ErrorKind.NotFound);
+        await ServiceFailureCases.AssertDomainFailure(() => c.InquiryService.GetInquiryById(Guid.NewGuid()), "GetInquiryById", ErrorType.NotFound);
         Assert.DoesNotContain("UpdateInquiry", c.Inquiries.Calls);
     }
 
@@ -223,7 +223,7 @@ public class InquiryServiceTests
     public async Task UpdateInquiry_ThrowsForMissingInquiry()
     {
         var c = new ServiceTestContext();
-        await ServiceFailureCases.AssertDomainFailure(() => c.InquiryService.UpdateInquiry(Guid.NewGuid(), new UpdateInquiry { Status = InquiryStatus.Viewed }), "UpdateInquiry", ErrorKind.NotFound);
+        await ServiceFailureCases.AssertDomainFailure(() => c.InquiryService.UpdateInquiry(Guid.NewGuid(), new UpdateInquiry { Status = InquiryStatus.Viewed }), "UpdateInquiry", ErrorType.NotFound);
         Assert.DoesNotContain("UpdateInquiry", c.Inquiries.Calls);
     }
 
@@ -233,7 +233,7 @@ public class InquiryServiceTests
     public async Task UpdateInquiry_RejectsInvalidStatusBeforeWriting(InquiryStatus? status)
     {
         var c = new ServiceTestContext();
-        await ServiceFailureCases.AssertDomainFailure(() => c.InquiryService.UpdateInquiry(c.Inquiry.Id, new UpdateInquiry { Status = status }), "UpdateInquiry", ErrorKind.Validation);
+        await ServiceFailureCases.AssertDomainFailure(() => c.InquiryService.UpdateInquiry(c.Inquiry.Id, new UpdateInquiry { Status = status }), "UpdateInquiry", ErrorType.Validation);
         Assert.Empty(c.Inquiries.Calls);
     }
 

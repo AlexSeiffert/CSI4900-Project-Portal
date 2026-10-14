@@ -63,7 +63,7 @@ public class TopicServiceTests
     public async Task ValidateTopicsExist_RejectsMissingReferences()
     {
         var c = new ServiceTestContext();
-        await ServiceFailureCases.AssertDomainFailure(() => c.TopicService.ValidateTopicsExist(new[] { Guid.NewGuid() }), "ValidateTopicsExist", ErrorKind.Validation);
+        await ServiceFailureCases.AssertDomainFailure(() => c.TopicService.ValidateTopicsExist(new[] { Guid.NewGuid() }), "ValidateTopicsExist", ErrorType.Validation);
     }
 
     [Fact]
@@ -78,7 +78,7 @@ public class TopicServiceTests
     public async Task ValidateTopicsExist_RejectsNullSelectionBeforeRepositoryCall()
     {
         var c = new ServiceTestContext();
-        await ServiceFailureCases.AssertDomainFailure(() => c.TopicService.ValidateTopicsExist(null!), "ValidateTopicsExist", ErrorKind.Validation);
+        await ServiceFailureCases.AssertDomainFailure(() => c.TopicService.ValidateTopicsExist(null!), "ValidateTopicsExist", ErrorType.Validation);
         Assert.Empty(c.Topics.Calls);
     }
 

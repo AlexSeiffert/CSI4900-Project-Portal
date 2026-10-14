@@ -38,12 +38,12 @@ public class TopicsControllerTests
     }
 
     [Theory]
-    [InlineData(ErrorKind.NotFound)]
-    [InlineData(ErrorKind.Validation)]
-    [InlineData(ErrorKind.Conflict)]
-    [InlineData(ErrorKind.Cancelled)]
-    [InlineData(ErrorKind.Unexpected)]
-    public async Task GetTopics_PropagatesServiceExceptionsToTheHandler(ErrorKind kind)
+    [InlineData(ErrorType.NotFound)]
+    [InlineData(ErrorType.Validation)]
+    [InlineData(ErrorType.Conflict)]
+    [InlineData(ErrorType.Cancelled)]
+    [InlineData(ErrorType.Unexpected)]
+    public async Task GetTopics_PropagatesServiceExceptionsToTheHandler(ErrorType kind)
     {
         var service = new TopicServiceStub();
         service.Items.Add(service.Item);

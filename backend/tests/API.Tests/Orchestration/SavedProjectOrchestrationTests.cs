@@ -11,7 +11,7 @@ public class SavedProjectOrchestrationTests
     public async Task GetSavedProjects_RejectsMissingStudentBeforeAccessingSavedProjects()
     {
         var c = new ServiceTestContext();
-        await OrchestrationFailureCases.AssertDomainFailure(() => c.SavedProjectOrchestration.GetSavedProjects(Guid.NewGuid()), "GetSavedProjects", ErrorKind.NotFound);
+        await OrchestrationFailureCases.AssertDomainFailure(() => c.SavedProjectOrchestration.GetSavedProjects(Guid.NewGuid()), "GetSavedProjects", ErrorType.NotFound);
         Assert.Empty(c.SavedProjects.Calls);
     }
 
@@ -19,7 +19,7 @@ public class SavedProjectOrchestrationTests
     public async Task SaveProject_RejectsMissingStudentBeforeAccessingSavedProjects()
     {
         var c = new ServiceTestContext();
-        await OrchestrationFailureCases.AssertDomainFailure(() => c.SavedProjectOrchestration.SaveProject(Guid.NewGuid(), c.Project.Id), "SaveProject", ErrorKind.NotFound);
+        await OrchestrationFailureCases.AssertDomainFailure(() => c.SavedProjectOrchestration.SaveProject(Guid.NewGuid(), c.Project.Id), "SaveProject", ErrorType.NotFound);
         Assert.Empty(c.SavedProjects.Calls);
     }
 
@@ -27,7 +27,7 @@ public class SavedProjectOrchestrationTests
     public async Task RemoveSavedProject_RejectsMissingStudentBeforeAccessingSavedProjects()
     {
         var c = new ServiceTestContext();
-        await OrchestrationFailureCases.AssertDomainFailure(() => c.SavedProjectOrchestration.RemoveSavedProject(Guid.NewGuid(), c.Project.Id), "RemoveSavedProject", ErrorKind.NotFound);
+        await OrchestrationFailureCases.AssertDomainFailure(() => c.SavedProjectOrchestration.RemoveSavedProject(Guid.NewGuid(), c.Project.Id), "RemoveSavedProject", ErrorType.NotFound);
         Assert.Empty(c.SavedProjects.Calls);
     }
 
@@ -35,7 +35,7 @@ public class SavedProjectOrchestrationTests
     public async Task SaveProject_RejectsMissingProjectBeforeSaving()
     {
         var c = new ServiceTestContext();
-        await OrchestrationFailureCases.AssertDomainFailure(() => c.SavedProjectOrchestration.SaveProject(c.Student.UserId, Guid.NewGuid()), "SaveProject", ErrorKind.NotFound);
+        await OrchestrationFailureCases.AssertDomainFailure(() => c.SavedProjectOrchestration.SaveProject(c.Student.UserId, Guid.NewGuid()), "SaveProject", ErrorType.NotFound);
         Assert.Empty(c.SavedProjects.Calls);
     }
 
@@ -95,12 +95,12 @@ public class SavedProjectOrchestrationTests
     }
 
     [Theory]
-    [InlineData(ErrorKind.Validation)]
-    [InlineData(ErrorKind.NotFound)]
-    [InlineData(ErrorKind.Conflict)]
-    [InlineData(ErrorKind.Cancelled)]
-    [InlineData(ErrorKind.Unexpected)]
-    public async Task GetSavedProjects_WrapsStudentsFailureAndStopsRemainingCalls(ErrorKind kind)
+    [InlineData(ErrorType.Validation)]
+    [InlineData(ErrorType.NotFound)]
+    [InlineData(ErrorType.Conflict)]
+    [InlineData(ErrorType.Cancelled)]
+    [InlineData(ErrorType.Unexpected)]
+    public async Task GetSavedProjects_WrapsStudentsFailureAndStopsRemainingCalls(ErrorType kind)
     {
         var c = new OrchestrationTestContext();
         using var cancellation = new CancellationTokenSource();
@@ -129,18 +129,18 @@ public class SavedProjectOrchestrationTests
         c.Students.Failure = original;
         var exception = await Assert.ThrowsAsync<OrchestrationException>(() => c.SavedProjectOrchestration.GetSavedProjects(studentId, cancellation.Token));
         Assert.Equal("GetSavedProjects", exception.Operation);
-        Assert.Equal(cancelled ? ErrorKind.Cancelled : ErrorKind.Unexpected, exception.Kind);
+        Assert.Equal(cancelled ? ErrorType.Cancelled : ErrorType.Unexpected, exception.Kind);
         Assert.Same(original, exception.InnerException);
         Assert.Equal(new[] { "Students.GetStudentById" }, c.Calls);
     }
 
     [Theory]
-    [InlineData(ErrorKind.Validation)]
-    [InlineData(ErrorKind.NotFound)]
-    [InlineData(ErrorKind.Conflict)]
-    [InlineData(ErrorKind.Cancelled)]
-    [InlineData(ErrorKind.Unexpected)]
-    public async Task GetSavedProjects_WrapsSavedProjectsFailureAndStopsRemainingCalls(ErrorKind kind)
+    [InlineData(ErrorType.Validation)]
+    [InlineData(ErrorType.NotFound)]
+    [InlineData(ErrorType.Conflict)]
+    [InlineData(ErrorType.Cancelled)]
+    [InlineData(ErrorType.Unexpected)]
+    public async Task GetSavedProjects_WrapsSavedProjectsFailureAndStopsRemainingCalls(ErrorType kind)
     {
         var c = new OrchestrationTestContext();
         using var cancellation = new CancellationTokenSource();
@@ -169,7 +169,7 @@ public class SavedProjectOrchestrationTests
         c.SavedProjects.Failure = original;
         var exception = await Assert.ThrowsAsync<OrchestrationException>(() => c.SavedProjectOrchestration.GetSavedProjects(studentId, cancellation.Token));
         Assert.Equal("GetSavedProjects", exception.Operation);
-        Assert.Equal(cancelled ? ErrorKind.Cancelled : ErrorKind.Unexpected, exception.Kind);
+        Assert.Equal(cancelled ? ErrorType.Cancelled : ErrorType.Unexpected, exception.Kind);
         Assert.Same(original, exception.InnerException);
         Assert.Equal(new[] { "Students.GetStudentById", "SavedProjects.GetSavedProjects" }, c.Calls);
     }
@@ -194,12 +194,12 @@ public class SavedProjectOrchestrationTests
     }
 
     [Theory]
-    [InlineData(ErrorKind.Validation)]
-    [InlineData(ErrorKind.NotFound)]
-    [InlineData(ErrorKind.Conflict)]
-    [InlineData(ErrorKind.Cancelled)]
-    [InlineData(ErrorKind.Unexpected)]
-    public async Task SaveProject_WrapsStudentsFailureAndStopsRemainingCalls(ErrorKind kind)
+    [InlineData(ErrorType.Validation)]
+    [InlineData(ErrorType.NotFound)]
+    [InlineData(ErrorType.Conflict)]
+    [InlineData(ErrorType.Cancelled)]
+    [InlineData(ErrorType.Unexpected)]
+    public async Task SaveProject_WrapsStudentsFailureAndStopsRemainingCalls(ErrorType kind)
     {
         var c = new OrchestrationTestContext();
         using var cancellation = new CancellationTokenSource();
@@ -230,18 +230,18 @@ public class SavedProjectOrchestrationTests
         c.Students.Failure = original;
         var exception = await Assert.ThrowsAsync<OrchestrationException>(() => c.SavedProjectOrchestration.SaveProject(studentId, projectId, cancellation.Token));
         Assert.Equal("SaveProject", exception.Operation);
-        Assert.Equal(cancelled ? ErrorKind.Cancelled : ErrorKind.Unexpected, exception.Kind);
+        Assert.Equal(cancelled ? ErrorType.Cancelled : ErrorType.Unexpected, exception.Kind);
         Assert.Same(original, exception.InnerException);
         Assert.Equal(new[] { "Students.GetStudentById" }, c.Calls);
     }
 
     [Theory]
-    [InlineData(ErrorKind.Validation)]
-    [InlineData(ErrorKind.NotFound)]
-    [InlineData(ErrorKind.Conflict)]
-    [InlineData(ErrorKind.Cancelled)]
-    [InlineData(ErrorKind.Unexpected)]
-    public async Task SaveProject_WrapsProjectsFailureAndStopsRemainingCalls(ErrorKind kind)
+    [InlineData(ErrorType.Validation)]
+    [InlineData(ErrorType.NotFound)]
+    [InlineData(ErrorType.Conflict)]
+    [InlineData(ErrorType.Cancelled)]
+    [InlineData(ErrorType.Unexpected)]
+    public async Task SaveProject_WrapsProjectsFailureAndStopsRemainingCalls(ErrorType kind)
     {
         var c = new OrchestrationTestContext();
         using var cancellation = new CancellationTokenSource();
@@ -272,18 +272,18 @@ public class SavedProjectOrchestrationTests
         c.Projects.Failure = original;
         var exception = await Assert.ThrowsAsync<OrchestrationException>(() => c.SavedProjectOrchestration.SaveProject(studentId, projectId, cancellation.Token));
         Assert.Equal("SaveProject", exception.Operation);
-        Assert.Equal(cancelled ? ErrorKind.Cancelled : ErrorKind.Unexpected, exception.Kind);
+        Assert.Equal(cancelled ? ErrorType.Cancelled : ErrorType.Unexpected, exception.Kind);
         Assert.Same(original, exception.InnerException);
         Assert.Equal(new[] { "Students.GetStudentById", "Projects.GetProjectById" }, c.Calls);
     }
 
     [Theory]
-    [InlineData(ErrorKind.Validation)]
-    [InlineData(ErrorKind.NotFound)]
-    [InlineData(ErrorKind.Conflict)]
-    [InlineData(ErrorKind.Cancelled)]
-    [InlineData(ErrorKind.Unexpected)]
-    public async Task SaveProject_WrapsSavedProjectsFailureAndStopsRemainingCalls(ErrorKind kind)
+    [InlineData(ErrorType.Validation)]
+    [InlineData(ErrorType.NotFound)]
+    [InlineData(ErrorType.Conflict)]
+    [InlineData(ErrorType.Cancelled)]
+    [InlineData(ErrorType.Unexpected)]
+    public async Task SaveProject_WrapsSavedProjectsFailureAndStopsRemainingCalls(ErrorType kind)
     {
         var c = new OrchestrationTestContext();
         using var cancellation = new CancellationTokenSource();
@@ -314,7 +314,7 @@ public class SavedProjectOrchestrationTests
         c.SavedProjects.Failure = original;
         var exception = await Assert.ThrowsAsync<OrchestrationException>(() => c.SavedProjectOrchestration.SaveProject(studentId, projectId, cancellation.Token));
         Assert.Equal("SaveProject", exception.Operation);
-        Assert.Equal(cancelled ? ErrorKind.Cancelled : ErrorKind.Unexpected, exception.Kind);
+        Assert.Equal(cancelled ? ErrorType.Cancelled : ErrorType.Unexpected, exception.Kind);
         Assert.Same(original, exception.InnerException);
         Assert.Equal(new[] { "Students.GetStudentById", "Projects.GetProjectById", "SavedProjects.SaveProject" }, c.Calls);
     }
@@ -337,12 +337,12 @@ public class SavedProjectOrchestrationTests
     }
 
     [Theory]
-    [InlineData(ErrorKind.Validation)]
-    [InlineData(ErrorKind.NotFound)]
-    [InlineData(ErrorKind.Conflict)]
-    [InlineData(ErrorKind.Cancelled)]
-    [InlineData(ErrorKind.Unexpected)]
-    public async Task RemoveSavedProject_WrapsStudentsFailureAndStopsRemainingCalls(ErrorKind kind)
+    [InlineData(ErrorType.Validation)]
+    [InlineData(ErrorType.NotFound)]
+    [InlineData(ErrorType.Conflict)]
+    [InlineData(ErrorType.Cancelled)]
+    [InlineData(ErrorType.Unexpected)]
+    public async Task RemoveSavedProject_WrapsStudentsFailureAndStopsRemainingCalls(ErrorType kind)
     {
         var c = new OrchestrationTestContext();
         using var cancellation = new CancellationTokenSource();
@@ -373,18 +373,18 @@ public class SavedProjectOrchestrationTests
         c.Students.Failure = original;
         var exception = await Assert.ThrowsAsync<OrchestrationException>(() => c.SavedProjectOrchestration.RemoveSavedProject(studentId, projectId, cancellation.Token));
         Assert.Equal("RemoveSavedProject", exception.Operation);
-        Assert.Equal(cancelled ? ErrorKind.Cancelled : ErrorKind.Unexpected, exception.Kind);
+        Assert.Equal(cancelled ? ErrorType.Cancelled : ErrorType.Unexpected, exception.Kind);
         Assert.Same(original, exception.InnerException);
         Assert.Equal(new[] { "Students.GetStudentById" }, c.Calls);
     }
 
     [Theory]
-    [InlineData(ErrorKind.Validation)]
-    [InlineData(ErrorKind.NotFound)]
-    [InlineData(ErrorKind.Conflict)]
-    [InlineData(ErrorKind.Cancelled)]
-    [InlineData(ErrorKind.Unexpected)]
-    public async Task RemoveSavedProject_WrapsSavedProjectsFailureAndStopsRemainingCalls(ErrorKind kind)
+    [InlineData(ErrorType.Validation)]
+    [InlineData(ErrorType.NotFound)]
+    [InlineData(ErrorType.Conflict)]
+    [InlineData(ErrorType.Cancelled)]
+    [InlineData(ErrorType.Unexpected)]
+    public async Task RemoveSavedProject_WrapsSavedProjectsFailureAndStopsRemainingCalls(ErrorType kind)
     {
         var c = new OrchestrationTestContext();
         using var cancellation = new CancellationTokenSource();
@@ -415,7 +415,7 @@ public class SavedProjectOrchestrationTests
         c.SavedProjects.Failure = original;
         var exception = await Assert.ThrowsAsync<OrchestrationException>(() => c.SavedProjectOrchestration.RemoveSavedProject(studentId, projectId, cancellation.Token));
         Assert.Equal("RemoveSavedProject", exception.Operation);
-        Assert.Equal(cancelled ? ErrorKind.Cancelled : ErrorKind.Unexpected, exception.Kind);
+        Assert.Equal(cancelled ? ErrorType.Cancelled : ErrorType.Unexpected, exception.Kind);
         Assert.Same(original, exception.InnerException);
         Assert.Equal(new[] { "Students.GetStudentById", "SavedProjects.RemoveSavedProject" }, c.Calls);
     }

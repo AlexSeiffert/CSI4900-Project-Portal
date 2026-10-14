@@ -139,12 +139,12 @@ public class ProjectsControllerTests
     }
 
     [Theory]
-    [InlineData(ErrorKind.NotFound)]
-    [InlineData(ErrorKind.Validation)]
-    [InlineData(ErrorKind.Conflict)]
-    [InlineData(ErrorKind.Cancelled)]
-    [InlineData(ErrorKind.Unexpected)]
-    public async Task GetProjects_PropagatesServiceExceptionsToTheHandler(ErrorKind kind)
+    [InlineData(ErrorType.NotFound)]
+    [InlineData(ErrorType.Validation)]
+    [InlineData(ErrorType.Conflict)]
+    [InlineData(ErrorType.Cancelled)]
+    [InlineData(ErrorType.Unexpected)]
+    public async Task GetProjects_PropagatesServiceExceptionsToTheHandler(ErrorType kind)
     {
         var service = new ProjectServiceStub();
         service.Items.Add(service.Item);
@@ -174,12 +174,12 @@ public class ProjectsControllerTests
     }
 
     [Theory]
-    [InlineData(ErrorKind.NotFound)]
-    [InlineData(ErrorKind.Validation)]
-    [InlineData(ErrorKind.Conflict)]
-    [InlineData(ErrorKind.Cancelled)]
-    [InlineData(ErrorKind.Unexpected)]
-    public async Task GetProjectsBySupervisorId_PropagatesServiceExceptionsToTheHandler(ErrorKind kind)
+    [InlineData(ErrorType.NotFound)]
+    [InlineData(ErrorType.Validation)]
+    [InlineData(ErrorType.Conflict)]
+    [InlineData(ErrorType.Cancelled)]
+    [InlineData(ErrorType.Unexpected)]
+    public async Task GetProjectsBySupervisorId_PropagatesServiceExceptionsToTheHandler(ErrorType kind)
     {
         var service = new ProjectServiceStub();
         service.Items.Add(service.Item);
@@ -210,12 +210,12 @@ public class ProjectsControllerTests
     }
 
     [Theory]
-    [InlineData(ErrorKind.NotFound)]
-    [InlineData(ErrorKind.Validation)]
-    [InlineData(ErrorKind.Conflict)]
-    [InlineData(ErrorKind.Cancelled)]
-    [InlineData(ErrorKind.Unexpected)]
-    public async Task GetProjectsByTopicId_PropagatesServiceExceptionsToTheHandler(ErrorKind kind)
+    [InlineData(ErrorType.NotFound)]
+    [InlineData(ErrorType.Validation)]
+    [InlineData(ErrorType.Conflict)]
+    [InlineData(ErrorType.Cancelled)]
+    [InlineData(ErrorType.Unexpected)]
+    public async Task GetProjectsByTopicId_PropagatesServiceExceptionsToTheHandler(ErrorType kind)
     {
         var service = new ProjectServiceStub();
         service.Items.Add(service.Item);
@@ -246,12 +246,12 @@ public class ProjectsControllerTests
     }
 
     [Theory]
-    [InlineData(ErrorKind.NotFound)]
-    [InlineData(ErrorKind.Validation)]
-    [InlineData(ErrorKind.Conflict)]
-    [InlineData(ErrorKind.Cancelled)]
-    [InlineData(ErrorKind.Unexpected)]
-    public async Task GetProjectsByStatus_PropagatesServiceExceptionsToTheHandler(ErrorKind kind)
+    [InlineData(ErrorType.NotFound)]
+    [InlineData(ErrorType.Validation)]
+    [InlineData(ErrorType.Conflict)]
+    [InlineData(ErrorType.Cancelled)]
+    [InlineData(ErrorType.Unexpected)]
+    public async Task GetProjectsByStatus_PropagatesServiceExceptionsToTheHandler(ErrorType kind)
     {
         var service = new ProjectServiceStub();
         service.Items.Add(service.Item);
@@ -282,12 +282,12 @@ public class ProjectsControllerTests
     }
 
     [Theory]
-    [InlineData(ErrorKind.NotFound)]
-    [InlineData(ErrorKind.Validation)]
-    [InlineData(ErrorKind.Conflict)]
-    [InlineData(ErrorKind.Cancelled)]
-    [InlineData(ErrorKind.Unexpected)]
-    public async Task GetProjectById_PropagatesServiceExceptionsToTheHandler(ErrorKind kind)
+    [InlineData(ErrorType.NotFound)]
+    [InlineData(ErrorType.Validation)]
+    [InlineData(ErrorType.Conflict)]
+    [InlineData(ErrorType.Cancelled)]
+    [InlineData(ErrorType.Unexpected)]
+    public async Task GetProjectById_PropagatesServiceExceptionsToTheHandler(ErrorType kind)
     {
         var service = new ProjectServiceStub();
         service.Items.Add(service.Item);
@@ -321,12 +321,12 @@ public class ProjectsControllerTests
     }
 
     [Theory]
-    [InlineData(ErrorKind.NotFound)]
-    [InlineData(ErrorKind.Validation)]
-    [InlineData(ErrorKind.Conflict)]
-    [InlineData(ErrorKind.Cancelled)]
-    [InlineData(ErrorKind.Unexpected)]
-    public async Task CreateProject_PropagatesOrchestrationExceptionsToTheHandler(ErrorKind kind)
+    [InlineData(ErrorType.NotFound)]
+    [InlineData(ErrorType.Validation)]
+    [InlineData(ErrorType.Conflict)]
+    [InlineData(ErrorType.Cancelled)]
+    [InlineData(ErrorType.Unexpected)]
+    public async Task CreateProject_PropagatesOrchestrationExceptionsToTheHandler(ErrorType kind)
     {
         var service = new ProjectOrchestrationStub();
         service.Items.Add(service.Item);
@@ -359,12 +359,12 @@ public class ProjectsControllerTests
     }
 
     [Theory]
-    [InlineData(ErrorKind.NotFound)]
-    [InlineData(ErrorKind.Validation)]
-    [InlineData(ErrorKind.Conflict)]
-    [InlineData(ErrorKind.Cancelled)]
-    [InlineData(ErrorKind.Unexpected)]
-    public async Task UpdateProject_PropagatesOrchestrationExceptionsToTheHandler(ErrorKind kind)
+    [InlineData(ErrorType.NotFound)]
+    [InlineData(ErrorType.Validation)]
+    [InlineData(ErrorType.Conflict)]
+    [InlineData(ErrorType.Cancelled)]
+    [InlineData(ErrorType.Unexpected)]
+    public async Task UpdateProject_PropagatesOrchestrationExceptionsToTheHandler(ErrorType kind)
     {
         var service = new ProjectOrchestrationStub();
         service.Items.Add(service.Item);
@@ -396,12 +396,12 @@ public class ProjectsControllerTests
     }
 
     [Theory]
-    [InlineData(ErrorKind.NotFound)]
-    [InlineData(ErrorKind.Validation)]
-    [InlineData(ErrorKind.Conflict)]
-    [InlineData(ErrorKind.Cancelled)]
-    [InlineData(ErrorKind.Unexpected)]
-    public async Task DeleteProject_PropagatesServiceExceptionsToTheHandler(ErrorKind kind)
+    [InlineData(ErrorType.NotFound)]
+    [InlineData(ErrorType.Validation)]
+    [InlineData(ErrorType.Conflict)]
+    [InlineData(ErrorType.Cancelled)]
+    [InlineData(ErrorType.Unexpected)]
+    public async Task DeleteProject_PropagatesServiceExceptionsToTheHandler(ErrorType kind)
     {
         var service = new ProjectServiceStub();
         service.Items.Add(service.Item);

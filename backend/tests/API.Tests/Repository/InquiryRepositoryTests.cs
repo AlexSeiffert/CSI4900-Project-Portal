@@ -28,13 +28,13 @@ public class InquiryRepositoryTests
         var exception = await Assert.ThrowsAsync<RepositoryException>(() => repository.GetInquiries(token));
         if (cancelled)
         {
-            Assert.Equal(ErrorKind.Cancelled, exception.Kind);
+            Assert.Equal(ErrorType.Cancelled, exception.Kind);
             var original = Assert.IsAssignableFrom<OperationCanceledException>(exception.InnerException);
             Assert.Equal(token, original.CancellationToken);
         }
         else
         {
-            Assert.Equal(ErrorKind.Unexpected, exception.Kind);
+            Assert.Equal(ErrorType.Unexpected, exception.Kind);
             Assert.IsType<ObjectDisposedException>(exception.InnerException);
         }
     }
@@ -59,13 +59,13 @@ public class InquiryRepositoryTests
         var exception = await Assert.ThrowsAsync<RepositoryException>(() => repository.GetInquiriesByStudentId(c.Student.UserId, token));
         if (cancelled)
         {
-            Assert.Equal(ErrorKind.Cancelled, exception.Kind);
+            Assert.Equal(ErrorType.Cancelled, exception.Kind);
             var original = Assert.IsAssignableFrom<OperationCanceledException>(exception.InnerException);
             Assert.Equal(token, original.CancellationToken);
         }
         else
         {
-            Assert.Equal(ErrorKind.Unexpected, exception.Kind);
+            Assert.Equal(ErrorType.Unexpected, exception.Kind);
             Assert.IsType<ObjectDisposedException>(exception.InnerException);
         }
     }
@@ -90,13 +90,13 @@ public class InquiryRepositoryTests
         var exception = await Assert.ThrowsAsync<RepositoryException>(() => repository.GetInquiriesBySupervisorId(c.Supervisor.UserId, token));
         if (cancelled)
         {
-            Assert.Equal(ErrorKind.Cancelled, exception.Kind);
+            Assert.Equal(ErrorType.Cancelled, exception.Kind);
             var original = Assert.IsAssignableFrom<OperationCanceledException>(exception.InnerException);
             Assert.Equal(token, original.CancellationToken);
         }
         else
         {
-            Assert.Equal(ErrorKind.Unexpected, exception.Kind);
+            Assert.Equal(ErrorType.Unexpected, exception.Kind);
             Assert.IsType<ObjectDisposedException>(exception.InnerException);
         }
     }
@@ -121,13 +121,13 @@ public class InquiryRepositoryTests
         var exception = await Assert.ThrowsAsync<RepositoryException>(() => repository.GetInquiriesByProjectId(c.Project.Id, token));
         if (cancelled)
         {
-            Assert.Equal(ErrorKind.Cancelled, exception.Kind);
+            Assert.Equal(ErrorType.Cancelled, exception.Kind);
             var original = Assert.IsAssignableFrom<OperationCanceledException>(exception.InnerException);
             Assert.Equal(token, original.CancellationToken);
         }
         else
         {
-            Assert.Equal(ErrorKind.Unexpected, exception.Kind);
+            Assert.Equal(ErrorType.Unexpected, exception.Kind);
             Assert.IsType<ObjectDisposedException>(exception.InnerException);
         }
     }
@@ -152,13 +152,13 @@ public class InquiryRepositoryTests
         var exception = await Assert.ThrowsAsync<RepositoryException>(() => repository.GetInquiryById(c.Inquiry.Id, token));
         if (cancelled)
         {
-            Assert.Equal(ErrorKind.Cancelled, exception.Kind);
+            Assert.Equal(ErrorType.Cancelled, exception.Kind);
             var original = Assert.IsAssignableFrom<OperationCanceledException>(exception.InnerException);
             Assert.Equal(token, original.CancellationToken);
         }
         else
         {
-            Assert.Equal(ErrorKind.Unexpected, exception.Kind);
+            Assert.Equal(ErrorType.Unexpected, exception.Kind);
             Assert.IsType<ObjectDisposedException>(exception.InnerException);
         }
     }
@@ -183,13 +183,13 @@ public class InquiryRepositoryTests
         var exception = await Assert.ThrowsAsync<RepositoryException>(() => repository.CreateInquiry(new Inquiry { Id = Guid.NewGuid(), StudentId = c.Student.UserId, SupervisorId = c.Supervisor.UserId }, token));
         if (cancelled)
         {
-            Assert.Equal(ErrorKind.Cancelled, exception.Kind);
+            Assert.Equal(ErrorType.Cancelled, exception.Kind);
             var original = Assert.IsAssignableFrom<OperationCanceledException>(exception.InnerException);
             Assert.Equal(token, original.CancellationToken);
         }
         else
         {
-            Assert.Equal(ErrorKind.Unexpected, exception.Kind);
+            Assert.Equal(ErrorType.Unexpected, exception.Kind);
             Assert.IsType<ObjectDisposedException>(exception.InnerException);
         }
     }
@@ -216,13 +216,13 @@ public class InquiryRepositoryTests
         var exception = await Assert.ThrowsAsync<RepositoryException>(() => repository.UpdateInquiry(inquiry, token));
         if (cancelled)
         {
-            Assert.Equal(ErrorKind.Cancelled, exception.Kind);
+            Assert.Equal(ErrorType.Cancelled, exception.Kind);
             var original = Assert.IsAssignableFrom<OperationCanceledException>(exception.InnerException);
             Assert.Equal(token, original.CancellationToken);
         }
         else
         {
-            Assert.Equal(ErrorKind.Unexpected, exception.Kind);
+            Assert.Equal(ErrorType.Unexpected, exception.Kind);
             Assert.IsType<ObjectDisposedException>(exception.InnerException);
         }
     }
@@ -320,7 +320,7 @@ public class InquiryRepositoryTests
         c.FailSavesWith(original);
         var exception = await Assert.ThrowsAsync<RepositoryException>(() => repository.CreateInquiry(new Inquiry { Id = Guid.NewGuid(), StudentId = c.Student.UserId, SupervisorId = c.Supervisor.UserId }));
         Assert.Same(original, exception.InnerException);
-        Assert.Equal(conflict ? ErrorKind.Conflict : ErrorKind.Unexpected, exception.Kind);
+        Assert.Equal(conflict ? ErrorType.Conflict : ErrorType.Unexpected, exception.Kind);
     }
 
     [Theory]
@@ -336,6 +336,6 @@ entity.Status = InquiryStatus.Responded;
         c.FailSavesWith(original);
         var exception = await Assert.ThrowsAsync<RepositoryException>(() => repository.UpdateInquiry(entity));
         Assert.Same(original, exception.InnerException);
-        Assert.Equal(conflict ? ErrorKind.Conflict : ErrorKind.Unexpected, exception.Kind);
+        Assert.Equal(conflict ? ErrorType.Conflict : ErrorType.Unexpected, exception.Kind);
     }
 }

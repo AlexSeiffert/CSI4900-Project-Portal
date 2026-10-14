@@ -1,3 +1,3 @@
 namespace API.Exceptions;
 
-public enum ErrorKind { Validation, NotFound, Conflict, Cancelled, Unexpected }
+public enum ErrorType { Validation, NotFound, Conflict, Cancelled, Unexpected }

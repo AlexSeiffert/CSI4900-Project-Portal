@@ -24,11 +24,11 @@ public class SavedProjectOrchestration(ISavedProjectService savedProjects, IStud
         }
         catch (OperationCanceledException exception)
         {
-            throw new OrchestrationException(nameof(GetSavedProjects), ErrorKind.Cancelled, "The operation was cancelled.", exception);
+            throw new OrchestrationException(nameof(GetSavedProjects), ErrorType.Cancelled, "The operation was cancelled.", exception);
         }
         catch (Exception exception) when (exception is not OrchestrationException)
         {
-            throw new OrchestrationException(nameof(GetSavedProjects), ErrorKind.Unexpected, "The operation could not be completed.", exception);
+            throw new OrchestrationException(nameof(GetSavedProjects), ErrorType.Unexpected, "The operation could not be completed.", exception);
         }
     }
 
@@ -46,11 +46,11 @@ public class SavedProjectOrchestration(ISavedProjectService savedProjects, IStud
         }
         catch (OperationCanceledException exception)
         {
-            throw new OrchestrationException(nameof(SaveProject), ErrorKind.Cancelled, "The operation was cancelled.", exception);
+            throw new OrchestrationException(nameof(SaveProject), ErrorType.Cancelled, "The operation was cancelled.", exception);
         }
         catch (Exception exception) when (exception is not OrchestrationException)
         {
-            throw new OrchestrationException(nameof(SaveProject), ErrorKind.Unexpected, "The operation could not be completed.", exception);
+            throw new OrchestrationException(nameof(SaveProject), ErrorType.Unexpected, "The operation could not be completed.", exception);
         }
     }
 
@@ -67,11 +67,11 @@ public class SavedProjectOrchestration(ISavedProjectService savedProjects, IStud
         }
         catch (OperationCanceledException exception)
         {
-            throw new OrchestrationException(nameof(RemoveSavedProject), ErrorKind.Cancelled, "The operation was cancelled.", exception);
+            throw new OrchestrationException(nameof(RemoveSavedProject), ErrorType.Cancelled, "The operation was cancelled.", exception);
         }
         catch (Exception exception) when (exception is not OrchestrationException)
         {
-            throw new OrchestrationException(nameof(RemoveSavedProject), ErrorKind.Unexpected, "The operation could not be completed.", exception);
+            throw new OrchestrationException(nameof(RemoveSavedProject), ErrorType.Unexpected, "The operation could not be completed.", exception);
         }
     }
 }

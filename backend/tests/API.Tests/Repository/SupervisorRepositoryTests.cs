@@ -28,13 +28,13 @@ public class SupervisorRepositoryTests
         var exception = await Assert.ThrowsAsync<RepositoryException>(() => repository.GetSupervisors(token));
         if (cancelled)
         {
-            Assert.Equal(ErrorKind.Cancelled, exception.Kind);
+            Assert.Equal(ErrorType.Cancelled, exception.Kind);
             var original = Assert.IsAssignableFrom<OperationCanceledException>(exception.InnerException);
             Assert.Equal(token, original.CancellationToken);
         }
         else
         {
-            Assert.Equal(ErrorKind.Unexpected, exception.Kind);
+            Assert.Equal(ErrorType.Unexpected, exception.Kind);
             Assert.IsType<ObjectDisposedException>(exception.InnerException);
         }
     }
@@ -59,13 +59,13 @@ public class SupervisorRepositoryTests
         var exception = await Assert.ThrowsAsync<RepositoryException>(() => repository.GetSupervisorById(c.Supervisor.UserId, token));
         if (cancelled)
         {
-            Assert.Equal(ErrorKind.Cancelled, exception.Kind);
+            Assert.Equal(ErrorType.Cancelled, exception.Kind);
             var original = Assert.IsAssignableFrom<OperationCanceledException>(exception.InnerException);
             Assert.Equal(token, original.CancellationToken);
         }
         else
         {
-            Assert.Equal(ErrorKind.Unexpected, exception.Kind);
+            Assert.Equal(ErrorType.Unexpected, exception.Kind);
             Assert.IsType<ObjectDisposedException>(exception.InnerException);
         }
     }
@@ -90,13 +90,13 @@ public class SupervisorRepositoryTests
         var exception = await Assert.ThrowsAsync<RepositoryException>(() => repository.UpdateSupervisor(c.Supervisor, new[] { c.Topic.Id }, token));
         if (cancelled)
         {
-            Assert.Equal(ErrorKind.Cancelled, exception.Kind);
+            Assert.Equal(ErrorType.Cancelled, exception.Kind);
             var original = Assert.IsAssignableFrom<OperationCanceledException>(exception.InnerException);
             Assert.Equal(token, original.CancellationToken);
         }
         else
         {
-            Assert.Equal(ErrorKind.Unexpected, exception.Kind);
+            Assert.Equal(ErrorType.Unexpected, exception.Kind);
             Assert.IsType<ObjectDisposedException>(exception.InnerException);
         }
     }
@@ -146,7 +146,7 @@ public class SupervisorRepositoryTests
         var repository = new SupervisorRepository(c.Db);
         var profile = (await repository.GetSupervisorById(c.Supervisor.UserId))!;
         var exception = await Assert.ThrowsAsync<RepositoryException>(() => repository.UpdateSupervisor(profile, [Guid.NewGuid()]));
-        Assert.Equal(ErrorKind.Conflict, exception.Kind);
+        Assert.Equal(ErrorType.Conflict, exception.Kind);
         Assert.IsType<DbUpdateConcurrencyException>(exception.InnerException);
     }
 
@@ -162,6 +162,6 @@ public class SupervisorRepositoryTests
         c.FailSavesWith(original);
         var exception = await Assert.ThrowsAsync<RepositoryException>(() => repository.UpdateSupervisor(entity, new[] { c.Topic.Id }));
         Assert.Same(original, exception.InnerException);
-        Assert.Equal(conflict ? ErrorKind.Conflict : ErrorKind.Unexpected, exception.Kind);
+        Assert.Equal(conflict ? ErrorType.Conflict : ErrorType.Unexpected, exception.Kind);
     }
 }

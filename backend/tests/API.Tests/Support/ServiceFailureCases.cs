@@ -14,7 +14,7 @@ public static class ServiceFailureCases
         "conflict" => new RepositoryException("dependency", new DbUpdateConcurrencyException("Concurrent update")),
         "validation" => new ValidationException("Invalid dependency result"),
         "cancelled" => new OperationCanceledException("Cancelled"),
-        "service" => new ServiceException("dependency", ErrorKind.Validation, "Already wrapped", new ValidationException("Invalid")),
+        "service" => new ServiceException("dependency", ErrorType.Validation, "Already wrapped", new ValidationException("Invalid")),
         _ => new InvalidOperationException("Unexpected failure")
     };
 
@@ -31,18 +31,18 @@ public static class ServiceFailureCases
         Assert.Equal(original switch
         {
             RepositoryException repository => repository.Kind,
-            ValidationException => ErrorKind.Validation,
-            OperationCanceledException => ErrorKind.Cancelled,
-            _ => ErrorKind.Unexpected
+            ValidationException => ErrorType.Validation,
+            OperationCanceledException => ErrorType.Cancelled,
+            _ => ErrorType.Unexpected
         }, exception.Kind);
     }
 
-    internal static async Task AssertDomainFailure(Func<Task> action, string operation, ErrorKind kind)
+    internal static async Task AssertDomainFailure(Func<Task> action, string operation, ErrorType kind)
     {
         var exception = await Assert.ThrowsAsync<ServiceException>(action);
         Assert.Equal(operation, exception.Operation);
         Assert.Equal(kind, exception.Kind);
-        if (kind == ErrorKind.NotFound)
+        if (kind == ErrorType.NotFound)
         {
             Assert.IsType<KeyNotFoundException>(exception.InnerException);
         }

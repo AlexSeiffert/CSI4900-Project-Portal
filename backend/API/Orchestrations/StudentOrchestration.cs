@@ -23,11 +23,11 @@ public class StudentOrchestration(IStudentService students, ITopicService topics
         }
         catch (OperationCanceledException exception)
         {
-            throw new OrchestrationException(nameof(UpdateStudent), ErrorKind.Cancelled, "The operation was cancelled.", exception);
+            throw new OrchestrationException(nameof(UpdateStudent), ErrorType.Cancelled, "The operation was cancelled.", exception);
         }
         catch (Exception exception) when (exception is not OrchestrationException)
         {
-            throw new OrchestrationException(nameof(UpdateStudent), ErrorKind.Unexpected, "The operation could not be completed.", exception);
+            throw new OrchestrationException(nameof(UpdateStudent), ErrorType.Unexpected, "The operation could not be completed.", exception);
         }
     }
 }

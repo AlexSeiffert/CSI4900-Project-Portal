@@ -28,13 +28,13 @@ public class TopicRepositoryTests
         var exception = await Assert.ThrowsAsync<RepositoryException>(() => repository.GetTopics(token));
         if (cancelled)
         {
-            Assert.Equal(ErrorKind.Cancelled, exception.Kind);
+            Assert.Equal(ErrorType.Cancelled, exception.Kind);
             var original = Assert.IsAssignableFrom<OperationCanceledException>(exception.InnerException);
             Assert.Equal(token, original.CancellationToken);
         }
         else
         {
-            Assert.Equal(ErrorKind.Unexpected, exception.Kind);
+            Assert.Equal(ErrorType.Unexpected, exception.Kind);
             Assert.IsType<ObjectDisposedException>(exception.InnerException);
         }
     }
@@ -59,13 +59,13 @@ public class TopicRepositoryTests
         var exception = await Assert.ThrowsAsync<RepositoryException>(() => repository.GetTopicsByIds(new[] { c.Topic.Id }, token));
         if (cancelled)
         {
-            Assert.Equal(ErrorKind.Cancelled, exception.Kind);
+            Assert.Equal(ErrorType.Cancelled, exception.Kind);
             var original = Assert.IsAssignableFrom<OperationCanceledException>(exception.InnerException);
             Assert.Equal(token, original.CancellationToken);
         }
         else
         {
-            Assert.Equal(ErrorKind.Unexpected, exception.Kind);
+            Assert.Equal(ErrorType.Unexpected, exception.Kind);
             Assert.IsType<ObjectDisposedException>(exception.InnerException);
         }
     }

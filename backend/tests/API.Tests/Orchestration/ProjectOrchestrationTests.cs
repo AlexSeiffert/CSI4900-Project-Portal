@@ -13,7 +13,7 @@ public class ProjectOrchestrationTests
         var c = new ServiceTestContext();
         var request = c.NewProject();
         request.TopicIds = [Guid.NewGuid()];
-        await OrchestrationFailureCases.AssertDomainFailure(() => c.ProjectOrchestration.CreateProject(request), "CreateProject", ErrorKind.Validation);
+        await OrchestrationFailureCases.AssertDomainFailure(() => c.ProjectOrchestration.CreateProject(request), "CreateProject", ErrorType.Validation);
         Assert.DoesNotContain("CreateProject", c.Projects.Calls);
     }
 
@@ -23,7 +23,7 @@ public class ProjectOrchestrationTests
         var c = new ServiceTestContext();
         var request = c.NewProject();
         request.SupervisorId = Guid.NewGuid();
-        await OrchestrationFailureCases.AssertDomainFailure(() => c.ProjectOrchestration.CreateProject(request), "CreateProject", ErrorKind.Validation);
+        await OrchestrationFailureCases.AssertDomainFailure(() => c.ProjectOrchestration.CreateProject(request), "CreateProject", ErrorType.Validation);
         Assert.DoesNotContain("CreateProject", c.Projects.Calls);
     }
 
@@ -33,7 +33,7 @@ public class ProjectOrchestrationTests
         var c = new ServiceTestContext();
         var request = c.ProjectUpdate();
         request.TopicIds = [Guid.NewGuid()];
-        await OrchestrationFailureCases.AssertDomainFailure(() => c.ProjectOrchestration.UpdateProject(c.Project.Id, request), "UpdateProject", ErrorKind.Validation);
+        await OrchestrationFailureCases.AssertDomainFailure(() => c.ProjectOrchestration.UpdateProject(c.Project.Id, request), "UpdateProject", ErrorType.Validation);
         Assert.DoesNotContain("UpdateProject", c.Projects.Calls);
     }
 
@@ -85,12 +85,12 @@ public class ProjectOrchestrationTests
     }
 
     [Theory]
-    [InlineData(ErrorKind.Validation)]
-    [InlineData(ErrorKind.NotFound)]
-    [InlineData(ErrorKind.Conflict)]
-    [InlineData(ErrorKind.Cancelled)]
-    [InlineData(ErrorKind.Unexpected)]
-    public async Task CreateProject_WrapsSupervisorsFailureAndStopsRemainingCalls(ErrorKind kind)
+    [InlineData(ErrorType.Validation)]
+    [InlineData(ErrorType.NotFound)]
+    [InlineData(ErrorType.Conflict)]
+    [InlineData(ErrorType.Cancelled)]
+    [InlineData(ErrorType.Unexpected)]
+    public async Task CreateProject_WrapsSupervisorsFailureAndStopsRemainingCalls(ErrorType kind)
     {
         var c = new OrchestrationTestContext();
         using var cancellation = new CancellationTokenSource();
@@ -119,18 +119,18 @@ public class ProjectOrchestrationTests
         c.Supervisors.Failure = original;
         var exception = await Assert.ThrowsAsync<OrchestrationException>(() => c.ProjectOrchestration.CreateProject(request, cancellation.Token));
         Assert.Equal("CreateProject", exception.Operation);
-        Assert.Equal(cancelled ? ErrorKind.Cancelled : ErrorKind.Unexpected, exception.Kind);
+        Assert.Equal(cancelled ? ErrorType.Cancelled : ErrorType.Unexpected, exception.Kind);
         Assert.Same(original, exception.InnerException);
         Assert.Equal(new[] { "Supervisors.ValidateSupervisorExists" }, c.Calls);
     }
 
     [Theory]
-    [InlineData(ErrorKind.Validation)]
-    [InlineData(ErrorKind.NotFound)]
-    [InlineData(ErrorKind.Conflict)]
-    [InlineData(ErrorKind.Cancelled)]
-    [InlineData(ErrorKind.Unexpected)]
-    public async Task CreateProject_WrapsTopicsFailureAndStopsRemainingCalls(ErrorKind kind)
+    [InlineData(ErrorType.Validation)]
+    [InlineData(ErrorType.NotFound)]
+    [InlineData(ErrorType.Conflict)]
+    [InlineData(ErrorType.Cancelled)]
+    [InlineData(ErrorType.Unexpected)]
+    public async Task CreateProject_WrapsTopicsFailureAndStopsRemainingCalls(ErrorType kind)
     {
         var c = new OrchestrationTestContext();
         using var cancellation = new CancellationTokenSource();
@@ -159,18 +159,18 @@ public class ProjectOrchestrationTests
         c.Topics.Failure = original;
         var exception = await Assert.ThrowsAsync<OrchestrationException>(() => c.ProjectOrchestration.CreateProject(request, cancellation.Token));
         Assert.Equal("CreateProject", exception.Operation);
-        Assert.Equal(cancelled ? ErrorKind.Cancelled : ErrorKind.Unexpected, exception.Kind);
+        Assert.Equal(cancelled ? ErrorType.Cancelled : ErrorType.Unexpected, exception.Kind);
         Assert.Same(original, exception.InnerException);
         Assert.Equal(new[] { "Supervisors.ValidateSupervisorExists", "Topics.ValidateTopicsExist" }, c.Calls);
     }
 
     [Theory]
-    [InlineData(ErrorKind.Validation)]
-    [InlineData(ErrorKind.NotFound)]
-    [InlineData(ErrorKind.Conflict)]
-    [InlineData(ErrorKind.Cancelled)]
-    [InlineData(ErrorKind.Unexpected)]
-    public async Task CreateProject_WrapsProjectsFailureAndStopsRemainingCalls(ErrorKind kind)
+    [InlineData(ErrorType.Validation)]
+    [InlineData(ErrorType.NotFound)]
+    [InlineData(ErrorType.Conflict)]
+    [InlineData(ErrorType.Cancelled)]
+    [InlineData(ErrorType.Unexpected)]
+    public async Task CreateProject_WrapsProjectsFailureAndStopsRemainingCalls(ErrorType kind)
     {
         var c = new OrchestrationTestContext();
         using var cancellation = new CancellationTokenSource();
@@ -199,7 +199,7 @@ public class ProjectOrchestrationTests
         c.Projects.Failure = original;
         var exception = await Assert.ThrowsAsync<OrchestrationException>(() => c.ProjectOrchestration.CreateProject(request, cancellation.Token));
         Assert.Equal("CreateProject", exception.Operation);
-        Assert.Equal(cancelled ? ErrorKind.Cancelled : ErrorKind.Unexpected, exception.Kind);
+        Assert.Equal(cancelled ? ErrorType.Cancelled : ErrorType.Unexpected, exception.Kind);
         Assert.Same(original, exception.InnerException);
         Assert.Equal(new[] { "Supervisors.ValidateSupervisorExists", "Topics.ValidateTopicsExist", "Projects.CreateProject" }, c.Calls);
     }
@@ -222,12 +222,12 @@ public class ProjectOrchestrationTests
     }
 
     [Theory]
-    [InlineData(ErrorKind.Validation)]
-    [InlineData(ErrorKind.NotFound)]
-    [InlineData(ErrorKind.Conflict)]
-    [InlineData(ErrorKind.Cancelled)]
-    [InlineData(ErrorKind.Unexpected)]
-    public async Task UpdateProject_WrapsTopicsFailureAndStopsRemainingCalls(ErrorKind kind)
+    [InlineData(ErrorType.Validation)]
+    [InlineData(ErrorType.NotFound)]
+    [InlineData(ErrorType.Conflict)]
+    [InlineData(ErrorType.Cancelled)]
+    [InlineData(ErrorType.Unexpected)]
+    public async Task UpdateProject_WrapsTopicsFailureAndStopsRemainingCalls(ErrorType kind)
     {
         var c = new OrchestrationTestContext();
         using var cancellation = new CancellationTokenSource();
@@ -258,18 +258,18 @@ public class ProjectOrchestrationTests
         c.Topics.Failure = original;
         var exception = await Assert.ThrowsAsync<OrchestrationException>(() => c.ProjectOrchestration.UpdateProject(id, request, cancellation.Token));
         Assert.Equal("UpdateProject", exception.Operation);
-        Assert.Equal(cancelled ? ErrorKind.Cancelled : ErrorKind.Unexpected, exception.Kind);
+        Assert.Equal(cancelled ? ErrorType.Cancelled : ErrorType.Unexpected, exception.Kind);
         Assert.Same(original, exception.InnerException);
         Assert.Equal(new[] { "Topics.ValidateTopicsExist" }, c.Calls);
     }
 
     [Theory]
-    [InlineData(ErrorKind.Validation)]
-    [InlineData(ErrorKind.NotFound)]
-    [InlineData(ErrorKind.Conflict)]
-    [InlineData(ErrorKind.Cancelled)]
-    [InlineData(ErrorKind.Unexpected)]
-    public async Task UpdateProject_WrapsProjectsFailureAndStopsRemainingCalls(ErrorKind kind)
+    [InlineData(ErrorType.Validation)]
+    [InlineData(ErrorType.NotFound)]
+    [InlineData(ErrorType.Conflict)]
+    [InlineData(ErrorType.Cancelled)]
+    [InlineData(ErrorType.Unexpected)]
+    public async Task UpdateProject_WrapsProjectsFailureAndStopsRemainingCalls(ErrorType kind)
     {
         var c = new OrchestrationTestContext();
         using var cancellation = new CancellationTokenSource();
@@ -300,7 +300,7 @@ public class ProjectOrchestrationTests
         c.Projects.Failure = original;
         var exception = await Assert.ThrowsAsync<OrchestrationException>(() => c.ProjectOrchestration.UpdateProject(id, request, cancellation.Token));
         Assert.Equal("UpdateProject", exception.Operation);
-        Assert.Equal(cancelled ? ErrorKind.Cancelled : ErrorKind.Unexpected, exception.Kind);
+        Assert.Equal(cancelled ? ErrorType.Cancelled : ErrorType.Unexpected, exception.Kind);
         Assert.Same(original, exception.InnerException);
         Assert.Equal(new[] { "Topics.ValidateTopicsExist", "Projects.UpdateProject" }, c.Calls);
     }

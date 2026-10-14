@@ -24,15 +24,15 @@ public class ProjectService(IProjectRepository repository) : IProjectService
         }
         catch (ValidationException exception)
         {
-            throw new ServiceException(nameof(GetProjects), ErrorKind.Validation, exception.Message, exception);
+            throw new ServiceException(nameof(GetProjects), ErrorType.Validation, exception.Message, exception);
         }
         catch (OperationCanceledException exception)
         {
-            throw new ServiceException(nameof(GetProjects), ErrorKind.Cancelled, "The operation was cancelled.", exception);
+            throw new ServiceException(nameof(GetProjects), ErrorType.Cancelled, "The operation was cancelled.", exception);
         }
         catch (Exception exception) when (exception is not ServiceException)
         {
-            throw new ServiceException(nameof(GetProjects), ErrorKind.Unexpected, "The operation could not be completed.", exception);
+            throw new ServiceException(nameof(GetProjects), ErrorType.Unexpected, "The operation could not be completed.", exception);
         }
     }
 
@@ -49,15 +49,15 @@ public class ProjectService(IProjectRepository repository) : IProjectService
         }
         catch (ValidationException exception)
         {
-            throw new ServiceException(nameof(GetProjectsBySupervisorId), ErrorKind.Validation, exception.Message, exception);
+            throw new ServiceException(nameof(GetProjectsBySupervisorId), ErrorType.Validation, exception.Message, exception);
         }
         catch (OperationCanceledException exception)
         {
-            throw new ServiceException(nameof(GetProjectsBySupervisorId), ErrorKind.Cancelled, "The operation was cancelled.", exception);
+            throw new ServiceException(nameof(GetProjectsBySupervisorId), ErrorType.Cancelled, "The operation was cancelled.", exception);
         }
         catch (Exception exception) when (exception is not ServiceException)
         {
-            throw new ServiceException(nameof(GetProjectsBySupervisorId), ErrorKind.Unexpected, "The operation could not be completed.", exception);
+            throw new ServiceException(nameof(GetProjectsBySupervisorId), ErrorType.Unexpected, "The operation could not be completed.", exception);
         }
     }
 
@@ -74,15 +74,15 @@ public class ProjectService(IProjectRepository repository) : IProjectService
         }
         catch (ValidationException exception)
         {
-            throw new ServiceException(nameof(GetProjectsByTopicId), ErrorKind.Validation, exception.Message, exception);
+            throw new ServiceException(nameof(GetProjectsByTopicId), ErrorType.Validation, exception.Message, exception);
         }
         catch (OperationCanceledException exception)
         {
-            throw new ServiceException(nameof(GetProjectsByTopicId), ErrorKind.Cancelled, "The operation was cancelled.", exception);
+            throw new ServiceException(nameof(GetProjectsByTopicId), ErrorType.Cancelled, "The operation was cancelled.", exception);
         }
         catch (Exception exception) when (exception is not ServiceException)
         {
-            throw new ServiceException(nameof(GetProjectsByTopicId), ErrorKind.Unexpected, "The operation could not be completed.", exception);
+            throw new ServiceException(nameof(GetProjectsByTopicId), ErrorType.Unexpected, "The operation could not be completed.", exception);
         }
     }
 
@@ -93,7 +93,7 @@ public class ProjectService(IProjectRepository repository) : IProjectService
             if (!Enum.IsDefined(status))
             {
                 var exception = new ValidationException("Project status is invalid.");
-                throw new ServiceException(nameof(GetProjectsByStatus), ErrorKind.Validation, exception.Message, exception);
+                throw new ServiceException(nameof(GetProjectsByStatus), ErrorType.Validation, exception.Message, exception);
             }
             var projects = await _repository.GetProjectsByStatus(status, cancellationToken);
             return projects.Select(project => project.ToDto()).ToList();
@@ -104,15 +104,15 @@ public class ProjectService(IProjectRepository repository) : IProjectService
         }
         catch (ValidationException exception)
         {
-            throw new ServiceException(nameof(GetProjectsByStatus), ErrorKind.Validation, exception.Message, exception);
+            throw new ServiceException(nameof(GetProjectsByStatus), ErrorType.Validation, exception.Message, exception);
         }
         catch (OperationCanceledException exception)
         {
-            throw new ServiceException(nameof(GetProjectsByStatus), ErrorKind.Cancelled, "The operation was cancelled.", exception);
+            throw new ServiceException(nameof(GetProjectsByStatus), ErrorType.Cancelled, "The operation was cancelled.", exception);
         }
         catch (Exception exception) when (exception is not ServiceException)
         {
-            throw new ServiceException(nameof(GetProjectsByStatus), ErrorKind.Unexpected, "The operation could not be completed.", exception);
+            throw new ServiceException(nameof(GetProjectsByStatus), ErrorType.Unexpected, "The operation could not be completed.", exception);
         }
     }
 
@@ -124,7 +124,7 @@ public class ProjectService(IProjectRepository repository) : IProjectService
             if (project == null)
             {
                 var exception = new KeyNotFoundException($"Project '{projectId}' was not found.");
-                throw new ServiceException(nameof(GetProjectById), ErrorKind.NotFound, exception.Message, exception);
+                throw new ServiceException(nameof(GetProjectById), ErrorType.NotFound, exception.Message, exception);
             }
             return project.ToDto();
         }
@@ -134,15 +134,15 @@ public class ProjectService(IProjectRepository repository) : IProjectService
         }
         catch (ValidationException exception)
         {
-            throw new ServiceException(nameof(GetProjectById), ErrorKind.Validation, exception.Message, exception);
+            throw new ServiceException(nameof(GetProjectById), ErrorType.Validation, exception.Message, exception);
         }
         catch (OperationCanceledException exception)
         {
-            throw new ServiceException(nameof(GetProjectById), ErrorKind.Cancelled, "The operation was cancelled.", exception);
+            throw new ServiceException(nameof(GetProjectById), ErrorType.Cancelled, "The operation was cancelled.", exception);
         }
         catch (Exception exception) when (exception is not ServiceException)
         {
-            throw new ServiceException(nameof(GetProjectById), ErrorKind.Unexpected, "The operation could not be completed.", exception);
+            throw new ServiceException(nameof(GetProjectById), ErrorType.Unexpected, "The operation could not be completed.", exception);
         }
     }
 
@@ -168,15 +168,15 @@ public class ProjectService(IProjectRepository repository) : IProjectService
         }
         catch (ValidationException exception)
         {
-            throw new ServiceException(nameof(CreateProject), ErrorKind.Validation, exception.Message, exception);
+            throw new ServiceException(nameof(CreateProject), ErrorType.Validation, exception.Message, exception);
         }
         catch (OperationCanceledException exception)
         {
-            throw new ServiceException(nameof(CreateProject), ErrorKind.Cancelled, "The operation was cancelled.", exception);
+            throw new ServiceException(nameof(CreateProject), ErrorType.Cancelled, "The operation was cancelled.", exception);
         }
         catch (Exception exception) when (exception is not ServiceException)
         {
-            throw new ServiceException(nameof(CreateProject), ErrorKind.Unexpected, "The operation could not be completed.", exception);
+            throw new ServiceException(nameof(CreateProject), ErrorType.Unexpected, "The operation could not be completed.", exception);
         }
     }
 
@@ -189,7 +189,7 @@ public class ProjectService(IProjectRepository repository) : IProjectService
             if (project == null)
             {
                 var exception = new KeyNotFoundException($"Project '{projectId}' was not found.");
-                throw new ServiceException(nameof(UpdateProject), ErrorKind.NotFound, exception.Message, exception);
+                throw new ServiceException(nameof(UpdateProject), ErrorType.NotFound, exception.Message, exception);
             }
             project.Title = request.Title.Trim();
             project.Description = request.Description.Trim();
@@ -204,15 +204,15 @@ public class ProjectService(IProjectRepository repository) : IProjectService
         }
         catch (ValidationException exception)
         {
-            throw new ServiceException(nameof(UpdateProject), ErrorKind.Validation, exception.Message, exception);
+            throw new ServiceException(nameof(UpdateProject), ErrorType.Validation, exception.Message, exception);
         }
         catch (OperationCanceledException exception)
         {
-            throw new ServiceException(nameof(UpdateProject), ErrorKind.Cancelled, "The operation was cancelled.", exception);
+            throw new ServiceException(nameof(UpdateProject), ErrorType.Cancelled, "The operation was cancelled.", exception);
         }
         catch (Exception exception) when (exception is not ServiceException)
         {
-            throw new ServiceException(nameof(UpdateProject), ErrorKind.Unexpected, "The operation could not be completed.", exception);
+            throw new ServiceException(nameof(UpdateProject), ErrorType.Unexpected, "The operation could not be completed.", exception);
         }
     }
 
@@ -223,7 +223,7 @@ public class ProjectService(IProjectRepository repository) : IProjectService
             if (!await _repository.DeleteProject(projectId, cancellationToken))
             {
                 var exception = new KeyNotFoundException($"Project '{projectId}' was not found.");
-                throw new ServiceException(nameof(DeleteProject), ErrorKind.NotFound, exception.Message, exception);
+                throw new ServiceException(nameof(DeleteProject), ErrorType.NotFound, exception.Message, exception);
             }
         }
         catch (RepositoryException exception)
@@ -232,15 +232,15 @@ public class ProjectService(IProjectRepository repository) : IProjectService
         }
         catch (ValidationException exception)
         {
-            throw new ServiceException(nameof(DeleteProject), ErrorKind.Validation, exception.Message, exception);
+            throw new ServiceException(nameof(DeleteProject), ErrorType.Validation, exception.Message, exception);
         }
         catch (OperationCanceledException exception)
         {
-            throw new ServiceException(nameof(DeleteProject), ErrorKind.Cancelled, "The operation was cancelled.", exception);
+            throw new ServiceException(nameof(DeleteProject), ErrorType.Cancelled, "The operation was cancelled.", exception);
         }
         catch (Exception exception) when (exception is not ServiceException)
         {
-            throw new ServiceException(nameof(DeleteProject), ErrorKind.Unexpected, "The operation could not be completed.", exception);
+            throw new ServiceException(nameof(DeleteProject), ErrorType.Unexpected, "The operation could not be completed.", exception);
         }
     }
 
@@ -256,7 +256,7 @@ public class ProjectService(IProjectRepository repository) : IProjectService
             if (project == null || project.SupervisorId != supervisorId)
             {
                 var exception = new ValidationException("Project does not exist or belongs to another supervisor.");
-                throw new ServiceException(nameof(ValidateProjectSupervisor), ErrorKind.Validation, exception.Message, exception);
+                throw new ServiceException(nameof(ValidateProjectSupervisor), ErrorType.Validation, exception.Message, exception);
             }
         }
         catch (RepositoryException exception)
@@ -265,15 +265,15 @@ public class ProjectService(IProjectRepository repository) : IProjectService
         }
         catch (ValidationException exception)
         {
-            throw new ServiceException(nameof(ValidateProjectSupervisor), ErrorKind.Validation, exception.Message, exception);
+            throw new ServiceException(nameof(ValidateProjectSupervisor), ErrorType.Validation, exception.Message, exception);
         }
         catch (OperationCanceledException exception)
         {
-            throw new ServiceException(nameof(ValidateProjectSupervisor), ErrorKind.Cancelled, "The operation was cancelled.", exception);
+            throw new ServiceException(nameof(ValidateProjectSupervisor), ErrorType.Cancelled, "The operation was cancelled.", exception);
         }
         catch (Exception exception) when (exception is not ServiceException)
         {
-            throw new ServiceException(nameof(ValidateProjectSupervisor), ErrorKind.Unexpected, "The operation could not be completed.", exception);
+            throw new ServiceException(nameof(ValidateProjectSupervisor), ErrorType.Unexpected, "The operation could not be completed.", exception);
         }
     }
 }

@@ -25,11 +25,11 @@ public class ProjectOrchestration(IProjectService projects, ISupervisorService s
         }
         catch (OperationCanceledException exception)
         {
-            throw new OrchestrationException(nameof(CreateProject), ErrorKind.Cancelled, "The operation was cancelled.", exception);
+            throw new OrchestrationException(nameof(CreateProject), ErrorType.Cancelled, "The operation was cancelled.", exception);
         }
         catch (Exception exception) when (exception is not OrchestrationException)
         {
-            throw new OrchestrationException(nameof(CreateProject), ErrorKind.Unexpected, "The operation could not be completed.", exception);
+            throw new OrchestrationException(nameof(CreateProject), ErrorType.Unexpected, "The operation could not be completed.", exception);
         }
     }
 
@@ -46,11 +46,11 @@ public class ProjectOrchestration(IProjectService projects, ISupervisorService s
         }
         catch (OperationCanceledException exception)
         {
-            throw new OrchestrationException(nameof(UpdateProject), ErrorKind.Cancelled, "The operation was cancelled.", exception);
+            throw new OrchestrationException(nameof(UpdateProject), ErrorType.Cancelled, "The operation was cancelled.", exception);
         }
         catch (Exception exception) when (exception is not OrchestrationException)
         {
-            throw new OrchestrationException(nameof(UpdateProject), ErrorKind.Unexpected, "The operation could not be completed.", exception);
+            throw new OrchestrationException(nameof(UpdateProject), ErrorType.Unexpected, "The operation could not be completed.", exception);
         }
     }
 }

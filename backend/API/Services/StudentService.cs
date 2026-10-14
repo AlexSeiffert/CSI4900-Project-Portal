@@ -24,15 +24,15 @@ public class StudentService(IStudentRepository repository) : IStudentService
         }
         catch (ValidationException exception)
         {
-            throw new ServiceException(nameof(GetStudents), ErrorKind.Validation, exception.Message, exception);
+            throw new ServiceException(nameof(GetStudents), ErrorType.Validation, exception.Message, exception);
         }
         catch (OperationCanceledException exception)
         {
-            throw new ServiceException(nameof(GetStudents), ErrorKind.Cancelled, "The operation was cancelled.", exception);
+            throw new ServiceException(nameof(GetStudents), ErrorType.Cancelled, "The operation was cancelled.", exception);
         }
         catch (Exception exception) when (exception is not ServiceException)
         {
-            throw new ServiceException(nameof(GetStudents), ErrorKind.Unexpected, "The operation could not be completed.", exception);
+            throw new ServiceException(nameof(GetStudents), ErrorType.Unexpected, "The operation could not be completed.", exception);
         }
     }
 
@@ -44,7 +44,7 @@ public class StudentService(IStudentRepository repository) : IStudentService
             if (profile == null)
             {
                 var exception = new KeyNotFoundException($"Student '{userId}' was not found.");
-                throw new ServiceException(nameof(GetStudentById), ErrorKind.NotFound, exception.Message, exception);
+                throw new ServiceException(nameof(GetStudentById), ErrorType.NotFound, exception.Message, exception);
             }
             return profile.ToDto();
         }
@@ -54,15 +54,15 @@ public class StudentService(IStudentRepository repository) : IStudentService
         }
         catch (ValidationException exception)
         {
-            throw new ServiceException(nameof(GetStudentById), ErrorKind.Validation, exception.Message, exception);
+            throw new ServiceException(nameof(GetStudentById), ErrorType.Validation, exception.Message, exception);
         }
         catch (OperationCanceledException exception)
         {
-            throw new ServiceException(nameof(GetStudentById), ErrorKind.Cancelled, "The operation was cancelled.", exception);
+            throw new ServiceException(nameof(GetStudentById), ErrorType.Cancelled, "The operation was cancelled.", exception);
         }
         catch (Exception exception) when (exception is not ServiceException)
         {
-            throw new ServiceException(nameof(GetStudentById), ErrorKind.Unexpected, "The operation could not be completed.", exception);
+            throw new ServiceException(nameof(GetStudentById), ErrorType.Unexpected, "The operation could not be completed.", exception);
         }
     }
 
@@ -75,7 +75,7 @@ public class StudentService(IStudentRepository repository) : IStudentService
             if (profile == null)
             {
                 var exception = new KeyNotFoundException($"Student '{userId}' was not found.");
-                throw new ServiceException(nameof(UpdateStudent), ErrorKind.NotFound, exception.Message, exception);
+                throw new ServiceException(nameof(UpdateStudent), ErrorType.NotFound, exception.Message, exception);
             }
             profile.DisplayName = request.DisplayName;
             profile.Program = request.Program;
@@ -88,15 +88,15 @@ public class StudentService(IStudentRepository repository) : IStudentService
         }
         catch (ValidationException exception)
         {
-            throw new ServiceException(nameof(UpdateStudent), ErrorKind.Validation, exception.Message, exception);
+            throw new ServiceException(nameof(UpdateStudent), ErrorType.Validation, exception.Message, exception);
         }
         catch (OperationCanceledException exception)
         {
-            throw new ServiceException(nameof(UpdateStudent), ErrorKind.Cancelled, "The operation was cancelled.", exception);
+            throw new ServiceException(nameof(UpdateStudent), ErrorType.Cancelled, "The operation was cancelled.", exception);
         }
         catch (Exception exception) when (exception is not ServiceException)
         {
-            throw new ServiceException(nameof(UpdateStudent), ErrorKind.Unexpected, "The operation could not be completed.", exception);
+            throw new ServiceException(nameof(UpdateStudent), ErrorType.Unexpected, "The operation could not be completed.", exception);
         }
     }
 
@@ -107,7 +107,7 @@ public class StudentService(IStudentRepository repository) : IStudentService
             if (await _repository.GetStudentById(studentId, cancellationToken) == null)
             {
                 var exception = new ValidationException("Student does not exist.");
-                throw new ServiceException(nameof(ValidateStudentExists), ErrorKind.Validation, exception.Message, exception);
+                throw new ServiceException(nameof(ValidateStudentExists), ErrorType.Validation, exception.Message, exception);
             }
         }
         catch (RepositoryException exception)
@@ -116,15 +116,15 @@ public class StudentService(IStudentRepository repository) : IStudentService
         }
         catch (ValidationException exception)
         {
-            throw new ServiceException(nameof(ValidateStudentExists), ErrorKind.Validation, exception.Message, exception);
+            throw new ServiceException(nameof(ValidateStudentExists), ErrorType.Validation, exception.Message, exception);
         }
         catch (OperationCanceledException exception)
         {
-            throw new ServiceException(nameof(ValidateStudentExists), ErrorKind.Cancelled, "The operation was cancelled.", exception);
+            throw new ServiceException(nameof(ValidateStudentExists), ErrorType.Cancelled, "The operation was cancelled.", exception);
         }
         catch (Exception exception) when (exception is not ServiceException)
         {
-            throw new ServiceException(nameof(ValidateStudentExists), ErrorKind.Unexpected, "The operation could not be completed.", exception);
+            throw new ServiceException(nameof(ValidateStudentExists), ErrorType.Unexpected, "The operation could not be completed.", exception);
         }
     }
 }

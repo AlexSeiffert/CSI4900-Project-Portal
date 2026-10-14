@@ -13,7 +13,7 @@ public class StudentOrchestrationTests
         var c = new ServiceTestContext();
         var request = c.StudentUpdate();
         request.TopicIds = [Guid.NewGuid()];
-        await OrchestrationFailureCases.AssertDomainFailure(() => c.StudentOrchestration.UpdateStudent(c.Student.UserId, request), "UpdateStudent", ErrorKind.Validation);
+        await OrchestrationFailureCases.AssertDomainFailure(() => c.StudentOrchestration.UpdateStudent(c.Student.UserId, request), "UpdateStudent", ErrorType.Validation);
         Assert.DoesNotContain("UpdateStudent", c.Students.Calls);
     }
 
@@ -45,12 +45,12 @@ public class StudentOrchestrationTests
     }
 
     [Theory]
-    [InlineData(ErrorKind.Validation)]
-    [InlineData(ErrorKind.NotFound)]
-    [InlineData(ErrorKind.Conflict)]
-    [InlineData(ErrorKind.Cancelled)]
-    [InlineData(ErrorKind.Unexpected)]
-    public async Task UpdateStudent_WrapsTopicsFailureAndStopsRemainingCalls(ErrorKind kind)
+    [InlineData(ErrorType.Validation)]
+    [InlineData(ErrorType.NotFound)]
+    [InlineData(ErrorType.Conflict)]
+    [InlineData(ErrorType.Cancelled)]
+    [InlineData(ErrorType.Unexpected)]
+    public async Task UpdateStudent_WrapsTopicsFailureAndStopsRemainingCalls(ErrorType kind)
     {
         var c = new OrchestrationTestContext();
         using var cancellation = new CancellationTokenSource();
@@ -81,18 +81,18 @@ public class StudentOrchestrationTests
         c.Topics.Failure = original;
         var exception = await Assert.ThrowsAsync<OrchestrationException>(() => c.StudentOrchestration.UpdateStudent(id, request, cancellation.Token));
         Assert.Equal("UpdateStudent", exception.Operation);
-        Assert.Equal(cancelled ? ErrorKind.Cancelled : ErrorKind.Unexpected, exception.Kind);
+        Assert.Equal(cancelled ? ErrorType.Cancelled : ErrorType.Unexpected, exception.Kind);
         Assert.Same(original, exception.InnerException);
         Assert.Equal(new[] { "Topics.ValidateTopicsExist" }, c.Calls);
     }
 
     [Theory]
-    [InlineData(ErrorKind.Validation)]
-    [InlineData(ErrorKind.NotFound)]
-    [InlineData(ErrorKind.Conflict)]
-    [InlineData(ErrorKind.Cancelled)]
-    [InlineData(ErrorKind.Unexpected)]
-    public async Task UpdateStudent_WrapsStudentsFailureAndStopsRemainingCalls(ErrorKind kind)
+    [InlineData(ErrorType.Validation)]
+    [InlineData(ErrorType.NotFound)]
+    [InlineData(ErrorType.Conflict)]
+    [InlineData(ErrorType.Cancelled)]
+    [InlineData(ErrorType.Unexpected)]
+    public async Task UpdateStudent_WrapsStudentsFailureAndStopsRemainingCalls(ErrorType kind)
     {
         var c = new OrchestrationTestContext();
         using var cancellation = new CancellationTokenSource();
@@ -123,7 +123,7 @@ public class StudentOrchestrationTests
         c.Students.Failure = original;
         var exception = await Assert.ThrowsAsync<OrchestrationException>(() => c.StudentOrchestration.UpdateStudent(id, request, cancellation.Token));
         Assert.Equal("UpdateStudent", exception.Operation);
-        Assert.Equal(cancelled ? ErrorKind.Cancelled : ErrorKind.Unexpected, exception.Kind);
+        Assert.Equal(cancelled ? ErrorType.Cancelled : ErrorType.Unexpected, exception.Kind);
         Assert.Same(original, exception.InnerException);
         Assert.Equal(new[] { "Topics.ValidateTopicsExist", "Students.UpdateStudent" }, c.Calls);
     }

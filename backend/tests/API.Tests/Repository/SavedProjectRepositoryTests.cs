@@ -28,13 +28,13 @@ public class SavedProjectRepositoryTests
         var exception = await Assert.ThrowsAsync<RepositoryException>(() => repository.GetSavedProjects(c.Student.UserId, token));
         if (cancelled)
         {
-            Assert.Equal(ErrorKind.Cancelled, exception.Kind);
+            Assert.Equal(ErrorType.Cancelled, exception.Kind);
             var original = Assert.IsAssignableFrom<OperationCanceledException>(exception.InnerException);
             Assert.Equal(token, original.CancellationToken);
         }
         else
         {
-            Assert.Equal(ErrorKind.Unexpected, exception.Kind);
+            Assert.Equal(ErrorType.Unexpected, exception.Kind);
             Assert.IsType<ObjectDisposedException>(exception.InnerException);
         }
     }
@@ -59,13 +59,13 @@ public class SavedProjectRepositoryTests
         var exception = await Assert.ThrowsAsync<RepositoryException>(() => repository.SaveProject(c.Student.UserId, c.Project.Id, token));
         if (cancelled)
         {
-            Assert.Equal(ErrorKind.Cancelled, exception.Kind);
+            Assert.Equal(ErrorType.Cancelled, exception.Kind);
             var original = Assert.IsAssignableFrom<OperationCanceledException>(exception.InnerException);
             Assert.Equal(token, original.CancellationToken);
         }
         else
         {
-            Assert.Equal(ErrorKind.Unexpected, exception.Kind);
+            Assert.Equal(ErrorType.Unexpected, exception.Kind);
             Assert.IsType<ObjectDisposedException>(exception.InnerException);
         }
     }
@@ -90,13 +90,13 @@ public class SavedProjectRepositoryTests
         var exception = await Assert.ThrowsAsync<RepositoryException>(() => repository.RemoveSavedProject(c.Student.UserId, c.Project.Id, token));
         if (cancelled)
         {
-            Assert.Equal(ErrorKind.Cancelled, exception.Kind);
+            Assert.Equal(ErrorType.Cancelled, exception.Kind);
             var original = Assert.IsAssignableFrom<OperationCanceledException>(exception.InnerException);
             Assert.Equal(token, original.CancellationToken);
         }
         else
         {
-            Assert.Equal(ErrorKind.Unexpected, exception.Kind);
+            Assert.Equal(ErrorType.Unexpected, exception.Kind);
             Assert.IsType<ObjectDisposedException>(exception.InnerException);
         }
     }
@@ -157,7 +157,7 @@ public class SavedProjectRepositoryTests
         c.FailSavesWith(original);
         var exception = await Assert.ThrowsAsync<RepositoryException>(() => repository.SaveProject(c.Student.UserId, c.Project.Id));
         Assert.Same(original, exception.InnerException);
-        Assert.Equal(conflict ? ErrorKind.Conflict : ErrorKind.Unexpected, exception.Kind);
+        Assert.Equal(conflict ? ErrorType.Conflict : ErrorType.Unexpected, exception.Kind);
     }
 
     [Theory]
@@ -172,6 +172,6 @@ public class SavedProjectRepositoryTests
         c.FailSavesWith(original);
         var exception = await Assert.ThrowsAsync<RepositoryException>(() => repository.RemoveSavedProject(c.Student.UserId, c.Project.Id));
         Assert.Same(original, exception.InnerException);
-        Assert.Equal(conflict ? ErrorKind.Conflict : ErrorKind.Unexpected, exception.Kind);
+        Assert.Equal(conflict ? ErrorType.Conflict : ErrorType.Unexpected, exception.Kind);
     }
 }

@@ -13,7 +13,7 @@ public class InquiryOrchestrationTests
         var c = new ServiceTestContext();
         var request = c.NewInquiry();
         request.StudentId = Guid.NewGuid();
-        await OrchestrationFailureCases.AssertDomainFailure(() => c.InquiryOrchestration.CreateInquiry(request), "CreateInquiry", ErrorKind.Validation);
+        await OrchestrationFailureCases.AssertDomainFailure(() => c.InquiryOrchestration.CreateInquiry(request), "CreateInquiry", ErrorType.Validation);
         Assert.Empty(c.Inquiries.Calls);
     }
 
@@ -23,7 +23,7 @@ public class InquiryOrchestrationTests
         var c = new ServiceTestContext();
         var request = c.NewInquiry();
         request.SupervisorId = Guid.NewGuid();
-        await OrchestrationFailureCases.AssertDomainFailure(() => c.InquiryOrchestration.CreateInquiry(request), "CreateInquiry", ErrorKind.Validation);
+        await OrchestrationFailureCases.AssertDomainFailure(() => c.InquiryOrchestration.CreateInquiry(request), "CreateInquiry", ErrorType.Validation);
         Assert.Empty(c.Inquiries.Calls);
     }
 
@@ -33,7 +33,7 @@ public class InquiryOrchestrationTests
         var c = new ServiceTestContext();
         var request = c.NewInquiry();
         request.ProjectId = Guid.NewGuid();
-        await OrchestrationFailureCases.AssertDomainFailure(() => c.InquiryOrchestration.CreateInquiry(request), "CreateInquiry", ErrorKind.Validation);
+        await OrchestrationFailureCases.AssertDomainFailure(() => c.InquiryOrchestration.CreateInquiry(request), "CreateInquiry", ErrorType.Validation);
         Assert.Empty(c.Inquiries.Calls);
     }
 
@@ -43,7 +43,7 @@ public class InquiryOrchestrationTests
         var c = new ServiceTestContext();
         var request = c.NewInquiry();
         c.Project.SupervisorId = Guid.NewGuid();
-        await OrchestrationFailureCases.AssertDomainFailure(() => c.InquiryOrchestration.CreateInquiry(request), "CreateInquiry", ErrorKind.Validation);
+        await OrchestrationFailureCases.AssertDomainFailure(() => c.InquiryOrchestration.CreateInquiry(request), "CreateInquiry", ErrorType.Validation);
         Assert.Empty(c.Inquiries.Calls);
     }
 
@@ -98,12 +98,12 @@ public class InquiryOrchestrationTests
     }
 
     [Theory]
-    [InlineData(ErrorKind.Validation)]
-    [InlineData(ErrorKind.NotFound)]
-    [InlineData(ErrorKind.Conflict)]
-    [InlineData(ErrorKind.Cancelled)]
-    [InlineData(ErrorKind.Unexpected)]
-    public async Task CreateInquiry_WrapsStudentsFailureAndStopsRemainingCalls(ErrorKind kind)
+    [InlineData(ErrorType.Validation)]
+    [InlineData(ErrorType.NotFound)]
+    [InlineData(ErrorType.Conflict)]
+    [InlineData(ErrorType.Cancelled)]
+    [InlineData(ErrorType.Unexpected)]
+    public async Task CreateInquiry_WrapsStudentsFailureAndStopsRemainingCalls(ErrorType kind)
     {
         var c = new OrchestrationTestContext();
         using var cancellation = new CancellationTokenSource();
@@ -132,18 +132,18 @@ public class InquiryOrchestrationTests
         c.Students.Failure = original;
         var exception = await Assert.ThrowsAsync<OrchestrationException>(() => c.InquiryOrchestration.CreateInquiry(request, cancellation.Token));
         Assert.Equal("CreateInquiry", exception.Operation);
-        Assert.Equal(cancelled ? ErrorKind.Cancelled : ErrorKind.Unexpected, exception.Kind);
+        Assert.Equal(cancelled ? ErrorType.Cancelled : ErrorType.Unexpected, exception.Kind);
         Assert.Same(original, exception.InnerException);
         Assert.Equal(new[] { "Students.ValidateStudentExists" }, c.Calls);
     }
 
     [Theory]
-    [InlineData(ErrorKind.Validation)]
-    [InlineData(ErrorKind.NotFound)]
-    [InlineData(ErrorKind.Conflict)]
-    [InlineData(ErrorKind.Cancelled)]
-    [InlineData(ErrorKind.Unexpected)]
-    public async Task CreateInquiry_WrapsSupervisorsFailureAndStopsRemainingCalls(ErrorKind kind)
+    [InlineData(ErrorType.Validation)]
+    [InlineData(ErrorType.NotFound)]
+    [InlineData(ErrorType.Conflict)]
+    [InlineData(ErrorType.Cancelled)]
+    [InlineData(ErrorType.Unexpected)]
+    public async Task CreateInquiry_WrapsSupervisorsFailureAndStopsRemainingCalls(ErrorType kind)
     {
         var c = new OrchestrationTestContext();
         using var cancellation = new CancellationTokenSource();
@@ -172,18 +172,18 @@ public class InquiryOrchestrationTests
         c.Supervisors.Failure = original;
         var exception = await Assert.ThrowsAsync<OrchestrationException>(() => c.InquiryOrchestration.CreateInquiry(request, cancellation.Token));
         Assert.Equal("CreateInquiry", exception.Operation);
-        Assert.Equal(cancelled ? ErrorKind.Cancelled : ErrorKind.Unexpected, exception.Kind);
+        Assert.Equal(cancelled ? ErrorType.Cancelled : ErrorType.Unexpected, exception.Kind);
         Assert.Same(original, exception.InnerException);
         Assert.Equal(new[] { "Students.ValidateStudentExists", "Supervisors.ValidateSupervisorExists" }, c.Calls);
     }
 
     [Theory]
-    [InlineData(ErrorKind.Validation)]
-    [InlineData(ErrorKind.NotFound)]
-    [InlineData(ErrorKind.Conflict)]
-    [InlineData(ErrorKind.Cancelled)]
-    [InlineData(ErrorKind.Unexpected)]
-    public async Task CreateInquiry_WrapsProjectsFailureAndStopsRemainingCalls(ErrorKind kind)
+    [InlineData(ErrorType.Validation)]
+    [InlineData(ErrorType.NotFound)]
+    [InlineData(ErrorType.Conflict)]
+    [InlineData(ErrorType.Cancelled)]
+    [InlineData(ErrorType.Unexpected)]
+    public async Task CreateInquiry_WrapsProjectsFailureAndStopsRemainingCalls(ErrorType kind)
     {
         var c = new OrchestrationTestContext();
         using var cancellation = new CancellationTokenSource();
@@ -212,18 +212,18 @@ public class InquiryOrchestrationTests
         c.Projects.Failure = original;
         var exception = await Assert.ThrowsAsync<OrchestrationException>(() => c.InquiryOrchestration.CreateInquiry(request, cancellation.Token));
         Assert.Equal("CreateInquiry", exception.Operation);
-        Assert.Equal(cancelled ? ErrorKind.Cancelled : ErrorKind.Unexpected, exception.Kind);
+        Assert.Equal(cancelled ? ErrorType.Cancelled : ErrorType.Unexpected, exception.Kind);
         Assert.Same(original, exception.InnerException);
         Assert.Equal(new[] { "Students.ValidateStudentExists", "Supervisors.ValidateSupervisorExists", "Projects.ValidateProjectSupervisor" }, c.Calls);
     }
 
     [Theory]
-    [InlineData(ErrorKind.Validation)]
-    [InlineData(ErrorKind.NotFound)]
-    [InlineData(ErrorKind.Conflict)]
-    [InlineData(ErrorKind.Cancelled)]
-    [InlineData(ErrorKind.Unexpected)]
-    public async Task CreateInquiry_WrapsInquiriesFailureAndStopsRemainingCalls(ErrorKind kind)
+    [InlineData(ErrorType.Validation)]
+    [InlineData(ErrorType.NotFound)]
+    [InlineData(ErrorType.Conflict)]
+    [InlineData(ErrorType.Cancelled)]
+    [InlineData(ErrorType.Unexpected)]
+    public async Task CreateInquiry_WrapsInquiriesFailureAndStopsRemainingCalls(ErrorType kind)
     {
         var c = new OrchestrationTestContext();
         using var cancellation = new CancellationTokenSource();
@@ -252,7 +252,7 @@ public class InquiryOrchestrationTests
         c.Inquiries.Failure = original;
         var exception = await Assert.ThrowsAsync<OrchestrationException>(() => c.InquiryOrchestration.CreateInquiry(request, cancellation.Token));
         Assert.Equal("CreateInquiry", exception.Operation);
-        Assert.Equal(cancelled ? ErrorKind.Cancelled : ErrorKind.Unexpected, exception.Kind);
+        Assert.Equal(cancelled ? ErrorType.Cancelled : ErrorType.Unexpected, exception.Kind);
         Assert.Same(original, exception.InnerException);
         Assert.Equal(new[] { "Students.ValidateStudentExists", "Supervisors.ValidateSupervisorExists", "Projects.ValidateProjectSupervisor", "Inquiries.CreateInquiry" }, c.Calls);
     }

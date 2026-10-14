@@ -25,15 +25,15 @@ public class InquiryService(IInquiryRepository repository) : IInquiryService
         }
         catch (ValidationException exception)
         {
-            throw new ServiceException(nameof(GetInquiries), ErrorKind.Validation, exception.Message, exception);
+            throw new ServiceException(nameof(GetInquiries), ErrorType.Validation, exception.Message, exception);
         }
         catch (OperationCanceledException exception)
         {
-            throw new ServiceException(nameof(GetInquiries), ErrorKind.Cancelled, "The operation was cancelled.", exception);
+            throw new ServiceException(nameof(GetInquiries), ErrorType.Cancelled, "The operation was cancelled.", exception);
         }
         catch (Exception exception) when (exception is not ServiceException)
         {
-            throw new ServiceException(nameof(GetInquiries), ErrorKind.Unexpected, "The operation could not be completed.", exception);
+            throw new ServiceException(nameof(GetInquiries), ErrorType.Unexpected, "The operation could not be completed.", exception);
         }
     }
 
@@ -50,15 +50,15 @@ public class InquiryService(IInquiryRepository repository) : IInquiryService
         }
         catch (ValidationException exception)
         {
-            throw new ServiceException(nameof(GetInquiriesByStudentId), ErrorKind.Validation, exception.Message, exception);
+            throw new ServiceException(nameof(GetInquiriesByStudentId), ErrorType.Validation, exception.Message, exception);
         }
         catch (OperationCanceledException exception)
         {
-            throw new ServiceException(nameof(GetInquiriesByStudentId), ErrorKind.Cancelled, "The operation was cancelled.", exception);
+            throw new ServiceException(nameof(GetInquiriesByStudentId), ErrorType.Cancelled, "The operation was cancelled.", exception);
         }
         catch (Exception exception) when (exception is not ServiceException)
         {
-            throw new ServiceException(nameof(GetInquiriesByStudentId), ErrorKind.Unexpected, "The operation could not be completed.", exception);
+            throw new ServiceException(nameof(GetInquiriesByStudentId), ErrorType.Unexpected, "The operation could not be completed.", exception);
         }
     }
 
@@ -75,15 +75,15 @@ public class InquiryService(IInquiryRepository repository) : IInquiryService
         }
         catch (ValidationException exception)
         {
-            throw new ServiceException(nameof(GetInquiriesBySupervisorId), ErrorKind.Validation, exception.Message, exception);
+            throw new ServiceException(nameof(GetInquiriesBySupervisorId), ErrorType.Validation, exception.Message, exception);
         }
         catch (OperationCanceledException exception)
         {
-            throw new ServiceException(nameof(GetInquiriesBySupervisorId), ErrorKind.Cancelled, "The operation was cancelled.", exception);
+            throw new ServiceException(nameof(GetInquiriesBySupervisorId), ErrorType.Cancelled, "The operation was cancelled.", exception);
         }
         catch (Exception exception) when (exception is not ServiceException)
         {
-            throw new ServiceException(nameof(GetInquiriesBySupervisorId), ErrorKind.Unexpected, "The operation could not be completed.", exception);
+            throw new ServiceException(nameof(GetInquiriesBySupervisorId), ErrorType.Unexpected, "The operation could not be completed.", exception);
         }
     }
 
@@ -100,15 +100,15 @@ public class InquiryService(IInquiryRepository repository) : IInquiryService
         }
         catch (ValidationException exception)
         {
-            throw new ServiceException(nameof(GetInquiriesByProjectId), ErrorKind.Validation, exception.Message, exception);
+            throw new ServiceException(nameof(GetInquiriesByProjectId), ErrorType.Validation, exception.Message, exception);
         }
         catch (OperationCanceledException exception)
         {
-            throw new ServiceException(nameof(GetInquiriesByProjectId), ErrorKind.Cancelled, "The operation was cancelled.", exception);
+            throw new ServiceException(nameof(GetInquiriesByProjectId), ErrorType.Cancelled, "The operation was cancelled.", exception);
         }
         catch (Exception exception) when (exception is not ServiceException)
         {
-            throw new ServiceException(nameof(GetInquiriesByProjectId), ErrorKind.Unexpected, "The operation could not be completed.", exception);
+            throw new ServiceException(nameof(GetInquiriesByProjectId), ErrorType.Unexpected, "The operation could not be completed.", exception);
         }
     }
 
@@ -120,7 +120,7 @@ public class InquiryService(IInquiryRepository repository) : IInquiryService
             if (inquiry == null)
             {
                 var exception = new KeyNotFoundException($"Inquiry '{inquiryId}' was not found.");
-                throw new ServiceException(nameof(GetInquiryById), ErrorKind.NotFound, exception.Message, exception);
+                throw new ServiceException(nameof(GetInquiryById), ErrorType.NotFound, exception.Message, exception);
             }
             return inquiry.ToDto();
         }
@@ -130,15 +130,15 @@ public class InquiryService(IInquiryRepository repository) : IInquiryService
         }
         catch (ValidationException exception)
         {
-            throw new ServiceException(nameof(GetInquiryById), ErrorKind.Validation, exception.Message, exception);
+            throw new ServiceException(nameof(GetInquiryById), ErrorType.Validation, exception.Message, exception);
         }
         catch (OperationCanceledException exception)
         {
-            throw new ServiceException(nameof(GetInquiryById), ErrorKind.Cancelled, "The operation was cancelled.", exception);
+            throw new ServiceException(nameof(GetInquiryById), ErrorType.Cancelled, "The operation was cancelled.", exception);
         }
         catch (Exception exception) when (exception is not ServiceException)
         {
-            throw new ServiceException(nameof(GetInquiryById), ErrorKind.Unexpected, "The operation could not be completed.", exception);
+            throw new ServiceException(nameof(GetInquiryById), ErrorType.Unexpected, "The operation could not be completed.", exception);
         }
     }
 
@@ -163,15 +163,15 @@ public class InquiryService(IInquiryRepository repository) : IInquiryService
         }
         catch (ValidationException exception)
         {
-            throw new ServiceException(nameof(CreateInquiry), ErrorKind.Validation, exception.Message, exception);
+            throw new ServiceException(nameof(CreateInquiry), ErrorType.Validation, exception.Message, exception);
         }
         catch (OperationCanceledException exception)
         {
-            throw new ServiceException(nameof(CreateInquiry), ErrorKind.Cancelled, "The operation was cancelled.", exception);
+            throw new ServiceException(nameof(CreateInquiry), ErrorType.Cancelled, "The operation was cancelled.", exception);
         }
         catch (Exception exception) when (exception is not ServiceException)
         {
-            throw new ServiceException(nameof(CreateInquiry), ErrorKind.Unexpected, "The operation could not be completed.", exception);
+            throw new ServiceException(nameof(CreateInquiry), ErrorType.Unexpected, "The operation could not be completed.", exception);
         }
     }
 
@@ -184,7 +184,7 @@ public class InquiryService(IInquiryRepository repository) : IInquiryService
             if (inquiry == null)
             {
                 var exception = new KeyNotFoundException($"Inquiry '{inquiryId}' was not found.");
-                throw new ServiceException(nameof(UpdateInquiry), ErrorKind.NotFound, exception.Message, exception);
+                throw new ServiceException(nameof(UpdateInquiry), ErrorType.NotFound, exception.Message, exception);
             }
             inquiry.Status = request.Status!.Value;
             return (await _repository.UpdateInquiry(inquiry, cancellationToken)).ToDto();
@@ -195,15 +195,15 @@ public class InquiryService(IInquiryRepository repository) : IInquiryService
         }
         catch (ValidationException exception)
         {
-            throw new ServiceException(nameof(UpdateInquiry), ErrorKind.Validation, exception.Message, exception);
+            throw new ServiceException(nameof(UpdateInquiry), ErrorType.Validation, exception.Message, exception);
         }
         catch (OperationCanceledException exception)
         {
-            throw new ServiceException(nameof(UpdateInquiry), ErrorKind.Cancelled, "The operation was cancelled.", exception);
+            throw new ServiceException(nameof(UpdateInquiry), ErrorType.Cancelled, "The operation was cancelled.", exception);
         }
         catch (Exception exception) when (exception is not ServiceException)
         {
-            throw new ServiceException(nameof(UpdateInquiry), ErrorKind.Unexpected, "The operation could not be completed.", exception);
+            throw new ServiceException(nameof(UpdateInquiry), ErrorType.Unexpected, "The operation could not be completed.", exception);
         }
     }
 }

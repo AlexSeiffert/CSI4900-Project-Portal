@@ -94,12 +94,12 @@ public class SavedProjectsControllerTests
     }
 
     [Theory]
-    [InlineData(ErrorKind.NotFound)]
-    [InlineData(ErrorKind.Validation)]
-    [InlineData(ErrorKind.Conflict)]
-    [InlineData(ErrorKind.Cancelled)]
-    [InlineData(ErrorKind.Unexpected)]
-    public async Task GetSavedProjects_PropagatesOrchestrationExceptionsToTheHandler(ErrorKind kind)
+    [InlineData(ErrorType.NotFound)]
+    [InlineData(ErrorType.Validation)]
+    [InlineData(ErrorType.Conflict)]
+    [InlineData(ErrorType.Cancelled)]
+    [InlineData(ErrorType.Unexpected)]
+    public async Task GetSavedProjects_PropagatesOrchestrationExceptionsToTheHandler(ErrorType kind)
     {
         var service = new SavedProjectOrchestrationStub();
         service.Items.Add(service.Item);
@@ -132,12 +132,12 @@ public class SavedProjectsControllerTests
     }
 
     [Theory]
-    [InlineData(ErrorKind.NotFound)]
-    [InlineData(ErrorKind.Validation)]
-    [InlineData(ErrorKind.Conflict)]
-    [InlineData(ErrorKind.Cancelled)]
-    [InlineData(ErrorKind.Unexpected)]
-    public async Task SaveProject_PropagatesOrchestrationExceptionsToTheHandler(ErrorKind kind)
+    [InlineData(ErrorType.NotFound)]
+    [InlineData(ErrorType.Validation)]
+    [InlineData(ErrorType.Conflict)]
+    [InlineData(ErrorType.Cancelled)]
+    [InlineData(ErrorType.Unexpected)]
+    public async Task SaveProject_PropagatesOrchestrationExceptionsToTheHandler(ErrorType kind)
     {
         var service = new SavedProjectOrchestrationStub();
         service.Items.Add(service.Item);
@@ -171,12 +171,12 @@ public class SavedProjectsControllerTests
     }
 
     [Theory]
-    [InlineData(ErrorKind.NotFound)]
-    [InlineData(ErrorKind.Validation)]
-    [InlineData(ErrorKind.Conflict)]
-    [InlineData(ErrorKind.Cancelled)]
-    [InlineData(ErrorKind.Unexpected)]
-    public async Task RemoveSavedProject_PropagatesOrchestrationExceptionsToTheHandler(ErrorKind kind)
+    [InlineData(ErrorType.NotFound)]
+    [InlineData(ErrorType.Validation)]
+    [InlineData(ErrorType.Conflict)]
+    [InlineData(ErrorType.Cancelled)]
+    [InlineData(ErrorType.Unexpected)]
+    public async Task RemoveSavedProject_PropagatesOrchestrationExceptionsToTheHandler(ErrorType kind)
     {
         var service = new SavedProjectOrchestrationStub();
         service.Items.Add(service.Item);

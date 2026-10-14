@@ -221,7 +221,7 @@ public class ProjectServiceTests
     public async Task GetProjectById_ThrowsForMissingProject()
     {
         var c = new ServiceTestContext();
-        await ServiceFailureCases.AssertDomainFailure(() => c.ProjectService.GetProjectById(Guid.NewGuid()), "GetProjectById", ErrorKind.NotFound);
+        await ServiceFailureCases.AssertDomainFailure(() => c.ProjectService.GetProjectById(Guid.NewGuid()), "GetProjectById", ErrorType.NotFound);
         Assert.DoesNotContain("UpdateProject", c.Projects.Calls);
     }
 
@@ -229,7 +229,7 @@ public class ProjectServiceTests
     public async Task UpdateProject_ThrowsForMissingProject()
     {
         var c = new ServiceTestContext();
-        await ServiceFailureCases.AssertDomainFailure(() => c.ProjectService.UpdateProject(Guid.NewGuid(), c.ProjectUpdate()), "UpdateProject", ErrorKind.NotFound);
+        await ServiceFailureCases.AssertDomainFailure(() => c.ProjectService.UpdateProject(Guid.NewGuid(), c.ProjectUpdate()), "UpdateProject", ErrorType.NotFound);
         Assert.DoesNotContain("UpdateProject", c.Projects.Calls);
     }
 
@@ -237,7 +237,7 @@ public class ProjectServiceTests
     public async Task DeleteProject_ThrowsForMissingProject()
     {
         var c = new ServiceTestContext();
-        await ServiceFailureCases.AssertDomainFailure(() => c.ProjectService.DeleteProject(Guid.NewGuid()), "DeleteProject", ErrorKind.NotFound);
+        await ServiceFailureCases.AssertDomainFailure(() => c.ProjectService.DeleteProject(Guid.NewGuid()), "DeleteProject", ErrorType.NotFound);
         Assert.DoesNotContain("UpdateProject", c.Projects.Calls);
     }
 
@@ -245,7 +245,7 @@ public class ProjectServiceTests
     public async Task GetProjectsByStatus_RejectsUndefinedStatusBeforeRepositoryCall()
     {
         var c = new ServiceTestContext();
-        await ServiceFailureCases.AssertDomainFailure(() => c.ProjectService.GetProjectsByStatus((ProjectStatus)999), "GetProjectsByStatus", ErrorKind.Validation);
+        await ServiceFailureCases.AssertDomainFailure(() => c.ProjectService.GetProjectsByStatus((ProjectStatus)999), "GetProjectsByStatus", ErrorType.Validation);
         Assert.Empty(c.Projects.Calls);
     }
 
@@ -255,7 +255,7 @@ public class ProjectServiceTests
         var c = new ServiceTestContext();
         var request = c.NewProject();
         request.Title = " ";
-        await ServiceFailureCases.AssertDomainFailure(() => c.ProjectService.CreateProject(request), "CreateProject", ErrorKind.Validation);
+        await ServiceFailureCases.AssertDomainFailure(() => c.ProjectService.CreateProject(request), "CreateProject", ErrorType.Validation);
         Assert.DoesNotContain("CreateProject", c.Projects.Calls);
     }
 
@@ -265,7 +265,7 @@ public class ProjectServiceTests
         var c = new ServiceTestContext();
         var request = c.ProjectUpdate();
         request.Title = " ";
-        await ServiceFailureCases.AssertDomainFailure(() => c.ProjectService.UpdateProject(c.Project.Id, request), "UpdateProject", ErrorKind.Validation);
+        await ServiceFailureCases.AssertDomainFailure(() => c.ProjectService.UpdateProject(c.Project.Id, request), "UpdateProject", ErrorType.Validation);
         Assert.DoesNotContain("UpdateProject", c.Projects.Calls);
     }
 
@@ -302,7 +302,7 @@ public class ProjectServiceTests
     public async Task ValidateProjectSupervisor_RejectsMissingReferences()
     {
         var c = new ServiceTestContext();
-        await ServiceFailureCases.AssertDomainFailure(() => c.ProjectService.ValidateProjectSupervisor(Guid.NewGuid(), c.Supervisor.UserId), "ValidateProjectSupervisor", ErrorKind.Validation);
+        await ServiceFailureCases.AssertDomainFailure(() => c.ProjectService.ValidateProjectSupervisor(Guid.NewGuid(), c.Supervisor.UserId), "ValidateProjectSupervisor", ErrorType.Validation);
     }
 
     [Fact]
@@ -317,6 +317,6 @@ public class ProjectServiceTests
     public async Task ValidateProjectSupervisor_RejectsDifferentOwner()
     {
         var c = new ServiceTestContext();
-        await ServiceFailureCases.AssertDomainFailure(() => c.ProjectService.ValidateProjectSupervisor(c.Project.Id, Guid.NewGuid()), "ValidateProjectSupervisor", ErrorKind.Validation);
+        await ServiceFailureCases.AssertDomainFailure(() => c.ProjectService.ValidateProjectSupervisor(c.Project.Id, Guid.NewGuid()), "ValidateProjectSupervisor", ErrorType.Validation);
     }
 }

@@ -27,11 +27,11 @@ public class InquiryOrchestration(IInquiryService inquiries, IStudentService stu
         }
         catch (OperationCanceledException exception)
         {
-            throw new OrchestrationException(nameof(CreateInquiry), ErrorKind.Cancelled, "The operation was cancelled.", exception);
+            throw new OrchestrationException(nameof(CreateInquiry), ErrorType.Cancelled, "The operation was cancelled.", exception);
         }
         catch (Exception exception) when (exception is not OrchestrationException)
         {
-            throw new OrchestrationException(nameof(CreateInquiry), ErrorKind.Unexpected, "The operation could not be completed.", exception);
+            throw new OrchestrationException(nameof(CreateInquiry), ErrorType.Unexpected, "The operation could not be completed.", exception);
         }
     }
 }

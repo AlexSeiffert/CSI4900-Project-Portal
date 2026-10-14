@@ -90,7 +90,7 @@ public class SupervisorServiceTests
     public async Task GetSupervisorById_ThrowsForMissingProfile()
     {
         var c = new ServiceTestContext();
-        await ServiceFailureCases.AssertDomainFailure(() => c.SupervisorService.GetSupervisorById(Guid.NewGuid()), "GetSupervisorById", ErrorKind.NotFound);
+        await ServiceFailureCases.AssertDomainFailure(() => c.SupervisorService.GetSupervisorById(Guid.NewGuid()), "GetSupervisorById", ErrorType.NotFound);
         Assert.DoesNotContain("UpdateSupervisor", c.Supervisors.Calls);
     }
 
@@ -98,7 +98,7 @@ public class SupervisorServiceTests
     public async Task UpdateSupervisor_ThrowsForMissingProfile()
     {
         var c = new ServiceTestContext();
-        await ServiceFailureCases.AssertDomainFailure(() => c.SupervisorService.UpdateSupervisor(Guid.NewGuid(), c.SupervisorUpdate()), "UpdateSupervisor", ErrorKind.NotFound);
+        await ServiceFailureCases.AssertDomainFailure(() => c.SupervisorService.UpdateSupervisor(Guid.NewGuid(), c.SupervisorUpdate()), "UpdateSupervisor", ErrorType.NotFound);
         Assert.DoesNotContain("UpdateSupervisor", c.Supervisors.Calls);
     }
 
@@ -108,7 +108,7 @@ public class SupervisorServiceTests
         var c = new ServiceTestContext();
         var request = c.SupervisorUpdate();
         request.DisplayName = " ";
-        await ServiceFailureCases.AssertDomainFailure(() => c.SupervisorService.UpdateSupervisor(c.Supervisor.UserId, request), "UpdateSupervisor", ErrorKind.Validation);
+        await ServiceFailureCases.AssertDomainFailure(() => c.SupervisorService.UpdateSupervisor(c.Supervisor.UserId, request), "UpdateSupervisor", ErrorType.Validation);
         Assert.DoesNotContain("UpdateSupervisor", c.Supervisors.Calls);
     }
 
@@ -145,6 +145,6 @@ public class SupervisorServiceTests
     public async Task ValidateSupervisorExists_RejectsMissingReferences()
     {
         var c = new ServiceTestContext();
-        await ServiceFailureCases.AssertDomainFailure(() => c.SupervisorService.ValidateSupervisorExists(Guid.NewGuid()), "ValidateSupervisorExists", ErrorKind.Validation);
+        await ServiceFailureCases.AssertDomainFailure(() => c.SupervisorService.ValidateSupervisorExists(Guid.NewGuid()), "ValidateSupervisorExists", ErrorType.Validation);
     }
 }
