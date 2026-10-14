@@ -12,3 +12,10 @@ mise.local.toml
 *.tfvars.json
 crash.log
 crash.*.log
+
+# .NET
+**/bin/
+**/obj/
+.vs/
+TestResults/
+.fake
