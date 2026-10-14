@@ -1,0 +1,121 @@
+# For F5, replace baseUrl with the dynamically assigned HTTPS address from Swagger.
+@baseUrl = https://localhost:7049
+@supervisorId = 11111111-1111-1111-1111-111111111111
+@studentId = 22222222-2222-2222-2222-222222222222
+@topicId = 33333333-3333-3333-3333-333333333333
+@projectId = 44444444-4444-4444-4444-444444444441
+@inquiryId = 55555555-5555-5555-5555-555555555551
+
+### All projects
+GET {{baseUrl}}/api/v1/projects
+
+### Available projects
+GET {{baseUrl}}/api/v1/projects/statuses/available
+
+### Projects matching a title or description
+GET {{baseUrl}}/api/v1/projects/search/portal
+
+### Unavailable projects
+GET {{baseUrl}}/api/v1/projects/statuses/unavailable
+
+### Archived projects
+GET {{baseUrl}}/api/v1/projects/statuses/archived
+
+### Projects by supervisor
+GET {{baseUrl}}/api/v1/projects/supervisors/{{supervisorId}}
+
+### Projects by topic
+GET {{baseUrl}}/api/v1/projects/topics/{{topicId}}
+
+### Single project
+GET {{baseUrl}}/api/v1/projects/{{projectId}}
+
+### Supervisors
+GET {{baseUrl}}/api/v1/supervisors
+
+### Supervisor interests and profile
+GET {{baseUrl}}/api/v1/supervisors/{{supervisorId}}
+
+### Students
+GET {{baseUrl}}/api/v1/students
+
+### Student interests and profile
+GET {{baseUrl}}/api/v1/students/{{studentId}}
+
+### Topics
+GET {{baseUrl}}/api/v1/topics
+
+### All inquiries (two examples of each status)
+GET {{baseUrl}}/api/v1/inquiries
+
+### Inquiries by student
+GET {{baseUrl}}/api/v1/inquiries/students/{{studentId}}
+
+### Inquiries by supervisor
+GET {{baseUrl}}/api/v1/inquiries/supervisors/{{supervisorId}}
+
+### Inquiries by project
+GET {{baseUrl}}/api/v1/inquiries/projects/{{projectId}}
+
+### Single inquiry
+GET {{baseUrl}}/api/v1/inquiries/{{inquiryId}}
+
+### Saved projects
+GET {{baseUrl}}/api/v1/students/{{studentId}}/saved-projects
+
+### A student with no saved projects
+GET {{baseUrl}}/api/v1/students/22222222-2222-2222-2222-222222222225/saved-projects
+
+### A supervisor with no projects
+GET {{baseUrl}}/api/v1/projects/supervisors/11111111-1111-1111-1111-111111111114
+
+### Create a project (copy the returned ID to projectId to update/delete this new project)
+POST {{baseUrl}}/api/v1/projects
+Content-Type: application/json
+
+{
+  "supervisorId": "{{supervisorId}}",
+  "title": "My manual test project",
+  "description": "A new project created while testing the API.",
+  "status": "available",
+  "topicIds": ["{{topicId}}"]
+}
+
+### Update a project (restart the API to reset seed data)
+PUT {{baseUrl}}/api/v1/projects/{{projectId}}
+Content-Type: application/json
+
+{
+  "title": "Updated manual test project",
+  "description": "An updated project description.",
+  "status": "unavailable",
+  "topicIds": ["{{topicId}}"]
+}
+
+### Create a general inquiry
+POST {{baseUrl}}/api/v1/inquiries
+Content-Type: application/json
+
+{
+  "studentId": "{{studentId}}",
+  "supervisorId": "{{supervisorId}}",
+  "projectId": null,
+  "message": "Are you offering any new projects?"
+}
+
+### Update an inquiry status
+PUT {{baseUrl}}/api/v1/inquiries/{{inquiryId}}
+Content-Type: application/json
+
+{
+  "status": "responded"
+}
+
+### Save a project
+PUT {{baseUrl}}/api/v1/students/{{studentId}}/saved-projects/{{projectId}}
+
+### Unsave a project
+DELETE {{baseUrl}}/api/v1/students/{{studentId}}/saved-projects/{{projectId}}
+
+### Delete a project (its inquiries remain; restart the API to reset seed data)
+DELETE {{baseUrl}}/api/v1/projects/{{projectId}}
