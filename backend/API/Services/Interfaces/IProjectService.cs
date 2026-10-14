@@ -12,5 +12,4 @@ public interface IProjectService
     Task<DTOs.Project> CreateProject(CreateProject request, CancellationToken cancellationToken = default);
     Task<DTOs.Project> UpdateProject(Guid projectId, UpdateProject request, CancellationToken cancellationToken = default);
     Task DeleteProject(Guid projectId, CancellationToken cancellationToken = default);
-    Task ValidateProjectSupervisor(Guid? projectId, Guid supervisorId, CancellationToken cancellationToken = default);
 }

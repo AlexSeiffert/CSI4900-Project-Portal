@@ -21,16 +21,4 @@ public class TopicRepository(ApplicationDbContext db) : ITopicRepository
             throw new RepositoryException(nameof(GetTopics), exception);
         }
     }
-
-    public async Task<List<Topic>> GetTopicsByIds(IReadOnlyCollection<Guid> topicIds, CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            return await _db.Topics.AsNoTracking().Where(topic => topicIds.Contains(topic.Id)).ToListAsync(cancellationToken);
-        }
-        catch (Exception exception) when (exception is not RepositoryException)
-        {
-            throw new RepositoryException(nameof(GetTopicsByIds), exception);
-        }
-    }
 }

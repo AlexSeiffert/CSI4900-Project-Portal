@@ -1,4 +1,3 @@
-using API.Orchestrations.Interfaces;
 using API.DTOs;
 using API.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -8,10 +7,9 @@ namespace API.Controllers;
 
 [ApiController]
 [Route("api/v1/supervisors")]
-public class SupervisorsController(ISupervisorService service, ISupervisorOrchestration orchestration) : ControllerBase
+public class SupervisorsController(ISupervisorService service) : ControllerBase
 {
     private readonly ISupervisorService _service = service;
-    private readonly ISupervisorOrchestration _orchestration = orchestration;
 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Supervisor>>> GetSupervisors(CancellationToken cancellationToken)
@@ -33,7 +31,7 @@ public class SupervisorsController(ISupervisorService service, ISupervisorOrches
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateSupervisor(Guid userId, UpdateSupervisor request, CancellationToken cancellationToken)
     {
-        await _orchestration.UpdateSupervisor(userId, request, cancellationToken);
+        await _service.UpdateSupervisor(userId, request, cancellationToken);
         return NoContent();
     }
 }

@@ -1,7 +1,6 @@
 using API.Controllers;
 using API.DTOs;
 using API.DTOs.Request;
-using API.Orchestrations.Interfaces;
 using API.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
@@ -11,11 +10,10 @@ namespace API.Tests.Controller;
 public class StudentsControllerTests
 {
     private readonly Mock<IStudentService> _service = new();
-    private readonly Mock<IStudentOrchestration> _orchestration = new();
 
     private StudentsController CreateController()
     {
-        return new(_service.Object, _orchestration.Object);
+        return new(_service.Object);
     }
 
     [Fact]
@@ -55,7 +53,7 @@ public class StudentsControllerTests
         var userId = Guid.NewGuid();
         var request = new UpdateStudent();
 
-        _orchestration.Setup(orchestration => orchestration.UpdateStudent(userId, request, CancellationToken.None))
+        _service.Setup(service => service.UpdateStudent(userId, request, CancellationToken.None))
             .ReturnsAsync(new Student { UserId = userId });
             
         var controller = CreateController();
@@ -63,6 +61,6 @@ public class StudentsControllerTests
         var result = await controller.UpdateStudent(userId, request, CancellationToken.None);
 
         Assert.IsType<NoContentResult>(result);
-        _orchestration.Verify(orchestration => orchestration.UpdateStudent(userId, request, CancellationToken.None), Times.Once);
+        _service.Verify(service => service.UpdateStudent(userId, request, CancellationToken.None), Times.Once);
     }
 }

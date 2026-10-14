@@ -99,32 +99,4 @@ public class StudentService(IStudentRepository repository) : IStudentService
             throw new ServiceException(nameof(UpdateStudent), ErrorType.Unexpected, "The operation could not be completed.", exception);
         }
     }
-
-    public async Task ValidateStudentExists(Guid studentId, CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            if (await _repository.GetStudentById(studentId, cancellationToken) == null)
-            {
-                var exception = new ValidationException("Student does not exist.");
-                throw new ServiceException(nameof(ValidateStudentExists), ErrorType.Validation, exception.Message, exception);
-            }
-        }
-        catch (RepositoryException exception)
-        {
-            throw new ServiceException(nameof(ValidateStudentExists), exception.Type, "The data operation could not be completed.", exception);
-        }
-        catch (ValidationException exception)
-        {
-            throw new ServiceException(nameof(ValidateStudentExists), ErrorType.Validation, exception.Message, exception);
-        }
-        catch (OperationCanceledException exception)
-        {
-            throw new ServiceException(nameof(ValidateStudentExists), ErrorType.Cancelled, "The operation was cancelled.", exception);
-        }
-        catch (Exception exception) when (exception is not ServiceException)
-        {
-            throw new ServiceException(nameof(ValidateStudentExists), ErrorType.Unexpected, "The operation could not be completed.", exception);
-        }
-    }
 }

@@ -102,32 +102,4 @@ public class SupervisorService(ISupervisorRepository repository) : ISupervisorSe
             throw new ServiceException(nameof(UpdateSupervisor), ErrorType.Unexpected, "The operation could not be completed.", exception);
         }
     }
-
-    public async Task ValidateSupervisorExists(Guid supervisorId, CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            if (await _repository.GetSupervisorById(supervisorId, cancellationToken) == null)
-            {
-                var exception = new ValidationException("Supervisor does not exist.");
-                throw new ServiceException(nameof(ValidateSupervisorExists), ErrorType.Validation, exception.Message, exception);
-            }
-        }
-        catch (RepositoryException exception)
-        {
-            throw new ServiceException(nameof(ValidateSupervisorExists), exception.Type, "The data operation could not be completed.", exception);
-        }
-        catch (ValidationException exception)
-        {
-            throw new ServiceException(nameof(ValidateSupervisorExists), ErrorType.Validation, exception.Message, exception);
-        }
-        catch (OperationCanceledException exception)
-        {
-            throw new ServiceException(nameof(ValidateSupervisorExists), ErrorType.Cancelled, "The operation was cancelled.", exception);
-        }
-        catch (Exception exception) when (exception is not ServiceException)
-        {
-            throw new ServiceException(nameof(ValidateSupervisorExists), ErrorType.Unexpected, "The operation could not be completed.", exception);
-        }
-    }
 }

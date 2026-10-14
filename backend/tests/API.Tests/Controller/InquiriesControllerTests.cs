@@ -1,7 +1,6 @@
 using API.Controllers;
 using API.DTOs;
 using API.DTOs.Request;
-using API.Orchestrations.Interfaces;
 using API.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
@@ -11,11 +10,10 @@ namespace API.Tests.Controller;
 public class InquiriesControllerTests
 {
     private readonly Mock<IInquiryService> _service = new();
-    private readonly Mock<IInquiryOrchestration> _orchestration = new();
 
     private InquiriesController CreateController()
     {
-        return new(_service.Object, _orchestration.Object);
+        return new(_service.Object);
     }
 
     [Fact]
@@ -110,7 +108,7 @@ public class InquiriesControllerTests
 
         var inquiry = new Inquiry { Id = Guid.NewGuid(), StudentId = request.StudentId, SupervisorId = request.SupervisorId };
 
-        _orchestration.Setup(orchestration => orchestration.CreateInquiry(request, CancellationToken.None))
+        _service.Setup(service => service.CreateInquiry(request, CancellationToken.None))
             .ReturnsAsync(inquiry);
 
         var controller = CreateController();

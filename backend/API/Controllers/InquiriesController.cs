@@ -1,4 +1,3 @@
-using API.Orchestrations.Interfaces;
 using API.DTOs;
 using API.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -8,10 +7,9 @@ namespace API.Controllers;
 
 [ApiController]
 [Route("api/v1/inquiries")]
-public class InquiriesController(IInquiryService service, IInquiryOrchestration orchestration) : ControllerBase
+public class InquiriesController(IInquiryService service) : ControllerBase
 {
     private readonly IInquiryService _service = service;
-    private readonly IInquiryOrchestration _orchestration = orchestration;
 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Inquiry>>> GetInquiries(CancellationToken cancellationToken)
@@ -50,7 +48,7 @@ public class InquiriesController(IInquiryService service, IInquiryOrchestration 
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<Inquiry>> CreateInquiry(CreateInquiry request, CancellationToken cancellationToken)
     {
-        var result = await _orchestration.CreateInquiry(request, cancellationToken);
+        var result = await _service.CreateInquiry(request, cancellationToken);
         return CreatedAtAction(nameof(GetInquiryById), new { inquiryId = result.Id }, result);
     }
 

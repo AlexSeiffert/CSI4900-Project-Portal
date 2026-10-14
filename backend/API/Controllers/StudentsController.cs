@@ -1,4 +1,3 @@
-using API.Orchestrations.Interfaces;
 using API.DTOs;
 using API.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -8,10 +7,9 @@ namespace API.Controllers;
 
 [ApiController]
 [Route("api/v1/students")]
-public class StudentsController(IStudentService service, IStudentOrchestration orchestration) : ControllerBase
+public class StudentsController(IStudentService service) : ControllerBase
 {
     private readonly IStudentService _service = service;
-    private readonly IStudentOrchestration _orchestration = orchestration;
 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Student>>> GetStudents(CancellationToken cancellationToken)
@@ -33,7 +31,7 @@ public class StudentsController(IStudentService service, IStudentOrchestration o
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateStudent(Guid userId, UpdateStudent request, CancellationToken cancellationToken)
     {
-        await _orchestration.UpdateStudent(userId, request, cancellationToken);
+        await _service.UpdateStudent(userId, request, cancellationToken);
         return NoContent();
     }
 }

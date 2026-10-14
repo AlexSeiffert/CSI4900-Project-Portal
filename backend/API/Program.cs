@@ -1,5 +1,3 @@
-using API.Orchestrations;
-using API.Orchestrations.Interfaces;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using API.Models;
@@ -57,12 +55,6 @@ builder.Services.AddScoped<ISupervisorService, SupervisorService>();
 builder.Services.AddScoped<ITopicService, TopicService>();
 builder.Services.AddScoped<IInquiryService, InquiryService>();
 builder.Services.AddScoped<ISavedProjectService, SavedProjectService>();
-
-builder.Services.AddScoped<IProjectOrchestration, ProjectOrchestration>();
-builder.Services.AddScoped<IStudentOrchestration, StudentOrchestration>();
-builder.Services.AddScoped<ISupervisorOrchestration, SupervisorOrchestration>();
-builder.Services.AddScoped<IInquiryOrchestration, InquiryOrchestration>();
-builder.Services.AddScoped<ISavedProjectOrchestration, SavedProjectOrchestration>();
 
 var app = builder.Build();
 app.UseExceptionHandler();

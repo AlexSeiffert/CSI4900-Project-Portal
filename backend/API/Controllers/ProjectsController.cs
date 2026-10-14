@@ -1,4 +1,3 @@
-using API.Orchestrations.Interfaces;
 using API.DTOs;
 using API.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -11,10 +10,9 @@ namespace API.Controllers;
 
 [ApiController]
 [Route("api/v1/projects")]
-public class ProjectsController(IProjectService service, IProjectOrchestration orchestration) : ControllerBase
+public class ProjectsController(IProjectService service) : ControllerBase
 {
     private readonly IProjectService _service = service;
-    private readonly IProjectOrchestration _orchestration = orchestration;
 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Project>>> GetProjects(CancellationToken cancellationToken)
@@ -54,7 +52,7 @@ public class ProjectsController(IProjectService service, IProjectOrchestration o
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<Project>> CreateProject(CreateProject request, CancellationToken cancellationToken)
     {
-        var result = await _orchestration.CreateProject(request, cancellationToken);
+        var result = await _service.CreateProject(request, cancellationToken);
         return CreatedAtAction(nameof(GetProjectById), new { projectId = result.Id }, result);
     }
 
@@ -64,7 +62,7 @@ public class ProjectsController(IProjectService service, IProjectOrchestration o
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateProject(Guid projectId, UpdateProject request, CancellationToken cancellationToken)
     {
-        await _orchestration.UpdateProject(projectId, request, cancellationToken);
+        await _service.UpdateProject(projectId, request, cancellationToken);
         return NoContent();
     }
 

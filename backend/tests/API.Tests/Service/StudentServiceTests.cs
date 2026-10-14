@@ -165,40 +165,4 @@ public class StudentServiceTests
         Assert.Same(original, exception.InnerException);
         _repository.Verify(repository => repository.GetStudentById(studentId, token), Times.Once);
     }
-
-    [Fact]
-    public async Task ValidateStudentExists_AcceptsExistingReferences()
-    {
-        var topic = new Topic { Id = Guid.NewGuid(), Name = "Databases" };
-        var student = new Student { UserId = Guid.NewGuid(), DisplayName = "Student", Program = "CS", TopicInterests = [topic] };
-
-        _repository.Setup(repository => repository.GetStudentById(student.UserId, CancellationToken.None))
-            .ReturnsAsync(student);
-
-        var service = CreateService();
-
-        await service.ValidateStudentExists(student.UserId, CancellationToken.None);
-
-        _repository.Verify(repository => repository.GetStudentById(student.UserId, CancellationToken.None), Times.Once);
-    }
-
-    [Fact]
-    public async Task ValidateStudentExists_WrapsRepositoryFailure()
-    {
-        var studentId = Guid.NewGuid();
-        using var cancellation = new CancellationTokenSource();
-        var original = new RepositoryException("dependency", new InvalidOperationException("Database failed"));
-
-        _repository.Setup(repository => repository.GetStudentById(studentId, cancellation.Token))
-            .ThrowsAsync(original);
-
-        var service = CreateService();
-
-        var exception = await Assert.ThrowsAsync<ServiceException>(() => service.ValidateStudentExists(studentId, cancellation.Token));
-
-        Assert.Equal(nameof(StudentService.ValidateStudentExists), exception.Operation);
-        Assert.Equal(ErrorType.Unexpected, exception.Type);
-        Assert.Same(original, exception.InnerException);
-        _repository.Verify(repository => repository.GetStudentById(studentId, cancellation.Token), Times.Once);
-    }
 }

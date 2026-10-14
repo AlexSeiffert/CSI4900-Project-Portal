@@ -1,7 +1,6 @@
 using API.Controllers;
 using API.DTOs;
 using API.DTOs.Request;
-using API.Orchestrations.Interfaces;
 using API.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
@@ -12,11 +11,10 @@ namespace API.Tests.Controller;
 public class ProjectsControllerTests
 {
     private readonly Mock<IProjectService> _service = new();
-    private readonly Mock<IProjectOrchestration> _orchestration = new();
 
     private ProjectsController CreateController()
     {
-        return new(_service.Object, _orchestration.Object);
+        return new(_service.Object);
     }
 
     [Fact]
@@ -111,7 +109,7 @@ public class ProjectsControllerTests
 
         var project = new Project { Id = Guid.NewGuid(), SupervisorId = request.SupervisorId };
 
-        _orchestration.Setup(orchestration => orchestration.CreateProject(request, CancellationToken.None))
+        _service.Setup(service => service.CreateProject(request, CancellationToken.None))
             .ReturnsAsync(project);
 
         var controller = CreateController();
@@ -132,7 +130,7 @@ public class ProjectsControllerTests
 
         var request = new UpdateProject();
 
-        _orchestration.Setup(orchestration => orchestration.UpdateProject(projectId, request, CancellationToken.None))
+        _service.Setup(service => service.UpdateProject(projectId, request, CancellationToken.None))
             .ReturnsAsync(new Project { Id = projectId });
 
         var controller = CreateController();
@@ -140,7 +138,7 @@ public class ProjectsControllerTests
         var result = await controller.UpdateProject(projectId, request, CancellationToken.None);
 
         Assert.IsType<NoContentResult>(result);
-        _orchestration.Verify(orchestration => orchestration.UpdateProject(projectId, request, CancellationToken.None), Times.Once);
+        _service.Verify(service => service.UpdateProject(projectId, request, CancellationToken.None), Times.Once);
     }
 
     [Fact]

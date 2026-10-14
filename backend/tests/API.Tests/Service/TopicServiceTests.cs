@@ -48,41 +48,4 @@ public class TopicServiceTests
         Assert.Same(original, exception.InnerException);
         _repository.Verify(repository => repository.GetTopics(token), Times.Once);
     }
-
-    [Fact]
-    public async Task ValidateTopicsExist_AcceptsExistingReferences()
-    {
-        var topic = new Topic { Id = Guid.NewGuid(), Name = "Databases" };
-        Guid[] topicIds = [topic.Id, topic.Id];
-
-        _repository.Setup(repository => repository.GetTopicsByIds(It.Is<IReadOnlyCollection<Guid>>(ids => ids.SequenceEqual(topicIds.Distinct())), CancellationToken.None))
-            .ReturnsAsync(new List<Topic> { topic });
-
-        var service = CreateService();
-
-        await service.ValidateTopicsExist(topicIds, CancellationToken.None);
-
-        _repository.Verify(repository => repository.GetTopicsByIds(It.Is<IReadOnlyCollection<Guid>>(ids => ids.SequenceEqual(topicIds.Distinct())), CancellationToken.None), Times.Once);
-    }
-
-    [Fact]
-    public async Task ValidateTopicsExist_WrapsRepositoryFailure()
-    {
-        var topicId = Guid.NewGuid();
-        Guid[] topicIds = [topicId, topicId];
-        using var cancellation = new CancellationTokenSource();
-        var original = new RepositoryException("dependency", new InvalidOperationException("Database failed"));
-
-        _repository.Setup(repository => repository.GetTopicsByIds(It.Is<IReadOnlyCollection<Guid>>(ids => ids.SequenceEqual(topicIds.Distinct())), cancellation.Token))
-            .ThrowsAsync(original);
-
-        var service = CreateService();
-
-        var exception = await Assert.ThrowsAsync<ServiceException>(() => service.ValidateTopicsExist(topicIds, cancellation.Token));
-
-        Assert.Equal(nameof(TopicService.ValidateTopicsExist), exception.Operation);
-        Assert.Equal(ErrorType.Unexpected, exception.Type);
-        Assert.Same(original, exception.InnerException);
-        _repository.Verify(repository => repository.GetTopicsByIds(It.Is<IReadOnlyCollection<Guid>>(ids => ids.SequenceEqual(topicIds.Distinct())), cancellation.Token), Times.Once);
-    }
 }

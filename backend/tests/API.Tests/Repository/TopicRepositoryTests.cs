@@ -38,34 +38,4 @@ public class TopicRepositoryTests
         Assert.Same(original, exception.InnerException);
         context.DbMock.Verify(db => db.Set<Topic>(), Times.Once);
     }
-
-    [Fact]
-    public async Task GetTopicsByIds_ReturnsOnlyExistingDistinctMatches()
-    {
-        await using var context = await RepositoryTestContext.CreateAsync();
-        var repository = new TopicRepository(context.Db);
-
-        var result = await repository.GetTopicsByIds([context.Topic.Id, context.Topic.Id, Guid.NewGuid()]);
-
-        Assert.Equal(context.Topic.Id, Assert.Single(result).Id);
-        Assert.Empty(context.Db.ChangeTracker.Entries());
-    }
-
-    [Fact]
-    public async Task GetTopicsByIds_WrapsContextFailure()
-    {
-        await using var context = await RepositoryTestContext.CreateAsync();
-        var original = new InvalidOperationException("Context failed");
-
-        context.DbMock.Setup(db => db.Set<Topic>())
-            .Throws(original);
-
-        var repository = new TopicRepository(context.Db);
-
-        var exception = await Assert.ThrowsAsync<RepositoryException>(() => repository.GetTopicsByIds(new[] { context.Topic.Id }, CancellationToken.None));
-
-        Assert.Equal(ErrorType.Unexpected, exception.Type);
-        Assert.Same(original, exception.InnerException);
-        context.DbMock.Verify(db => db.Set<Topic>(), Times.Once);
-    }
 }

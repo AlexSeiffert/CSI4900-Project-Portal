@@ -1,6 +1,6 @@
+using API.Services.Interfaces;
 using API.Controllers;
 using API.DTOs;
-using API.Orchestrations.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 
@@ -8,11 +8,11 @@ namespace API.Tests.Controller;
 
 public class SavedProjectsControllerTests
 {
-    private readonly Mock<ISavedProjectOrchestration> _orchestration = new();
+    private readonly Mock<ISavedProjectService> _service = new();
 
     private SavedProjectsController CreateController()
     {
-        return new(_orchestration.Object);
+        return new(_service.Object);
     }
 
     [Fact]
@@ -22,7 +22,7 @@ public class SavedProjectsControllerTests
 
         var projects = new List<Project> { new() { Id = Guid.NewGuid() } };
 
-        _orchestration.Setup(orchestration => orchestration.GetSavedProjects(studentId, CancellationToken.None))
+        _service.Setup(service => service.GetSavedProjects(studentId, CancellationToken.None))
             .ReturnsAsync(projects);
 
         var controller = CreateController();
@@ -40,7 +40,7 @@ public class SavedProjectsControllerTests
         var studentId = Guid.NewGuid();
         var projectId = Guid.NewGuid();
 
-        _orchestration.Setup(orchestration => orchestration.SaveProject(studentId, projectId, CancellationToken.None))
+        _service.Setup(service => service.SaveProject(studentId, projectId, CancellationToken.None))
             .Returns(Task.CompletedTask);
 
         var controller = CreateController();
@@ -48,7 +48,7 @@ public class SavedProjectsControllerTests
         var result = await controller.SaveProject(studentId, projectId, CancellationToken.None);
 
         Assert.IsType<NoContentResult>(result);
-        _orchestration.Verify(orchestration => orchestration.SaveProject(studentId, projectId, CancellationToken.None), Times.Once);
+        _service.Verify(service => service.SaveProject(studentId, projectId, CancellationToken.None), Times.Once);
     }
 
     [Fact]
@@ -57,7 +57,7 @@ public class SavedProjectsControllerTests
         var studentId = Guid.NewGuid();
         var projectId = Guid.NewGuid();
 
-        _orchestration.Setup(orchestration => orchestration.RemoveSavedProject(studentId, projectId, CancellationToken.None))
+        _service.Setup(service => service.RemoveSavedProject(studentId, projectId, CancellationToken.None))
             .Returns(Task.CompletedTask);
 
         var controller = CreateController();
@@ -65,6 +65,6 @@ public class SavedProjectsControllerTests
         var result = await controller.RemoveSavedProject(studentId, projectId, CancellationToken.None);
 
         Assert.IsType<NoContentResult>(result);
-        _orchestration.Verify(orchestration => orchestration.RemoveSavedProject(studentId, projectId, CancellationToken.None), Times.Once);
+        _service.Verify(service => service.RemoveSavedProject(studentId, projectId, CancellationToken.None), Times.Once);
     }
 }

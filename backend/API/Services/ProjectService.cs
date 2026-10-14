@@ -243,37 +243,4 @@ public class ProjectService(IProjectRepository repository) : IProjectService
             throw new ServiceException(nameof(DeleteProject), ErrorType.Unexpected, "The operation could not be completed.", exception);
         }
     }
-
-    public async Task ValidateProjectSupervisor(Guid? projectId, Guid supervisorId, CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            if (!projectId.HasValue)
-            {
-                return;
-            }
-            var project = await _repository.GetProjectById(projectId.Value, cancellationToken);
-            if (project == null || project.SupervisorId != supervisorId)
-            {
-                var exception = new ValidationException("Project does not exist or belongs to another supervisor.");
-                throw new ServiceException(nameof(ValidateProjectSupervisor), ErrorType.Validation, exception.Message, exception);
-            }
-        }
-        catch (RepositoryException exception)
-        {
-            throw new ServiceException(nameof(ValidateProjectSupervisor), exception.Type, "The data operation could not be completed.", exception);
-        }
-        catch (ValidationException exception)
-        {
-            throw new ServiceException(nameof(ValidateProjectSupervisor), ErrorType.Validation, exception.Message, exception);
-        }
-        catch (OperationCanceledException exception)
-        {
-            throw new ServiceException(nameof(ValidateProjectSupervisor), ErrorType.Cancelled, "The operation was cancelled.", exception);
-        }
-        catch (Exception exception) when (exception is not ServiceException)
-        {
-            throw new ServiceException(nameof(ValidateProjectSupervisor), ErrorType.Unexpected, "The operation could not be completed.", exception);
-        }
-    }
 }

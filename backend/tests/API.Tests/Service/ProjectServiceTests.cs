@@ -380,42 +380,4 @@ public class ProjectServiceTests
         Assert.Same(original, exception.InnerException);
         _repository.Verify(repository => repository.DeleteProject(projectId, token), Times.Once);
     }
-
-    [Fact]
-    public async Task ValidateProjectSupervisor_AcceptsExistingReferences()
-    {
-        var topic = new Topic { Id = Guid.NewGuid(), Name = "Databases" };
-        var supervisorId = Guid.NewGuid();
-        var project = new Project { Id = Guid.NewGuid(), SupervisorId = supervisorId, Title = "Portal", Description = "Research", Topics = [topic] };
-
-        _repository.Setup(repository => repository.GetProjectById(project.Id, CancellationToken.None))
-            .ReturnsAsync(project);
-
-        var service = CreateService();
-
-        await service.ValidateProjectSupervisor(project.Id, supervisorId, CancellationToken.None);
-
-        _repository.Verify(repository => repository.GetProjectById(project.Id, CancellationToken.None), Times.Once);
-    }
-
-    [Fact]
-    public async Task ValidateProjectSupervisor_WrapsRepositoryFailure()
-    {
-        var supervisorId = Guid.NewGuid();
-        var projectId = Guid.NewGuid();
-        using var cancellation = new CancellationTokenSource();
-        var original = new RepositoryException("dependency", new InvalidOperationException("Database failed"));
-
-        _repository.Setup(repository => repository.GetProjectById(projectId, cancellation.Token))
-            .ThrowsAsync(original);
-
-        var service = CreateService();
-
-        var exception = await Assert.ThrowsAsync<ServiceException>(() => service.ValidateProjectSupervisor(projectId, supervisorId, cancellation.Token));
-
-        Assert.Equal(nameof(ProjectService.ValidateProjectSupervisor), exception.Operation);
-        Assert.Equal(ErrorType.Unexpected, exception.Type);
-        Assert.Same(original, exception.InnerException);
-        _repository.Verify(repository => repository.GetProjectById(projectId, cancellation.Token), Times.Once);
-    }
 }
