@@ -50,7 +50,8 @@ public class StudentRepository(ApplicationDbContext db) : IStudentRepository
             {
                 profile.TopicInterests.Add(topic);
             }
-            await _db.SaveChangesAsync(cancellationToken);
+            // Returns Forbidden if the database blocks this user from editing this profile.
+            await _db.SaveChangesOrForbiddenAsync(nameof(UpdateStudent), cancellationToken);
             await _db.Entry(profile).Collection(x => x.Inquiries).LoadAsync(cancellationToken);
             await _db.Entry(profile).Collection(x => x.SavedProjects).LoadAsync(cancellationToken);
             return profile;
