@@ -1,7 +1,8 @@
-name: Tests
+name: Backend Checks
 
 on:
   push:
+    branches: [main]
   pull_request:
 
 permissions:

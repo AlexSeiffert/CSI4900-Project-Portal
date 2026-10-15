@@ -91,7 +91,8 @@ public class ProjectRepository(ApplicationDbContext db) : IProjectRepository
         try
         {
             await SetTopics(project, topicIds, cancellationToken);
-            await _db.SaveChangesAsync(cancellationToken);
+            // Returns Forbidden if the database blocks this user from editing the project.
+            await _db.SaveChangesOrForbiddenAsync(nameof(UpdateProject), cancellationToken);
             return project;
         }
         catch (Exception exception) when (exception is not RepositoryException)
@@ -114,7 +115,8 @@ public class ProjectRepository(ApplicationDbContext db) : IProjectRepository
             await _db.Students.Include(student => student.SavedProjects)
                 .Where(student => student.SavedProjects.Any(saved => saved.Id == projectId)).LoadAsync(cancellationToken);
             _db.Projects.Remove(project);
-            await _db.SaveChangesAsync(cancellationToken);
+            // Returns Forbidden if the database blocks this user from deleting the project.
+            await _db.SaveChangesOrForbiddenAsync(nameof(DeleteProject), cancellationToken);
             return true;
         }
         catch (Exception exception) when (exception is not RepositoryException)
