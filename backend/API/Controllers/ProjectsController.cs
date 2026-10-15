@@ -1,3 +1,4 @@
+using API.Auth;
 using API.DTOs;
 using API.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -52,6 +53,8 @@ public class ProjectsController(IProjectService service) : ControllerBase
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<Project>> CreateProject(CreateProject request, CancellationToken cancellationToken)
     {
+        // the project's owner is taken from the login token, not from anything the client types in
+        request.SupervisorId = User.GetRequiredUserId();
         var result = await _service.CreateProject(request, cancellationToken);
         return CreatedAtAction(nameof(GetProjectById), new { projectId = result.Id }, result);
     }

@@ -50,7 +50,8 @@ public class SupervisorRepository(ApplicationDbContext db) : ISupervisorReposito
             {
                 profile.TopicInterests.Add(topic);
             }
-            await _db.SaveChangesAsync(cancellationToken);
+            // Returns Forbidden if the database blocks this user from editing this profile.
+            await _db.SaveChangesOrForbiddenAsync(nameof(UpdateSupervisor), cancellationToken);
             await _db.Entry(profile).Collection(x => x.Projects).LoadAsync(cancellationToken);
             await _db.Entry(profile).Collection(x => x.Inquiries).LoadAsync(cancellationToken);
             return profile;

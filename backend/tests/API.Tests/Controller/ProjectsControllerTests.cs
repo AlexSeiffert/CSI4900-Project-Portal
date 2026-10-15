@@ -1,3 +1,4 @@
+using API.Tests.Support;
 using API.Controllers;
 using API.DTOs;
 using API.DTOs.Request;
@@ -105,14 +106,15 @@ public class ProjectsControllerTests
     [Fact]
     public async Task CreateProject_ReturnsCreatedWithProject()
     {
+        var supervisorId = Guid.NewGuid();
         var request = new CreateProject { SupervisorId = Guid.NewGuid() };
 
-        var project = new Project { Id = Guid.NewGuid(), SupervisorId = request.SupervisorId };
+        var project = new Project { Id = Guid.NewGuid(), SupervisorId = supervisorId };
 
-        _service.Setup(service => service.CreateProject(request, CancellationToken.None))
+        _service.Setup(service => service.CreateProject(It.Is<CreateProject>(r => r.SupervisorId == supervisorId), CancellationToken.None))
             .ReturnsAsync(project);
 
-        var controller = CreateController();
+        var controller = CreateController().SignedInAs(supervisorId);
 
         var result = await controller.CreateProject(request, CancellationToken.None);
 

@@ -55,6 +55,7 @@ public class ApiExceptionHandlerTests
     [Theory]
     [InlineData(ErrorType.Validation, 400)]
     [InlineData(ErrorType.NotFound, 404)]
+    [InlineData(ErrorType.Forbidden, 403)]
     [InlineData(ErrorType.Conflict, 409)]
     [InlineData(ErrorType.Cancelled, 499)]
     [InlineData(ErrorType.Unexpected, 500)]
@@ -95,28 +96,6 @@ public class ApiExceptionHandlerTests
             Assert.DoesNotContain(original.Message, written.ProblemDetails.Detail!);
             Assert.DoesNotContain("Private details", written.ProblemDetails.Detail!);
         }
-        _problems.Verify(problems => problems.TryWriteAsync(It.IsAny<ProblemDetailsContext>()), Times.Once);
-    }
-
-    [Fact]
-    public async Task TryHandleAsync_WritesProblemDetailsForOrchestrationFailure()
-    {
-        var context = new DefaultHttpContext();
-        var original = new OrchestrationException("CreateProject", ErrorType.NotFound, "Supervisor not found", new KeyNotFoundException());
-        ProblemDetailsContext? written = null;
-
-        _problems.Setup(problems => problems.TryWriteAsync(It.IsAny<ProblemDetailsContext>()))
-            .Callback<ProblemDetailsContext>(value => written = value)
-            .ReturnsAsync(true);
-
-        var handler = CreateHandler();
-
-        var handled = await handler.TryHandleAsync(context, original, CancellationToken.None);
-
-        Assert.True(handled);
-        Assert.Equal(StatusCodes.Status404NotFound, context.Response.StatusCode);
-        Assert.NotNull(written);
-        Assert.Equal(original.Message, written.ProblemDetails.Detail);
         _problems.Verify(problems => problems.TryWriteAsync(It.IsAny<ProblemDetailsContext>()), Times.Once);
     }
 

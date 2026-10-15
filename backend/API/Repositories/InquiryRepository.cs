@@ -76,8 +76,7 @@ public class InquiryRepository(ApplicationDbContext db) : IInquiryRepository
         {
             _db.Inquiries.Add(inquiry);
             await _db.SaveChangesAsync(cancellationToken);
-            await InquiryWithRelations().SingleAsync(saved => saved.Id == inquiry.Id, cancellationToken);
-            return inquiry;
+            return await InquiryWithRelations().SingleAsync(saved => saved.Id == inquiry.Id, cancellationToken);
         }
         catch (Exception exception) when (exception is not RepositoryException)
         {
