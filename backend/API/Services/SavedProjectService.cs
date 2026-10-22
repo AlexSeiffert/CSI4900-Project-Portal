@@ -1,7 +1,4 @@
-using System.ComponentModel.DataAnnotations;
 using API.DTOs.Mapping;
-using API.DTOs.Request;
-using API.Exceptions;
 using API.Repositories.Interfaces;
 using API.Services.Interfaces;
 
@@ -13,38 +10,13 @@ public class SavedProjectService(ISavedProjectRepository repository) : ISavedPro
 
     public async Task<IEnumerable<DTOs.Project>> GetSavedProjects(Guid studentId, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var projects = await _repository.GetSavedProjects(studentId, cancellationToken);
-            return projects.Select(project => project.ToDto()).ToList();
-        }
-        catch (RepositoryException exception)
-        {
-            throw new ServiceException(nameof(GetSavedProjects), exception.Type, "The data operation could not be completed.", exception);
-        }
+        var projects = await _repository.GetSavedProjects(studentId, cancellationToken);
+        return projects.Select(project => project.ToDto()).ToList();
     }
 
-    public async Task SaveProject(Guid studentId, Guid projectId, CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            await _repository.SaveProject(studentId, projectId, cancellationToken);
-        }
-        catch (RepositoryException exception)
-        {
-            throw new ServiceException(nameof(SaveProject), exception.Type, "The data operation could not be completed.", exception);
-        }
-    }
+    public Task SaveProject(Guid studentId, Guid projectId, CancellationToken cancellationToken = default) =>
+        _repository.SaveProject(studentId, projectId, cancellationToken);
 
-    public async Task RemoveSavedProject(Guid studentId, Guid projectId, CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            await _repository.RemoveSavedProject(studentId, projectId, cancellationToken);
-        }
-        catch (RepositoryException exception)
-        {
-            throw new ServiceException(nameof(RemoveSavedProject), exception.Type, "The data operation could not be completed.", exception);
-        }
-    }
+    public Task RemoveSavedProject(Guid studentId, Guid projectId, CancellationToken cancellationToken = default) =>
+        _repository.RemoveSavedProject(studentId, projectId, cancellationToken);
 }

@@ -74,7 +74,7 @@ public class ProjectRepository(ApplicationDbContext db) : IProjectRepository
     {
         try
         {
-            await SetTopics(project, topicIds, cancellationToken);
+            await _db.ReplaceTopics(project.Topics, topicIds, nameof(CreateProject), cancellationToken);
             _db.Projects.Add(project);
             await _db.SaveChangesAsync(cancellationToken);
             await _db.Entry(project).Reference(x => x.Supervisor).LoadAsync(cancellationToken);
@@ -90,7 +90,7 @@ public class ProjectRepository(ApplicationDbContext db) : IProjectRepository
     {
         try
         {
-            await SetTopics(project, topicIds, cancellationToken);
+            await _db.ReplaceTopics(project.Topics, topicIds, nameof(UpdateProject), cancellationToken);
             // Returns Forbidden if the database blocks this user from editing the project.
             await _db.SaveChangesOrForbiddenAsync(nameof(UpdateProject), cancellationToken);
             return project;
@@ -137,19 +137,5 @@ public class ProjectRepository(ApplicationDbContext db) : IProjectRepository
             .Include(project => project.Topics)
             .Include(project => project.Inquiries)
             .AsSplitQuery();
-    }
-
-    private async Task SetTopics(Project project, IReadOnlyCollection<Guid> topicIds, CancellationToken cancellationToken)
-    {
-        var topics = await _db.Topics.Where(topic => topicIds.Contains(topic.Id)).ToListAsync(cancellationToken);
-        if (topics.Count != topicIds.Distinct().Count())
-        {
-            throw new RepositoryException(nameof(SetTopics), new DbUpdateConcurrencyException("The selected topics changed before they could be saved."));
-        }
-        project.Topics.Clear();
-        foreach (var topic in topics)
-        {
-            project.Topics.Add(topic);
-        }
     }
 }

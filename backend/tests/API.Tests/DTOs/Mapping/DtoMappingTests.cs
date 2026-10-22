@@ -1,7 +1,6 @@
 using API.DTOs.Mapping;
 using API.Models;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace API.Tests.DTOs.Mapping;
 
@@ -49,40 +48,35 @@ public class DtoMappingTests
     }
 
     [Fact]
-    public void ToDto_ReusesBackReferencesAndSerializesCycles()
+    public void ToDtoWithRelations_StopsAfterOneLevel()
     {
+        // The case from a real response: Entity Framework had linked the inquiry's supervisor to just the one
+        // loaded project, and the old mapper showed that as the supervisor's full project list.
         var student = new Student { UserId = Guid.NewGuid(), DisplayName = "Student" };
         var supervisor = new Supervisor { UserId = Guid.NewGuid(), DisplayName = "Supervisor" };
         var project = new Project { Id = Guid.NewGuid(), SupervisorId = supervisor.UserId, Supervisor = supervisor };
-        var topic = new Topic { Id = Guid.NewGuid(), Name = "Databases" };
         var inquiry = new Inquiry
         {
             Id = Guid.NewGuid(), StudentId = student.UserId, SupervisorId = supervisor.UserId,
             ProjectId = project.Id, Student = student, Supervisor = supervisor, Project = project
         };
         student.Inquiries.Add(inquiry);
-        student.SavedProjects.Add(project);
         supervisor.Projects.Add(project);
         supervisor.Inquiries.Add(inquiry);
         project.Inquiries.Add(inquiry);
-        project.Topics.Add(topic);
-        topic.Projects.Add(project);
-        topic.Students.Add(student);
-        topic.Supervisors.Add(supervisor);
 
-        var result = project.ToDtoWithRelations();
+        var result = inquiry.ToDtoWithRelations();
 
-        Assert.Same(result, result.Supervisor?.Projects!.Single());
-        Assert.Same(result, result.Inquiries!.Single().Project);
-        Assert.Same(result, result.Topics!.Single().Projects!.Single());
-        var json = JsonSerializer.Serialize(result, new JsonSerializerOptions
-        {
-            ReferenceHandler = ReferenceHandler.IgnoreCycles
-        });
-        using var document = JsonDocument.Parse(json);
-        Assert.Equal(project.Id, document.RootElement.GetProperty("Id").GetGuid());
-        Assert.Equal(JsonValueKind.Null,
-            document.RootElement.GetProperty("Supervisor").GetProperty("Projects")[0].ValueKind);
+        Assert.Equal(student.UserId, result.Student?.UserId);
+        Assert.Equal(supervisor.UserId, result.Supervisor?.UserId);
+        Assert.Equal(project.Id, result.Project?.Id);
+        Assert.Null(result.Student!.Inquiries);
+        Assert.Null(result.Supervisor!.Projects);
+        Assert.Null(result.Supervisor.Inquiries);
+        Assert.Null(result.Project!.Supervisor);
+        Assert.Null(result.Project.Inquiries);
+        // No loops left, so it serializes without a ReferenceHandler and without null placeholders.
+        Assert.DoesNotContain("[null", JsonSerializer.Serialize(result));
     }
 
     [Fact]
@@ -142,6 +136,7 @@ public class DtoMappingTests
             SupervisorId = Guid.NewGuid(),
             ProjectId = Guid.NewGuid(),
             Message = "Interested in this project",
+            Status = InquiryStatus.Responded,
             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc),
             UpdatedAt = new DateTime(2025, 2, 1, 0, 0, 0, DateTimeKind.Utc)
         };
@@ -153,6 +148,7 @@ public class DtoMappingTests
         Assert.Equal(model.SupervisorId, result.SupervisorId);
         Assert.Equal(model.ProjectId, result.ProjectId);
         Assert.Equal(model.Message, result.Message);
+        Assert.Equal(InquiryStatus.Responded, result.Status);
         Assert.Equal(model.CreatedAt, result.CreatedAt);
         Assert.Equal(model.UpdatedAt, result.UpdatedAt);
     }
@@ -173,11 +169,11 @@ public class DtoMappingTests
         var result = inquiry.ToDtoWithRelations();
 
         Assert.Equal(student.UserId, result.Student?.UserId);
-        Assert.Equal(topic.Id, Assert.Single(result.Student!.TopicInterests!).Id);
+        Assert.Null(result.Student!.TopicInterests);
         Assert.Equal(supervisor.ContactEmail, result.Supervisor?.ContactEmail);
-        Assert.Equal(topic.Id, Assert.Single(result.Supervisor!.TopicInterests!).Id);
+        Assert.Null(result.Supervisor!.TopicInterests);
         Assert.Equal(project.Title, result.Project?.Title);
-        Assert.Equal(topic.Id, Assert.Single(result.Project!.Topics!).Id);
+        Assert.Null(result.Project!.Topics);
     }
 
     [Fact]

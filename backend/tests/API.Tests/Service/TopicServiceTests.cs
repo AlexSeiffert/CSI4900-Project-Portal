@@ -30,7 +30,7 @@ public class TopicServiceTests
     }
 
     [Fact]
-    public async Task GetTopics_WrapsRepositoryFailure()
+    public async Task GetTopics_PropagatesRepositoryFailure()
     {
         using var cancellation = new CancellationTokenSource();
         var token = cancellation.Token;
@@ -41,11 +41,9 @@ public class TopicServiceTests
 
         var service = CreateService();
 
-        var exception = await Assert.ThrowsAsync<ServiceException>(() => service.GetTopics(token));
+        var exception = await Assert.ThrowsAsync<RepositoryException>(() => service.GetTopics(token));
 
-        Assert.Equal(nameof(TopicService.GetTopics), exception.Operation);
-        Assert.Equal(ErrorType.Unexpected, exception.Type);
-        Assert.Same(original, exception.InnerException);
+        Assert.Same(original, exception);
         _repository.Verify(repository => repository.GetTopics(token), Times.Once);
     }
 }

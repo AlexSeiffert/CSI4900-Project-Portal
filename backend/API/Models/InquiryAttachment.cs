@@ -7,6 +7,6 @@ public class InquiryAttachment
     public string StoragePath { get; set; } = string.Empty;
     public string MimeType { get; set; } = string.Empty;
     public int SizeBytes { get; set; }
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; }
     public Inquiry Inquiry { get; set; } = null!;
 }

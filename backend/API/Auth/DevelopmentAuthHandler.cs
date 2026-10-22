@@ -7,7 +7,9 @@ namespace API.Auth;
 
 // Lets you use the API in Development without logging in to Supabase.
 // Send a request with an X-Dev-User-Id header (a user id), and the API treats you as that user.
-// X-Dev-User-Role is optional and sets the role, for example "student" or "supervisor".
+// X-Dev-User-Role is optional and sets the role claim, for example "student" or "supervisor".
+// With Postgres the database ignores it: the role that counts is public.users.role for that id.
+// To act as an admin there, use the id of a real admin user (see "Log in to Swagger" in backend/README.md).
 // This is only turned on in Development (see Program.cs), so it can't be used in Production.
 public class DevelopmentAuthHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder)
     : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)

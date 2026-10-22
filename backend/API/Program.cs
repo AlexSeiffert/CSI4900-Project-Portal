@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers().AddJsonOptions(options =>
@@ -20,7 +21,38 @@ builder.Services.AddControllers().AddJsonOptions(options =>
     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, allowIntegerValues: false));
     options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
 });
-builder.Services.AddOpenApi();
+// Adds an Authorize button to Swagger so its requests can log in: paste a Supabase token,
+// or (Development only) a user id that is sent as the X-Dev-User-Id header.
+// The OpenAPI document is built from these JSON settings, not the controllers' ones above, so it needs the same
+// enum setting. Without it Swagger says statuses are integers and rejects "available".
+builder.Services.ConfigureHttpJsonOptions(options =>
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, allowIntegerValues: false)));
+builder.Services.AddOpenApi(options => options.AddDocumentTransformer((document, context, cancellationToken) =>
+{
+    document.Components ??= new OpenApiComponents();
+    document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
+    document.Security ??= [];
+    document.Components.SecuritySchemes[JwtBearerDefaults.AuthenticationScheme] = new OpenApiSecurityScheme
+    {
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        Description = "A Supabase access token (see \"Log in to Swagger\" in backend/README.md)."
+    };
+    document.Security.Add(new OpenApiSecurityRequirement { [new OpenApiSecuritySchemeReference(JwtBearerDefaults.AuthenticationScheme, document)] = [] });
+    if (context.ApplicationServices.GetRequiredService<IHostEnvironment>().IsDevelopment())
+    {
+        document.Components.SecuritySchemes[DevelopmentAuthHandler.SchemeName] = new OpenApiSecurityScheme
+        {
+            Type = SecuritySchemeType.ApiKey,
+            In = ParameterLocation.Header,
+            Name = DevelopmentAuthHandler.UserIdHeader,
+            Description = "Development only: act as this user id without logging in. Ignored if a token is also set."
+        };
+        document.Security.Add(new OpenApiSecurityRequirement { [new OpenApiSecuritySchemeReference(DevelopmentAuthHandler.SchemeName, document)] = [] });
+    }
+    return Task.CompletedTask;
+}));
 builder.Services.AddHttpContextAccessor();
 // Every endpoint requires a logged-in user.
 builder.Services.AddAuthorizationBuilder()
@@ -61,7 +93,13 @@ if (isDevelopment)
                 ? JwtBearerDefaults.AuthenticationScheme
                 : DevelopmentAuthHandler.SchemeName);
 }
-builder.Services.AddProblemDetails();
+// Also adds the trace id to errors the framework writes itself (for example 401 and 403 from the auth layer).
+builder.Services.AddProblemDetails(options => options.CustomizeProblemDetails = context =>
+{
+    context.ProblemDetails.Instance ??= context.HttpContext.Request.Path;
+    context.ProblemDetails.Extensions["traceId"] = System.Diagnostics.Activity.Current?.Id ?? context.HttpContext.TraceIdentifier;
+});
+
 builder.Services.AddExceptionHandler<ApiExceptionHandler>();
 
 var provider = builder.Configuration["Database:Provider"] ?? "Postgres";
@@ -81,7 +119,7 @@ builder.Services.AddDbContext<ApplicationDbContext>((services, options) =>
     {
         options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")
             ?? throw new InvalidOperationException("Set ConnectionStrings__DefaultConnection for PostgreSQL.", new ArgumentException("The database connection string is missing.", "ConnectionStrings:DefaultConnection")),
-        postgres => postgres.MapEnum<ProjectStatus>("project_status", "public"))
+        postgres => postgres.MapEnum<ProjectStatus>("project_status", "public").MapEnum<InquiryStatus>("inquiry_status", "public"))
             .AddInterceptors(services.GetRequiredService<RlsConnectionInterceptor>());
     }
 });
@@ -103,7 +141,12 @@ app.UseExceptionHandler();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi().AllowAnonymous();
-    app.UseSwaggerUi(options => options.DocumentPath = "/openapi/v1.json");
+    app.UseSwaggerUi(options =>
+    {
+        options.DocumentPath = "/openapi/v1.json";
+        // Keep what you entered under Authorize after a page refresh.
+        options.PersistAuthorization = true;
+    });
     if (inMemory && builder.Configuration.GetValue<bool>("Database:SeedDevelopmentData"))
     {
         using var scope = app.Services.CreateScope();
@@ -111,6 +154,8 @@ if (app.Environment.IsDevelopment())
     }
 }
 app.UseHttpsRedirection();
+// Turns empty error responses (such as 401 and 403 from the auth layer) into the same problem-details JSON as other errors.
+app.UseStatusCodePages();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

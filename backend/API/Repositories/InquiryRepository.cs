@@ -93,9 +93,8 @@ public class InquiryRepository(ApplicationDbContext db) : IInquiryRepository
     private IQueryable<Inquiry> InquiryWithRelations()
     {
         return _db.Inquiries
-            .Include(inquiry => inquiry.Student).ThenInclude(student => student.TopicInterests)
-            .Include(inquiry => inquiry.Supervisor).ThenInclude(supervisor => supervisor.TopicInterests)
-            .Include(inquiry => inquiry.Project).ThenInclude(project => project!.Topics)
-            .AsSplitQuery();
+            .Include(inquiry => inquiry.Student)
+            .Include(inquiry => inquiry.Supervisor)
+            .Include(inquiry => inquiry.Project);
     }
 }

@@ -126,20 +126,21 @@ public class ProjectsControllerTests
     }
 
     [Fact]
-    public async Task UpdateProject_ReturnsNoContent()
+    public async Task UpdateProject_ReturnsUpdatedProject()
     {
         var projectId = Guid.NewGuid();
 
         var request = new UpdateProject();
 
+        var updated = new Project { Id = projectId };
         _service.Setup(service => service.UpdateProject(projectId, request, CancellationToken.None))
-            .ReturnsAsync(new Project { Id = projectId });
+            .ReturnsAsync(updated);
 
         var controller = CreateController();
 
         var result = await controller.UpdateProject(projectId, request, CancellationToken.None);
 
-        Assert.IsType<NoContentResult>(result);
+        Assert.Same(updated, result.Value);
         _service.Verify(service => service.UpdateProject(projectId, request, CancellationToken.None), Times.Once);
     }
 

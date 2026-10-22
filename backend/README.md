@@ -1,128 +1,193 @@
-# Backend API
+#  API
 
-ASP.NET Core API targeting .NET 10.
+ASP.NET Core Web API (.NET 10). This guide gets you from a fresh machine to calling every endpoint in Swagger.
 
-## Run locally
+## 1. Setup (once)
 
-From the repository root:
+Tools are pinned in [.tool-versions](../.tool-versions) and installed with [mise](https://mise.jdx.dev).
+These commands are for **macOS** (Homebrew, zsh). On Linux or WSL, install mise with `curl https://mise.run | sh`
+and use `~/.bashrc` with `mise activate bash`; see the [mise install docs](https://mise.jdx.dev/installing-mise.html) for other systems.
 
 ```sh
-dotnet run --project backend/API
+brew install mise
+echo 'eval "$(mise activate zsh)"' >> ~/.zshrc && source ~/.zshrc
+mise install            # run in the repo root
+dotnet --version        # 10.0.402
+```
+
+Then create `.env` in the repo root (gitignored; ask a teammate for the values). mise loads it whenever you're in the repo.
+
+| Variable | What it is |
+| --- | --- |
+| `ConnectionStrings__DefaultConnection` | `Host=<pooler host>;Port=5432;Database=postgres;Username=postgres.<ref>;Password=<db password>;SSL Mode=Require` (port **5432**, not 6543) |
+| `Auth__Authority` | `https://<ref>.supabase.co/auth/v1` |
+| `SUPABASE_PUBLISHABLE_KEY` | `sb_publishable_...`, for getting login tokens |
+| `TF_VAR_supabase_access_token`, `TF_VAR_db_password` | used by Terraform and the [db/seed](../db/seed) scripts |
+
+## 2. Run
+
+From the repo root. The API is at **https://localhost:7049/swagger**.
+
+```sh
+dotnet run --project backend/API --launch-profile https-supabase   # real Supabase database
+dotnet run --project backend/API                                   # fake in-memory database, no .env needed
+```
+
+## 3. Log in to Swagger
+
+Click **Authorize** and fill in the details of the role you're testing, in one of two ways:
+
+- **Development**: paste the user's id. The API treats you as that user, no password needed.
+- **Bearer**: paste a real login token, which is what the frontend will send. Get one with the command below
+  (it expires after an hour). If both boxes are filled in, the token is used and the Development id is ignored,
+  so click **Logout** on Bearer before switching to a Development id:
+
+```sh
+curl -s "$Auth__Authority/token?grant_type=password" -H "apikey: $SUPABASE_PUBLISHABLE_KEY" \
+  -H "Content-Type: application/json" -d '{"email":"<email>","password":"<password>"}' | jq -r .access_token
+```
+
+Test accounts on the real database (passwords from a teammate, or set one with
+`mise x -- node db/seed/users.mjs modify --email <email> --password '<new>'`):
+
+Some example users we created are:
+
+| Role | Name | Email |
+| --- | --- | --- |
+| student | Alex Morgan | alex.morgan@test-student.dev |
+| student | Maya Singh | maya.singh@test-student.dev |
+| supervisor | Dr. Marcus Ahmed | marcus.ahmed@test-supervisor.dev |
+| supervisor | Dr. Elena Chen | elena.chen@test-supervisor.dev |
+| admin | Sam Taylor | sam.taylor@test-admin.dev |
+
+To find a user's id, check Supabase: **Authentication → Users** in the dashboard, then copy the **UID** next to their email.
+
+## 4. Try the endpoints
+
+To call an endpoint, click it, click **Try it out**, fill in the fields and click **Execute**.
+
+- Swagger pre-fills ids like `3fa85f64-5717-4562-b3fc-2c963f66afa6`. These are placeholders, so replace them with real ids (see section 3).
+- The same request can return different results for different users. For example, a student only sees their own inquiries.
+
+### Walkthrough
+
+| Log in as | Try | Expect |
+| --- | --- | --- |
+| anyone | `GET /topics`, `GET /supervisors`, `GET /projects` | lists |
+| anyone | `GET /projects/statuses/available`, `GET /projects/supervisors/<Elena's id>` | filtered lists |
+| Marcus | `POST /projects` (body below) | **201**, you own it |
+| Marcus | `PUT` then `DELETE /projects/<your new project's id>` | **200**, then **204** |
+| Marcus | `PUT /supervisors/<Marcus's id>` with your profile fields | **200** |
+| Alex | `GET /students`, `GET /students/<Alex's id>` | just yourself |
+| Alex | `GET /inquiries`, `GET /inquiries/<one of Alex's inquiry ids>` | your inquiries only |
+| Alex | `POST /inquiries` (body below) | **201**, status `pending` |
+| Alex | `PUT /students/<Alex's id>/saved-projects/<any project id>` | **204**, then it shows in `GET .../saved-projects` |
+| Sam | `GET /students`, `GET /inquiries` | everything |
+
+### Request bodies
+
+For `POST /projects` (paste it over Swagger's example):
+
+```json
+{ "title": "Test project", "description": "Testing", "externalUrl": null, "status": "available", "topicIds": [] }
+```
+
+For `POST /inquiries`. The project must belong to the supervisor you're contacting:
+
+```json
+{ "supervisorId": "<Elena's id>", "projectId": "<one of Elena's project ids>", "message": "Hi!" }
+```
+
+### Permission checks
+
+As Marcus, editing Elena's project or profile gives **403**. As Alex, `GET /students/<Maya's id>` gives
+**404**, and saving into Maya's list gives **403**. As Sam, editing anything works.
+
+### Status codes
+
+| Code | Meaning |
+| --- | --- |
+| 200 / 201 / 204 | worked (201 created, 204 nothing to return) |
+| 400 | bad input, or a supervisor, project or student id that doesn't exist |
+| 401 | not logged in |
+| 403 | not allowed by the permission rules |
+| 404 | doesn't exist, or you can't see it |
+| 409 | a topic id that doesn't exist, or a duplicate |
+| 500 | server error; find the `traceId` in the API's terminal |
+
+### Responses and updates
+
+- **Lists only have the basic fields.** `GET /projects` gives each project's title, status and so on.
+  `GET /projects/<id>` also includes its supervisor, topics and inquiries.
+- **Related records are kept short.** The supervisor inside a project doesn't list all their other projects.
+  Call `GET /supervisors/<id>` for that.
+- **`topicIds` replaces, it doesn't add.** If a project has topics A and B and you send `"topicIds": ["<C>"]`,
+  it ends up with only C.
+
+### All endpoints
+
+Every path starts with `/api/v1`.
+
+| Method | Path | What it does | Success |
+| --- | --- | --- | --- |
+| **Topics** | | | |
+| GET | `/topics` | List all topics | 200 |
+| **Projects** | | | |
+| GET | `/projects` | List projects, newest first | 200 |
+| GET | `/projects/<id>` | One project with its supervisor, topics and inquiries | 200 |
+| GET | `/projects/supervisors/<supervisor id>` | A supervisor's projects | 200 |
+| GET | `/projects/topics/<topic id>` | Projects with a topic | 200 |
+| GET | `/projects/statuses/<status>` | Projects that are `available`, `unavailable` or `archived` | 200 |
+| POST | `/projects` | Create a project (supervisors; you become the owner) | 201 |
+| PUT | `/projects/<id>` | Edit a project (owner or admin) | 200 |
+| DELETE | `/projects/<id>` | Delete a project (owner or admin) | 204 |
+| **Inquiries** | | | |
+| GET | `/inquiries` | List the inquiries you're part of (admins: all) | 200 |
+| GET | `/inquiries/<id>` | One inquiry with its student, supervisor and project | 200 |
+| GET | `/inquiries/students/<student id>` | A student's inquiries | 200 |
+| GET | `/inquiries/supervisors/<supervisor id>` | Inquiries sent to a supervisor | 200 |
+| GET | `/inquiries/projects/<project id>` | Inquiries about a project | 200 |
+| POST | `/inquiries` | Send an inquiry (students; you're the sender) | 201 |
+| **Students** | | | |
+| GET | `/students` | List student profiles you can see (students: only yourself) | 200 |
+| GET | `/students/<id>` | One profile with topics, inquiries and saved projects | 200 |
+| PUT | `/students/<id>` | Edit a profile (that student or admin) | 200 |
+| **Saved projects** | | | |
+| GET | `/students/<student id>/saved-projects` | A student's saved projects | 200 |
+| PUT | `/students/<student id>/saved-projects/<project id>` | Save a project (saving twice is fine) | 204 |
+| DELETE | `/students/<student id>/saved-projects/<project id>` | Unsave a project | 204 |
+| **Supervisors** | | | |
+| GET | `/supervisors` | List all supervisors | 200 |
+| GET | `/supervisors/<id>` | One profile with topics, projects and inquiries | 200 |
+| PUT | `/supervisors/<id>` | Edit a profile (that supervisor or admin) | 200 |
+
+## 5. Tests
+
+```sh
 dotnet test ProjectPortal.slnx
 ```
 
-Development uses a seeded, in-memory database by default. Data resets when the
-API restarts. Set `Database__SeedDevelopmentData=false` to disable seeding.
+They use the fake database, need no `.env`, and run on every pull request. Database permission rules are tested in [db/tests](../db/tests).
 
-To use PostgreSQL, set `Database__Provider=Postgres` and
-`ConnectionStrings__DefaultConnection`. The schema is managed by
-[SQL migrations](../db/migrations), not by EF migrations.
+## 6. Troubleshooting
 
-## Code structure
-
-Requests normally flow through `Controller → Service → Repository`. Controllers
-handle HTTP, services handle operations and validation, and repositories handle
-data access. DTOs define request and response shapes.
-
-The [Orchestrations directory](API/Orchestrations/README.md) is reserved for
-workflows that need CRUD calls to multiple services. None are used currently.
-
-`ApiExceptionHandler` returns problem details for errors, including a trace ID.
-Validation, missing resources, conflicts, and unexpected failures have separate
-status codes. Internal error details are logged rather than returned to clients.
-
-See [API.http](API/API.http) for example requests and routes.
-
-## Logging in
-
-Every request needs a Supabase login token (JWT) in an `Authorization: Bearer <token>` header.
-The API reads who you are from the token. It never trusts an id in the request body.
-
-The API passes your token's identity to the database, so the row level security rules in
-[db/migrations](../db/migrations) decide what you can see and change.
-
-## Try it
-
-### Quick (no Supabase needed)
-
-In Development the API uses a fake in-memory database filled with sample data, so you can
-try it without an account.
-
-```sh
-dotnet run --project backend/API
-```
-
-- `dotnet run` builds and starts the API.
-- `--project backend/API` says which project to start. Run it from the repo root.
-- It listens on `https://localhost:7049`. Plain `http://localhost:5049` only redirects there, and `curl` prints nothing for a redirect.
-- `-k` in the `curl` examples below lets `curl` accept the local development certificate.
-
-Normally you log in and send a token. Here you pretend to be a sample user instead.
-
-```sh
-curl -k -H "X-Dev-User-Id: 11111111-1111-1111-1111-111111111111" https://localhost:7049/api/v1/projects
-curl -k -H "X-Dev-User-Id: 22222222-2222-2222-2222-222222222222" https://localhost:7049/api/v1/projects
-```
-
-- `curl` sends an HTTP request. These two are `GET` requests (the default).
-- `-H "X-Dev-User-Id: ..."` adds a header saying who you are. It only works in Development.
-- `11111111-...-111` is the sample supervisor Dr. Elena Chen. `22222222-...-222` is the sample student Alex Morgan.
-- `/api/v1/projects` is the endpoint that lists projects.
-
-Other sample users have the same id with a different last digit: supervisors `...111` to `...114`,
-students `...222` to `...226`. Names are in [DevelopmentData.cs](API/Models/Data/DevelopmentData.cs).
-These fixed ids exist only for the fake database. With real Supabase, ids are created at signup.
-
-The fake database ignores the permission rules (row level security), so it can't show who may
-see what. Its data resets when the API restarts.
-
-### With real Supabase
-
-**1. Create a user.** In the dashboard go to Authentication → Users and add one with
-**Auto Confirm User** ticked. In user metadata set `{"role": "student"}` or `{"role": "supervisor"}`.
-
-**2. Start the API against Supabase.**
-
-```sh
-export ASPNETCORE_ENVIRONMENT=Development
-export Database__Provider=Postgres Database__SeedDevelopmentData=false
-export Auth__Authority=https://<ref>.supabase.co/auth/v1
-export ConnectionStrings__DefaultConnection="Host=<pooler host>;Port=5432;Database=postgres;Username=postgres.<ref>;Password=<db password>;SSL Mode=Require"
-dotnet run --project backend/API
-```
-
-- `export` sets a setting for this terminal only.
-- `ASPNETCORE_ENVIRONMENT=Development` turns on development mode.
-- `Database__Provider=Postgres` uses the real database instead of the fake one.
-- `Database__SeedDevelopmentData=false` stops the sample data from being added.
-- `Auth__Authority` is your project's login address. The API uses it to check that tokens are real.
-- `ConnectionStrings__DefaultConnection` is how the API connects to the database.
-  - `<ref>` is the project id, `<pooler host>` is the host from Supabase's Connect page, `<db password>` is the database password.
-  - Use port **5432**, not 6543. The 6543 port drops the user identity the API sets on each connection.
-- `dotnet run ...` starts the API.
-
-**3. Log in and call the API.**
-
-```sh
-TOKEN=$(curl -s "https://<ref>.supabase.co/auth/v1/token?grant_type=password" \
-  -H "apikey: <publishable key>" -H "Content-Type: application/json" \
-  -d '{"email":"<email>","password":"<password>"}' | jq -r .access_token)
-
-curl -k -H "Authorization: Bearer $TOKEN" https://localhost:7049/api/v1/projects
-```
-
-- `TOKEN=$(...)` runs the command inside and saves its result in a variable called `TOKEN`.
-- The first `curl` logs in at Supabase. `-s` hides the progress output.
-- `-H "apikey: ..."` identifies your project. It is the publishable key (Project Settings → API Keys). It is safe to share, unlike the secret key.
-- `-d '{...}'` is the email and password of the user you created.
-- `jq -r .access_token` picks the token out of the response.
-- The second `curl` calls the API. `Authorization: Bearer $TOKEN` is how you prove who you are.
-- Tokens expire after an hour. Run the login again.
-
-### Results
-
-| You get | Meaning |
+| Problem | Fix |
 | --- | --- |
-| 401 | missing or bad token |
-| 403 | not allowed (e.g. editing someone else's project) |
-| 400 | bad data (e.g. an id that doesn't exist) |
+| `dotnet: command not found` | mise isn't activated (step 1). `mise activate` alone only prints a script |
+| `permission denied: ~/.zshrc` | `sudo chown $USER ~/.zshrc`, then redo step 1 |
+| Every request is 401 | Log in with **Authorize** |
+| Switched user, same results | Logout of the Bearer box |
+| 400 with ids you didn't change | Replace Swagger's example ids with real ones |
+| "Legacy API keys are disabled" | Use the publishable key, not the old `anon` key |
+| Old behaviour after a code change | Restart the API |
+| `$Auth__Authority` is empty | `cd` into the repo again so mise loads `.env` |
+
+## 7. Code layout
+
+- Requests go `Controller → Service → Repository` ([Controllers](API/Controllers), [Services](API/Services),
+  [Repositories](API/Repositories)); response shapes are in [DTOs](API/DTOs).
+- Errors become the codes above in [ApiExceptionHandler](API/Middleware/ApiExceptionHandler.cs).
+- Logins are Supabase tokens; in Development the `X-Dev-User-Id` header also works ([Auth](API/Auth)). The caller's
+  id is passed to Postgres, whose row level security rules in [db/migrations](../db/migrations) decide what each user
+  can see and change. Roles live in `public.users.role`.
+- The schema is owned by the SQL in [db/migrations](../db/migrations), not Entity Framework migrations.

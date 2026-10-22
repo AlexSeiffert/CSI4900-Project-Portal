@@ -8,6 +8,7 @@ public class Inquiry : AuditableDto<Guid>
     public Guid SupervisorId { get; set; }
     public Guid? ProjectId { get; set; }
     public string? Message { get; set; }
+    public Models.InquiryStatus Status { get; set; }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public Student? Student { get; set; }

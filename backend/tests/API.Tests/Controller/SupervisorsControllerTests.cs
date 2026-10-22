@@ -48,19 +48,20 @@ public class SupervisorsControllerTests
     }
 
     [Fact]
-    public async Task UpdateSupervisor_ReturnsNoContent()
+    public async Task UpdateSupervisor_ReturnsUpdatedSupervisor()
     {
         var userId = Guid.NewGuid();
         var request = new UpdateSupervisor();
 
+        var updated = new Supervisor { UserId = userId };
         _service.Setup(service => service.UpdateSupervisor(userId, request, CancellationToken.None))
-            .ReturnsAsync(new Supervisor { UserId = userId });
+            .ReturnsAsync(updated);
             
         var controller = CreateController();
 
         var result = await controller.UpdateSupervisor(userId, request, CancellationToken.None);
 
-        Assert.IsType<NoContentResult>(result);
+        Assert.Same(updated, result.Value);
         _service.Verify(service => service.UpdateSupervisor(userId, request, CancellationToken.None), Times.Once);
     }
 }

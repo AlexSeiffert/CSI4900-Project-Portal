@@ -91,16 +91,33 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         model.Entity<Project>().Property(x => x.CreatedAt).HasColumnName("posted_at");
         model.Entity<Project>().Property(x => x.Status).HasColumnType("public.project_status")
             .HasDefaultValue(ProjectStatus.Available);
+        model.Entity<Inquiry>().Property(x => x.Status).HasColumnType("public.inquiry_status")
+            .HasDefaultValue(InquiryStatus.Pending);
     }
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        // PostgreSQL owns update timestamps through triggers. Mirror them for local InMemory use.
-        foreach (var entry in ChangeTracker.Entries().Where(e => e.State == EntityState.Modified))
+        // PostgreSQL owns timestamps: now() defaults on insert and triggers on update. Mirror them for local InMemory use.
+        if (Database.IsNpgsql())
         {
-            if (entry.Entity is Project or Inquiry or Student or Supervisor)
+            return base.SaveChangesAsync(cancellationToken);
+        }
+        var now = DateTime.UtcNow;
+        foreach (var entry in ChangeTracker.Entries().Where(e => e.State is EntityState.Added or EntityState.Modified))
+        {
+            foreach (var name in new[] { "CreatedAt", "UpdatedAt" })
             {
-                entry.Property("UpdatedAt").CurrentValue = DateTime.UtcNow;
+                if (entry.Metadata.FindProperty(name) == null)
+                {
+                    continue;
+                }
+                var property = entry.Property(name);
+                // On insert keep a value the caller set on purpose (sample data, tests); on update always refresh UpdatedAt.
+                if ((entry.State == EntityState.Added && (DateTime)property.CurrentValue! == default)
+                    || (entry.State == EntityState.Modified && name == "UpdatedAt"))
+                {
+                    property.CurrentValue = now;
+                }
             }
         }
         return base.SaveChangesAsync(cancellationToken);

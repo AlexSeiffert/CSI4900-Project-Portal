@@ -26,12 +26,11 @@ public class StudentsController(IStudentService service) : ControllerBase
     }
 
     [HttpPut("{userId:guid}")]
+    [ProducesResponseType<Student>(StatusCodes.Status200OK)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> UpdateStudent(Guid userId, UpdateStudent request, CancellationToken cancellationToken)
+    public async Task<ActionResult<Student>> UpdateStudent(Guid userId, UpdateStudent request, CancellationToken cancellationToken)
     {
-        await _service.UpdateStudent(userId, request, cancellationToken);
-        return NoContent();
+        return await _service.UpdateStudent(userId, request, cancellationToken);
     }
 }

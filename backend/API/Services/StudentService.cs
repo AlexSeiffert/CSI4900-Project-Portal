@@ -1,4 +1,3 @@
-using System.ComponentModel.DataAnnotations;
 using API.DTOs.Mapping;
 using API.DTOs.Request;
 using API.Exceptions;
@@ -13,54 +12,23 @@ public class StudentService(IStudentRepository repository) : IStudentService
 
     public async Task<IEnumerable<DTOs.Student>> GetStudents(CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var profiles = await _repository.GetStudents(cancellationToken);
-            return profiles.Select(profile => profile.ToDto()).ToList();
-        }
-        catch (RepositoryException exception)
-        {
-            throw new ServiceException(nameof(GetStudents), exception.Type, "The data operation could not be completed.", exception);
-        }
+        var profiles = await _repository.GetStudents(cancellationToken);
+        return profiles.Select(profile => profile.ToDto()).ToList();
     }
 
     public async Task<DTOs.Student> GetStudentById(Guid userId, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var profile = await _repository.GetStudentById(userId, cancellationToken);
-            if (profile == null)
-            {
-                var exception = new KeyNotFoundException($"Student '{userId}' was not found.");
-                throw new ServiceException(nameof(GetStudentById), ErrorType.NotFound, exception.Message, exception);
-            }
-            return profile.ToDtoWithRelations();
-        }
-        catch (RepositoryException exception)
-        {
-            throw new ServiceException(nameof(GetStudentById), exception.Type, "The data operation could not be completed.", exception);
-        }
+        var profile = await _repository.GetStudentById(userId, cancellationToken)
+            ?? throw ServiceException.NotFound(nameof(GetStudentById), $"Student '{userId}' was not found.");
+        return profile.ToDtoWithRelations();
     }
 
     public async Task<DTOs.Student> UpdateStudent(Guid userId, UpdateStudent request, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            Validator.ValidateObject(request, new ValidationContext(request), true);
-            var profile = await _repository.GetStudentById(userId, cancellationToken);
-            if (profile == null)
-            {
-                var exception = new KeyNotFoundException($"Student '{userId}' was not found.");
-                throw new ServiceException(nameof(UpdateStudent), ErrorType.NotFound, exception.Message, exception);
-            }
-            profile.DisplayName = request.DisplayName;
-            profile.Program = request.Program;
-            profile.UpdatedAt = DateTime.UtcNow;
-            return (await _repository.UpdateStudent(profile, request.TopicIds, cancellationToken)).ToDtoWithRelations();
-        }
-        catch (RepositoryException exception)
-        {
-            throw new ServiceException(nameof(UpdateStudent), exception.Type, "The data operation could not be completed.", exception);
-        }
+        var profile = await _repository.GetStudentById(userId, cancellationToken)
+            ?? throw ServiceException.NotFound(nameof(UpdateStudent), $"Student '{userId}' was not found.");
+        profile.DisplayName = request.DisplayName;
+        profile.Program = request.Program;
+        return (await _repository.UpdateStudent(profile, request.TopicIds, cancellationToken)).ToDtoWithRelations();
     }
 }

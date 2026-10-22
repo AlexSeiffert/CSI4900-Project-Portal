@@ -8,7 +8,7 @@ public class Student
 
     public string? Program { get; set; }
 
-    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedAt { get; set; }
 
     // Relationships
     public ICollection<Topic> TopicInterests { get; set; } = new List<Topic>();

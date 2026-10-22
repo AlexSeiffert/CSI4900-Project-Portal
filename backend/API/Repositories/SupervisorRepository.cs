@@ -40,20 +40,9 @@ public class SupervisorRepository(ApplicationDbContext db) : ISupervisorReposito
     {
         try
         {
-            var topics = await _db.Topics.Where(topic => topicIds.Contains(topic.Id)).ToListAsync(cancellationToken);
-            if (topics.Count != topicIds.Distinct().Count())
-            {
-                throw new RepositoryException(nameof(UpdateSupervisor), new DbUpdateConcurrencyException("The selected topics changed before they could be saved."));
-            }
-            profile.TopicInterests.Clear();
-            foreach (var topic in topics)
-            {
-                profile.TopicInterests.Add(topic);
-            }
+            await _db.ReplaceTopics(profile.TopicInterests, topicIds, nameof(UpdateSupervisor), cancellationToken);
             // Returns Forbidden if the database blocks this user from editing this profile.
             await _db.SaveChangesOrForbiddenAsync(nameof(UpdateSupervisor), cancellationToken);
-            await _db.Entry(profile).Collection(x => x.Projects).LoadAsync(cancellationToken);
-            await _db.Entry(profile).Collection(x => x.Inquiries).LoadAsync(cancellationToken);
             return profile;
         }
         catch (Exception exception) when (exception is not RepositoryException)

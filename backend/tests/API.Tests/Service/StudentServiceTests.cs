@@ -35,7 +35,7 @@ public class StudentServiceTests
     }
 
     [Fact]
-    public async Task GetStudents_WrapsRepositoryFailure()
+    public async Task GetStudents_PropagatesRepositoryFailure()
     {
         using var cancellation = new CancellationTokenSource();
         var token = cancellation.Token;
@@ -46,11 +46,9 @@ public class StudentServiceTests
 
         var service = CreateService();
 
-        var exception = await Assert.ThrowsAsync<ServiceException>(() => service.GetStudents(token));
+        var exception = await Assert.ThrowsAsync<RepositoryException>(() => service.GetStudents(token));
 
-        Assert.Equal(nameof(StudentService.GetStudents), exception.Operation);
-        Assert.Equal(ErrorType.Unexpected, exception.Type);
-        Assert.Same(original, exception.InnerException);
+        Assert.Same(original, exception);
         _repository.Verify(repository => repository.GetStudents(token), Times.Once);
     }
 
@@ -74,7 +72,7 @@ public class StudentServiceTests
     }
 
     [Fact]
-    public async Task GetStudentById_WrapsRepositoryFailure()
+    public async Task GetStudentById_PropagatesRepositoryFailure()
     {
         var studentId = Guid.NewGuid();
         using var cancellation = new CancellationTokenSource();
@@ -86,11 +84,9 @@ public class StudentServiceTests
 
         var service = CreateService();
 
-        var exception = await Assert.ThrowsAsync<ServiceException>(() => service.GetStudentById(studentId, token));
+        var exception = await Assert.ThrowsAsync<RepositoryException>(() => service.GetStudentById(studentId, token));
 
-        Assert.Equal(nameof(StudentService.GetStudentById), exception.Operation);
-        Assert.Equal(ErrorType.Unexpected, exception.Type);
-        Assert.Same(original, exception.InnerException);
+        Assert.Same(original, exception);
         _repository.Verify(repository => repository.GetStudentById(studentId, token), Times.Once);
     }
 
@@ -120,7 +116,7 @@ public class StudentServiceTests
     }
 
     [Fact]
-    public async Task UpdateStudent_WrapsRepositoryFailure()
+    public async Task UpdateStudent_PropagatesRepositoryFailure()
     {
         var topic = new Topic { Id = Guid.NewGuid(), Name = "Databases" };
         var student = new Student { UserId = Guid.NewGuid(), DisplayName = "Student", Program = "CS", TopicInterests = [topic] };
@@ -136,17 +132,15 @@ public class StudentServiceTests
 
         var service = CreateService();
 
-        var exception = await Assert.ThrowsAsync<ServiceException>(() => service.UpdateStudent(student.UserId, request, token));
+        var exception = await Assert.ThrowsAsync<RepositoryException>(() => service.UpdateStudent(student.UserId, request, token));
 
-        Assert.Equal(nameof(StudentService.UpdateStudent), exception.Operation);
-        Assert.Equal(ErrorType.Unexpected, exception.Type);
-        Assert.Same(original, exception.InnerException);
+        Assert.Same(original, exception);
         _repository.Verify(repository => repository.GetStudentById(student.UserId, token), Times.Once);
         _repository.Verify(repository => repository.UpdateStudent(student, request.TopicIds, token), Times.Once);
     }
 
     [Fact]
-    public async Task UpdateStudent_WrapsLookupFailure()
+    public async Task UpdateStudent_PropagatesLookupFailure()
     {
         var topicId = Guid.NewGuid();
         var studentId = Guid.NewGuid();
@@ -160,11 +154,9 @@ public class StudentServiceTests
 
         var service = CreateService();
 
-        var exception = await Assert.ThrowsAsync<ServiceException>(() => service.UpdateStudent(studentId, request, token));
+        var exception = await Assert.ThrowsAsync<RepositoryException>(() => service.UpdateStudent(studentId, request, token));
 
-        Assert.Equal(nameof(StudentService.UpdateStudent), exception.Operation);
-        Assert.Equal(ErrorType.Unexpected, exception.Type);
-        Assert.Same(original, exception.InnerException);
+        Assert.Same(original, exception);
         _repository.Verify(repository => repository.GetStudentById(studentId, token), Times.Once);
     }
 }

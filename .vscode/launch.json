@@ -19,6 +19,25 @@
         "pattern": "\\bNow listening on:\\s+(https://\\S+)",
         "uriFormat": "%s/swagger"
       }
+    },
+    {
+      "name": "Project Portal API (Supabase)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build-api",
+      "program": "${workspaceFolder}/backend/API/bin/Debug/net10.0/API.dll",
+      "cwd": "${workspaceFolder}/backend/API",
+      "launchSettingsProfile": "https-supabase",
+      "console": "internalConsole",
+      "stopAtEntry": false,
+      "env": {
+        "ASPNETCORE_URLS": "https://127.0.0.1:0;http://127.0.0.1:0"
+      },
+      "serverReadyAction": {
+        "action": "openExternally",
+        "pattern": "\\bNow listening on:\\s+(https://\\S+)",
+        "uriFormat": "%s/swagger"
+      }
     }
   ]
 }
