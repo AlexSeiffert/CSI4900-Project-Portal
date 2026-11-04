@@ -1,0 +1,33 @@
+@* Phones: full-width stacked rows. sm: two columns. lg: one line. *@
+<footer class="pb-5 pt-4 sm:px-6 sm:pb-8 sm:pt-12">
+    <nav aria-label="Helpful links"
+         class="flex flex-col divide-y divide-dark/10 border-y border-dark/10 text-muted sm:mx-auto sm:grid sm:w-fit sm:grid-cols-[auto_auto] sm:gap-x-10 sm:gap-y-3 sm:divide-y-0 sm:border-0 sm:text-sm lg:flex lg:flex-row lg:gap-x-8">
+        @foreach (var (label, href) in links)
+        {
+            <a href="@href" target="_blank" rel="noopener"
+               class="flex items-center justify-between gap-1 whitespace-nowrap px-6 py-3.5 transition-colors hover:bg-hover hover:text-primary sm:inline-flex sm:justify-start sm:p-0 sm:hover:bg-transparent sm:hover:underline">
+                @label
+                @* lucide "external-link" *@
+                <svg class="size-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M15 3h6v6" />
+                    <path d="M10 14 21 3" />
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                </svg>
+                <span class="sr-only">(opens in a new tab)</span>
+            </a>
+        }
+    </nav>
+    <p class="mt-4 text-balance px-6 text-center text-xs text-faint sm:mt-6">CSI 4900 Project Portal · University of Ottawa</p>
+</footer>
+
+@code {
+    private static readonly (string Label, string Href)[] links =
+    [
+        ("uoZone", "https://uozone2.uottawa.ca/"),
+        ("Brightspace", "https://uottawa.brightspace.com/"),
+        ("Outlook", "https://outlook.office.com/mail/"),
+        ("Engineering", "https://www.uottawa.ca/faculty-engineering/"),
+        ("School of EECS", "https://www.uottawa.ca/faculty-engineering/school-electrical-engineering-computer-science"),
+        ("IT support", "https://www.uottawa.ca/about-us/information-technology"),
+    ];
+}
