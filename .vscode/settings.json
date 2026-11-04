@@ -1,0 +1,11 @@
+{
+  "dotnet.defaultSolution": "ProjectPortal.slnx",
+  "dotnet.testWindow.enableNextTest": false,
+  "dotnet.testWindow.disableAutoDiscovery": false,
+  "dotnet.testWindow.disableBuildOnRefresh": false,
+  "dotnet.testWindow.disableBuildOnRun": false,
+  "FSharp.TestExplorer.AutoDiscoverTestsOnLoad": false,
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "ms-dotnettools.csharp",
+  "notebook.formatOnSave.enabled": true
+}
