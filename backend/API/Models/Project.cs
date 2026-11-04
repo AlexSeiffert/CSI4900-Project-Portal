@@ -14,9 +14,9 @@ public class Project
 
     public ProjectStatus Status { get; set; } = ProjectStatus.Available;
 
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; }
 
-    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedAt { get; set; }
 
     public Supervisor Supervisor { get; set; } = null!;
 

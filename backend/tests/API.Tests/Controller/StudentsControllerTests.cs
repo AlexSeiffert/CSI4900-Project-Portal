@@ -48,19 +48,20 @@ public class StudentsControllerTests
     }
 
     [Fact]
-    public async Task UpdateStudent_ReturnsNoContent()
+    public async Task UpdateStudent_ReturnsUpdatedStudent()
     {
         var userId = Guid.NewGuid();
         var request = new UpdateStudent();
 
+        var updated = new Student { UserId = userId };
         _service.Setup(service => service.UpdateStudent(userId, request, CancellationToken.None))
-            .ReturnsAsync(new Student { UserId = userId });
+            .ReturnsAsync(updated);
             
         var controller = CreateController();
 
         var result = await controller.UpdateStudent(userId, request, CancellationToken.None);
 
-        Assert.IsType<NoContentResult>(result);
+        Assert.Same(updated, result.Value);
         _service.Verify(service => service.UpdateStudent(userId, request, CancellationToken.None), Times.Once);
     }
 }

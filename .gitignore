@@ -19,3 +19,6 @@ crash.*.log
 .vs/
 TestResults/
 .fake
+
+# Supabase
+supabase/.temp/

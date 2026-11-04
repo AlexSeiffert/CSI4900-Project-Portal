@@ -4,4 +4,7 @@ public class ServiceException(string operation, ErrorType type, string message, 
 {
     public string Operation { get; } = operation;
     public ErrorType Type { get; } = type;
+
+    public static ServiceException NotFound(string operation, string message) =>
+        new(operation, ErrorType.NotFound, message, new KeyNotFoundException(message));
 }

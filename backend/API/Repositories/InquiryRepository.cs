@@ -76,8 +76,7 @@ public class InquiryRepository(ApplicationDbContext db) : IInquiryRepository
         {
             _db.Inquiries.Add(inquiry);
             await _db.SaveChangesAsync(cancellationToken);
-            await InquiryWithRelations().SingleAsync(saved => saved.Id == inquiry.Id, cancellationToken);
-            return inquiry;
+            return await InquiryWithRelations().SingleAsync(saved => saved.Id == inquiry.Id, cancellationToken);
         }
         catch (Exception exception) when (exception is not RepositoryException)
         {
@@ -94,9 +93,8 @@ public class InquiryRepository(ApplicationDbContext db) : IInquiryRepository
     private IQueryable<Inquiry> InquiryWithRelations()
     {
         return _db.Inquiries
-            .Include(inquiry => inquiry.Student).ThenInclude(student => student.TopicInterests)
-            .Include(inquiry => inquiry.Supervisor).ThenInclude(supervisor => supervisor.TopicInterests)
-            .Include(inquiry => inquiry.Project).ThenInclude(project => project!.Topics)
-            .AsSplitQuery();
+            .Include(inquiry => inquiry.Student)
+            .Include(inquiry => inquiry.Supervisor)
+            .Include(inquiry => inquiry.Project);
     }
 }

@@ -184,18 +184,21 @@ internal static class DevelopmentData
             new Inquiry
             {
                 Id = Guid.Parse("55555555-5555-5555-5555-555555555552"),
+                Status = InquiryStatus.Viewed,
                 Student = students[1], Supervisor = supervisors[1], Project = projects[3],
                 Message = "I have completed a machine learning course and would like to work on recommendations."
             },
             new Inquiry
             {
                 Id = Guid.Parse("55555555-5555-5555-5555-555555555553"),
+                Status = InquiryStatus.Responded,
                 Student = students[2], Supervisor = supervisors[2], Project = projects[6],
                 Message = "I would like to explore privacy-preserving access controls."
             },
             new Inquiry
             {
                 Id = Guid.Parse("55555555-5555-5555-5555-555555555554"),
+                Status = InquiryStatus.Closed,
                 Student = students[0], Supervisor = supervisors[0], Project = projects[1],
                 Message = "Is there room for another student on the testing toolkit?"
             },
@@ -214,6 +217,7 @@ internal static class DevelopmentData
             new Inquiry
             {
                 Id = Guid.Parse("55555555-5555-5555-5555-555555555557"),
+                Status = InquiryStatus.Viewed,
                 Student = students[4], Supervisor = supervisors[0], Project = projects[2],
                 Message = "Thank you for discussing the results of the campus usability study."
             },

@@ -1,3 +1,4 @@
+using API.Auth;
 using API.DTOs;
 using API.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -52,18 +53,19 @@ public class ProjectsController(IProjectService service) : ControllerBase
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<Project>> CreateProject(CreateProject request, CancellationToken cancellationToken)
     {
+        // the project's owner is taken from the login token, not from anything the client types in
+        request.SupervisorId = User.GetRequiredUserId();
         var result = await _service.CreateProject(request, cancellationToken);
         return CreatedAtAction(nameof(GetProjectById), new { projectId = result.Id }, result);
     }
 
     [HttpPut("{projectId:guid}")]
+    [ProducesResponseType<Project>(StatusCodes.Status200OK)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> UpdateProject(Guid projectId, UpdateProject request, CancellationToken cancellationToken)
+    public async Task<ActionResult<Project>> UpdateProject(Guid projectId, UpdateProject request, CancellationToken cancellationToken)
     {
-        await _service.UpdateProject(projectId, request, cancellationToken);
-        return NoContent();
+        return await _service.UpdateProject(projectId, request, cancellationToken);
     }
 
     [HttpDelete("{projectId:guid}")]

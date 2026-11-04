@@ -1,3 +1,4 @@
+using API.Tests.Support;
 using API.Controllers;
 using API.DTOs;
 using API.DTOs.Request;
@@ -104,14 +105,15 @@ public class InquiriesControllerTests
     [Fact]
     public async Task CreateInquiry_ReturnsCreatedWithInquiry()
     {
+        var studentId = Guid.NewGuid();
         var request = new CreateInquiry { StudentId = Guid.NewGuid(), SupervisorId = Guid.NewGuid() };
 
-        var inquiry = new Inquiry { Id = Guid.NewGuid(), StudentId = request.StudentId, SupervisorId = request.SupervisorId };
+        var inquiry = new Inquiry { Id = Guid.NewGuid(), StudentId = studentId, SupervisorId = request.SupervisorId };
 
-        _service.Setup(service => service.CreateInquiry(request, CancellationToken.None))
+        _service.Setup(service => service.CreateInquiry(It.Is<CreateInquiry>(r => r.StudentId == studentId), CancellationToken.None))
             .ReturnsAsync(inquiry);
 
-        var controller = CreateController();
+        var controller = CreateController().SignedInAs(studentId);
 
         var result = await controller.CreateInquiry(request, CancellationToken.None);
 

@@ -3,7 +3,6 @@ using API.Models;
 using API.Models.Data;
 using API.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using Npgsql;
 
 namespace API.Repositories;
 
@@ -15,10 +14,11 @@ public class SavedProjectRepository(ApplicationDbContext db) : ISavedProjectRepo
     {
         try
         {
-            var student = await _db.Students.AsNoTracking()
-                .Include(student => student.SavedProjects)
-                .SingleOrDefaultAsync(student => student.UserId == studentId, cancellationToken);
-            return student?.SavedProjects.OrderBy(project => project.Title).ToList() ?? [];
+            return await _db.Students.AsNoTracking()
+                .Where(student => student.UserId == studentId)
+                .SelectMany(student => student.SavedProjects)
+                .OrderBy(project => project.Title)
+                .ToListAsync(cancellationToken);
         }
         catch (Exception exception) when (exception is not RepositoryException)
         {
@@ -35,6 +35,7 @@ public class SavedProjectRepository(ApplicationDbContext db) : ISavedProjectRepo
                 await _db.Database.ExecuteSqlInterpolatedAsync($"INSERT INTO public.student_saved_projects (student_id, project_id) VALUES ({studentId}, {projectId}) ON CONFLICT (student_id, project_id) DO NOTHING", cancellationToken);
                 return;
             }
+            // Saving twice is fine: Postgres uses ON CONFLICT above, and the fake database checks first.
             var savedProjects = _db.Set<Dictionary<string, object>>("student_saved_projects");
             if (await savedProjects.AnyAsync(saved => EF.Property<Guid>(saved, "student_id") == studentId
                     && EF.Property<Guid>(saved, "project_id") == projectId, cancellationToken))
@@ -48,20 +49,7 @@ public class SavedProjectRepository(ApplicationDbContext db) : ISavedProjectRepo
                 ["saved_at"] = DateTime.UtcNow
             };
             savedProjects.Add(relationship);
-            try
-            {
-                await _db.SaveChangesAsync(cancellationToken);
-            }
-            catch (ArgumentException exception) when (_db.Database.IsInMemory())
-            {
-                // A concurrent InMemory request may have inserted this exact relationship first.
-                _db.ChangeTracker.Entries().Single(entry => ReferenceEquals(entry.Entity, relationship)).State = EntityState.Detached;
-                if (!await savedProjects.AnyAsync(saved => EF.Property<Guid>(saved, "student_id") == studentId
-                        && EF.Property<Guid>(saved, "project_id") == projectId, cancellationToken))
-                {
-                    throw new RepositoryException(nameof(SaveProject), exception);
-                }
-            }
+            await _db.SaveChangesAsync(cancellationToken);
         }
         catch (Exception exception) when (exception is not RepositoryException)
         {

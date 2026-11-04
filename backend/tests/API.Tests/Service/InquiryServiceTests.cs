@@ -37,7 +37,7 @@ public class InquiryServiceTests
     }
 
     [Fact]
-    public async Task GetInquiries_WrapsRepositoryFailure()
+    public async Task GetInquiries_PropagatesRepositoryFailure()
     {
         using var cancellation = new CancellationTokenSource();
         var token = cancellation.Token;
@@ -48,11 +48,9 @@ public class InquiryServiceTests
 
         var service = CreateService();
 
-        var exception = await Assert.ThrowsAsync<ServiceException>(() => service.GetInquiries(token));
+        var exception = await Assert.ThrowsAsync<RepositoryException>(() => service.GetInquiries(token));
 
-        Assert.Equal(nameof(InquiryService.GetInquiries), exception.Operation);
-        Assert.Equal(ErrorType.Unexpected, exception.Type);
-        Assert.Same(original, exception.InnerException);
+        Assert.Same(original, exception);
         _repository.Verify(repository => repository.GetInquiries(token), Times.Once);
     }
 
@@ -80,7 +78,7 @@ public class InquiryServiceTests
     }
 
     [Fact]
-    public async Task GetInquiriesByStudentId_WrapsRepositoryFailure()
+    public async Task GetInquiriesByStudentId_PropagatesRepositoryFailure()
     {
         var studentId = Guid.NewGuid();
         using var cancellation = new CancellationTokenSource();
@@ -92,11 +90,9 @@ public class InquiryServiceTests
 
         var service = CreateService();
 
-        var exception = await Assert.ThrowsAsync<ServiceException>(() => service.GetInquiriesByStudentId(studentId, token));
+        var exception = await Assert.ThrowsAsync<RepositoryException>(() => service.GetInquiriesByStudentId(studentId, token));
 
-        Assert.Equal(nameof(InquiryService.GetInquiriesByStudentId), exception.Operation);
-        Assert.Equal(ErrorType.Unexpected, exception.Type);
-        Assert.Same(original, exception.InnerException);
+        Assert.Same(original, exception);
         _repository.Verify(repository => repository.GetInquiriesByStudentId(studentId, token), Times.Once);
     }
 
@@ -124,7 +120,7 @@ public class InquiryServiceTests
     }
 
     [Fact]
-    public async Task GetInquiriesBySupervisorId_WrapsRepositoryFailure()
+    public async Task GetInquiriesBySupervisorId_PropagatesRepositoryFailure()
     {
         var supervisorId = Guid.NewGuid();
         using var cancellation = new CancellationTokenSource();
@@ -136,11 +132,9 @@ public class InquiryServiceTests
 
         var service = CreateService();
 
-        var exception = await Assert.ThrowsAsync<ServiceException>(() => service.GetInquiriesBySupervisorId(supervisorId, token));
+        var exception = await Assert.ThrowsAsync<RepositoryException>(() => service.GetInquiriesBySupervisorId(supervisorId, token));
 
-        Assert.Equal(nameof(InquiryService.GetInquiriesBySupervisorId), exception.Operation);
-        Assert.Equal(ErrorType.Unexpected, exception.Type);
-        Assert.Same(original, exception.InnerException);
+        Assert.Same(original, exception);
         _repository.Verify(repository => repository.GetInquiriesBySupervisorId(supervisorId, token), Times.Once);
     }
 
@@ -168,7 +162,7 @@ public class InquiryServiceTests
     }
 
     [Fact]
-    public async Task GetInquiriesByProjectId_WrapsRepositoryFailure()
+    public async Task GetInquiriesByProjectId_PropagatesRepositoryFailure()
     {
         var projectId = Guid.NewGuid();
         using var cancellation = new CancellationTokenSource();
@@ -180,11 +174,9 @@ public class InquiryServiceTests
 
         var service = CreateService();
 
-        var exception = await Assert.ThrowsAsync<ServiceException>(() => service.GetInquiriesByProjectId(projectId, token));
+        var exception = await Assert.ThrowsAsync<RepositoryException>(() => service.GetInquiriesByProjectId(projectId, token));
 
-        Assert.Equal(nameof(InquiryService.GetInquiriesByProjectId), exception.Operation);
-        Assert.Equal(ErrorType.Unexpected, exception.Type);
-        Assert.Same(original, exception.InnerException);
+        Assert.Same(original, exception);
         _repository.Verify(repository => repository.GetInquiriesByProjectId(projectId, token), Times.Once);
     }
 
@@ -209,7 +201,7 @@ public class InquiryServiceTests
     }
 
     [Fact]
-    public async Task GetInquiryById_WrapsRepositoryFailure()
+    public async Task GetInquiryById_PropagatesRepositoryFailure()
     {
         var inquiryId = Guid.NewGuid();
         using var cancellation = new CancellationTokenSource();
@@ -221,11 +213,9 @@ public class InquiryServiceTests
 
         var service = CreateService();
 
-        var exception = await Assert.ThrowsAsync<ServiceException>(() => service.GetInquiryById(inquiryId, token));
+        var exception = await Assert.ThrowsAsync<RepositoryException>(() => service.GetInquiryById(inquiryId, token));
 
-        Assert.Equal(nameof(InquiryService.GetInquiryById), exception.Operation);
-        Assert.Equal(ErrorType.Unexpected, exception.Type);
-        Assert.Same(original, exception.InnerException);
+        Assert.Same(original, exception);
         _repository.Verify(repository => repository.GetInquiryById(inquiryId, token), Times.Once);
     }
 
@@ -253,7 +243,7 @@ public class InquiryServiceTests
     }
 
     [Fact]
-    public async Task CreateInquiry_WrapsRepositoryFailure()
+    public async Task CreateInquiry_PropagatesRepositoryFailure()
     {
         var studentId = Guid.NewGuid();
         var supervisorId = Guid.NewGuid();
@@ -268,11 +258,9 @@ public class InquiryServiceTests
 
         var service = CreateService();
 
-        var exception = await Assert.ThrowsAsync<ServiceException>(() => service.CreateInquiry(request, token));
+        var exception = await Assert.ThrowsAsync<RepositoryException>(() => service.CreateInquiry(request, token));
 
-        Assert.Equal(nameof(InquiryService.CreateInquiry), exception.Operation);
-        Assert.Equal(ErrorType.Unexpected, exception.Type);
-        Assert.Same(original, exception.InnerException);
+        Assert.Same(original, exception);
         _repository.Verify(repository => repository.CreateInquiry(It.IsAny<Inquiry>(), token), Times.Once);
     }
 

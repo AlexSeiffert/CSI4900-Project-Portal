@@ -1,6 +1,4 @@
-using System.ComponentModel.DataAnnotations;
 using API.DTOs.Mapping;
-using API.Exceptions;
 using API.Repositories.Interfaces;
 using API.Services.Interfaces;
 
@@ -12,14 +10,7 @@ public class TopicService(ITopicRepository repository) : ITopicService
 
     public async Task<IEnumerable<DTOs.Topic>> GetTopics(CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var topics = await _repository.GetTopics(cancellationToken);
-            return topics.Select(topic => topic.ToDto()).ToList();
-        }
-        catch (RepositoryException exception)
-        {
-            throw new ServiceException(nameof(GetTopics), exception.Type, "The data operation could not be completed.", exception);
-        }
+        var topics = await _repository.GetTopics(cancellationToken);
+        return topics.Select(topic => topic.ToDto()).ToList();
     }
 }

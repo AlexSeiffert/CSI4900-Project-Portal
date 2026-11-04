@@ -1,3 +1,4 @@
+using API.Auth;
 using API.DTOs;
 using API.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -48,6 +49,8 @@ public class InquiriesController(IInquiryService service) : ControllerBase
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<Inquiry>> CreateInquiry(CreateInquiry request, CancellationToken cancellationToken)
     {
+        // the inquiry's sender is taken from the login token, not from anything the client types in
+        request.StudentId = User.GetRequiredUserId();
         var result = await _service.CreateInquiry(request, cancellationToken);
         return CreatedAtAction(nameof(GetInquiryById), new { inquiryId = result.Id }, result);
     }

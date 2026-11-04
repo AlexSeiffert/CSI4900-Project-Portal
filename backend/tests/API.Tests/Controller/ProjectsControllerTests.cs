@@ -1,3 +1,4 @@
+using API.Tests.Support;
 using API.Controllers;
 using API.DTOs;
 using API.DTOs.Request;
@@ -105,14 +106,15 @@ public class ProjectsControllerTests
     [Fact]
     public async Task CreateProject_ReturnsCreatedWithProject()
     {
+        var supervisorId = Guid.NewGuid();
         var request = new CreateProject { SupervisorId = Guid.NewGuid() };
 
-        var project = new Project { Id = Guid.NewGuid(), SupervisorId = request.SupervisorId };
+        var project = new Project { Id = Guid.NewGuid(), SupervisorId = supervisorId };
 
-        _service.Setup(service => service.CreateProject(request, CancellationToken.None))
+        _service.Setup(service => service.CreateProject(It.Is<CreateProject>(r => r.SupervisorId == supervisorId), CancellationToken.None))
             .ReturnsAsync(project);
 
-        var controller = CreateController();
+        var controller = CreateController().SignedInAs(supervisorId);
 
         var result = await controller.CreateProject(request, CancellationToken.None);
 
@@ -124,20 +126,21 @@ public class ProjectsControllerTests
     }
 
     [Fact]
-    public async Task UpdateProject_ReturnsNoContent()
+    public async Task UpdateProject_ReturnsUpdatedProject()
     {
         var projectId = Guid.NewGuid();
 
         var request = new UpdateProject();
 
+        var updated = new Project { Id = projectId };
         _service.Setup(service => service.UpdateProject(projectId, request, CancellationToken.None))
-            .ReturnsAsync(new Project { Id = projectId });
+            .ReturnsAsync(updated);
 
         var controller = CreateController();
 
         var result = await controller.UpdateProject(projectId, request, CancellationToken.None);
 
-        Assert.IsType<NoContentResult>(result);
+        Assert.Same(updated, result.Value);
         _service.Verify(service => service.UpdateProject(projectId, request, CancellationToken.None), Times.Once);
     }
 

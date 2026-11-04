@@ -2,138 +2,84 @@ namespace API.DTOs.Mapping;
 
 internal static class DtoMapping
 {
+    // ToDto maps only the object's own fields. ToDtoWithRelations also adds its relationships,
+    // one level deep: those related objects come back plain, without their own lists. So an inquiry
+    // includes its student, but not the student's other inquiries. Call that endpoint for those.
+    // This keeps responses small, avoids loops, and never shows a half-loaded list as if it were complete.
     // Endpoints opt in to relationships with ToDtoWithRelations and a matching repository query.
-    public static Topic ToDto(this Models.Topic x) => new Mapper(0).Map(x, 0);
-    public static Project ToDto(this Models.Project x) => new Mapper(0).Map(x, 0);
-    public static Inquiry ToDto(this Models.Inquiry x) => new Mapper(0).Map(x, 0);
-    public static Student ToDto(this Models.Student x) => new Mapper(0).Map(x, 0);
-    public static Supervisor ToDto(this Models.Supervisor x) => new Mapper(0).Map(x, 0);
 
-    public static Topic ToDtoWithRelations(this Models.Topic x) => new Mapper(2).Map(x, 0);
-    public static Project ToDtoWithRelations(this Models.Project x) => new Mapper(2).Map(x, 0);
-    public static Inquiry ToDtoWithRelations(this Models.Inquiry x) => new Mapper(2).Map(x, 0);
-    public static Student ToDtoWithRelations(this Models.Student x) => new Mapper(2).Map(x, 0);
-    public static Supervisor ToDtoWithRelations(this Models.Supervisor x) => new Mapper(2).Map(x, 0);
+    public static Topic ToDto(this Models.Topic x) => new() { Id = x.Id, Name = x.Name };
 
-    // Include the requested DTO's relations and their relations, then stop expanding.
-    // Objects on the active path are reused so IgnoreCycles can serialize back-references.
-    private sealed class Mapper(int maxRelationshipDepth)
+    public static Project ToDto(this Models.Project x) => new()
     {
-        private readonly Dictionary<object, object> _active = new(ReferenceEqualityComparer.Instance);
+        Id = x.Id, SupervisorId = x.SupervisorId, Title = x.Title,
+        Description = x.Description, ExternalUrl = x.ExternalUrl, Status = x.Status,
+        CreatedAt = x.CreatedAt, UpdatedAt = x.UpdatedAt
+    };
 
-        public Topic Map(Models.Topic x, int depth)
-        {
-            if (_active.TryGetValue(x, out var existing))
-            {
-                return (Topic)existing;
-            }
+    public static Inquiry ToDto(this Models.Inquiry x) => new()
+    {
+        Id = x.Id, StudentId = x.StudentId, SupervisorId = x.SupervisorId,
+        ProjectId = x.ProjectId, Message = x.Message, Status = x.Status,
+        CreatedAt = x.CreatedAt, UpdatedAt = x.UpdatedAt
+    };
 
-            var dto = new Topic { Id = x.Id, Name = x.Name };
-            _active.Add(x, dto);
-            if (depth < maxRelationshipDepth)
-            {
-                dto.Projects = x.Projects.Select(project => Map(project, depth + 1)).ToList();
-                dto.Students = x.Students.Select(student => Map(student, depth + 1)).ToList();
-                dto.Supervisors = x.Supervisors.Select(supervisor => Map(supervisor, depth + 1)).ToList();
-            }
-            _active.Remove(x);
-            return dto;
-        }
+    public static Student ToDto(this Models.Student x) => new()
+    {
+        UserId = x.UserId, DisplayName = x.DisplayName,
+        Program = x.Program, UpdatedAt = x.UpdatedAt
+    };
 
-        public Project Map(Models.Project x, int depth)
-        {
-            if (_active.TryGetValue(x, out var existing))
-            {
-                return (Project)existing;
-            }
+    public static Supervisor ToDto(this Models.Supervisor x) => new()
+    {
+        UserId = x.UserId, DisplayName = x.DisplayName,
+        ContactEmail = x.ContactEmail, AboutMe = x.AboutMe,
+        ExternalUrl = x.ExternalUrl, AcceptingInquiries = x.AcceptingInquiries,
+        UpdatedAt = x.UpdatedAt
+    };
 
-            var dto = new Project
-            {
-                Id = x.Id, SupervisorId = x.SupervisorId, Title = x.Title,
-                Description = x.Description, ExternalUrl = x.ExternalUrl, Status = x.Status,
-                CreatedAt = x.CreatedAt, UpdatedAt = x.UpdatedAt
-            };
-            _active.Add(x, dto);
-            if (depth < maxRelationshipDepth)
-            {
-                dto.Supervisor = x.Supervisor is null ? null : Map(x.Supervisor, depth + 1);
-                dto.Topics = x.Topics.Select(topic => Map(topic, depth + 1)).ToList();
-                dto.Inquiries = x.Inquiries.Select(inquiry => Map(inquiry, depth + 1)).ToList();
-            }
-            _active.Remove(x);
-            return dto;
-        }
+    public static Topic ToDtoWithRelations(this Models.Topic x)
+    {
+        var dto = x.ToDto();
+        dto.Projects = x.Projects.Select(project => project.ToDto()).ToList();
+        dto.Students = x.Students.Select(student => student.ToDto()).ToList();
+        dto.Supervisors = x.Supervisors.Select(supervisor => supervisor.ToDto()).ToList();
+        return dto;
+    }
 
-        public Inquiry Map(Models.Inquiry x, int depth)
-        {
-            if (_active.TryGetValue(x, out var existing))
-            {
-                return (Inquiry)existing;
-            }
+    public static Project ToDtoWithRelations(this Models.Project x)
+    {
+        var dto = x.ToDto();
+        dto.Supervisor = x.Supervisor?.ToDto();
+        dto.Topics = x.Topics.Select(topic => topic.ToDto()).ToList();
+        dto.Inquiries = x.Inquiries.Select(inquiry => inquiry.ToDto()).ToList();
+        return dto;
+    }
 
-            var dto = new Inquiry
-            {
-                Id = x.Id, StudentId = x.StudentId, SupervisorId = x.SupervisorId,
-                ProjectId = x.ProjectId, Message = x.Message,
-                CreatedAt = x.CreatedAt, UpdatedAt = x.UpdatedAt
-            };
-            _active.Add(x, dto);
-            if (depth < maxRelationshipDepth)
-            {
-                dto.Student = x.Student is null ? null : Map(x.Student, depth + 1);
-                dto.Supervisor = x.Supervisor is null ? null : Map(x.Supervisor, depth + 1);
-                dto.Project = x.Project is null ? null : Map(x.Project, depth + 1);
-            }
-            _active.Remove(x);
-            return dto;
-        }
+    public static Inquiry ToDtoWithRelations(this Models.Inquiry x)
+    {
+        var dto = x.ToDto();
+        dto.Student = x.Student?.ToDto();
+        dto.Supervisor = x.Supervisor?.ToDto();
+        dto.Project = x.Project?.ToDto();
+        return dto;
+    }
 
-        public Student Map(Models.Student x, int depth)
-        {
-            if (_active.TryGetValue(x, out var existing))
-            {
-                return (Student)existing;
-            }
+    public static Student ToDtoWithRelations(this Models.Student x)
+    {
+        var dto = x.ToDto();
+        dto.TopicInterests = x.TopicInterests.Select(topic => topic.ToDto()).ToList();
+        dto.Inquiries = x.Inquiries.Select(inquiry => inquiry.ToDto()).ToList();
+        dto.SavedProjects = x.SavedProjects.Select(project => project.ToDto()).ToList();
+        return dto;
+    }
 
-            var dto = new Student
-            {
-                UserId = x.UserId, DisplayName = x.DisplayName,
-                Program = x.Program, UpdatedAt = x.UpdatedAt
-            };
-            _active.Add(x, dto);
-            if (depth < maxRelationshipDepth)
-            {
-                dto.TopicInterests = x.TopicInterests.Select(topic => Map(topic, depth + 1)).ToList();
-                dto.Inquiries = x.Inquiries.Select(inquiry => Map(inquiry, depth + 1)).ToList();
-                dto.SavedProjects = x.SavedProjects.Select(project => Map(project, depth + 1)).ToList();
-            }
-            _active.Remove(x);
-            return dto;
-        }
-
-        public Supervisor Map(Models.Supervisor x, int depth)
-        {
-            if (_active.TryGetValue(x, out var existing))
-            {
-                return (Supervisor)existing;
-            }
-
-            var dto = new Supervisor
-            {
-                UserId = x.UserId, DisplayName = x.DisplayName,
-                ContactEmail = x.ContactEmail, AboutMe = x.AboutMe,
-                ExternalUrl = x.ExternalUrl, AcceptingInquiries = x.AcceptingInquiries,
-                UpdatedAt = x.UpdatedAt
-            };
-            _active.Add(x, dto);
-            if (depth < maxRelationshipDepth)
-            {
-                dto.TopicInterests = x.TopicInterests.Select(topic => Map(topic, depth + 1)).ToList();
-                dto.Projects = x.Projects.Select(project => Map(project, depth + 1)).ToList();
-                dto.Inquiries = x.Inquiries.Select(inquiry => Map(inquiry, depth + 1)).ToList();
-            }
-            _active.Remove(x);
-            return dto;
-        }
+    public static Supervisor ToDtoWithRelations(this Models.Supervisor x)
+    {
+        var dto = x.ToDto();
+        dto.TopicInterests = x.TopicInterests.Select(topic => topic.ToDto()).ToList();
+        dto.Projects = x.Projects.Select(project => project.ToDto()).ToList();
+        dto.Inquiries = x.Inquiries.Select(inquiry => inquiry.ToDto()).ToList();
+        return dto;
     }
 }

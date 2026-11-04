@@ -58,7 +58,6 @@ public class ApiExceptionHandler(IProblemDetailsService problems, ILogger<ApiExc
         var type = exception switch
         {
             ServiceException service => service.Type,
-            OrchestrationException orchestration => orchestration.Type,
             RepositoryException repository => repository.Type,
             ValidationException => ErrorType.Validation,
             OperationCanceledException => ErrorType.Cancelled,
@@ -80,6 +79,13 @@ public class ApiExceptionHandler(IProblemDetailsService problems, ILogger<ApiExc
                 Status = StatusCodes.Status404NotFound,
                 Title = "Resource not found",
                 Detail = exception.Message
+            },
+            // The database or API refused the action for this user (for example, editing someone else's project).
+            ErrorType.Forbidden => new ProblemDetails
+            {
+                Status = StatusCodes.Status403Forbidden,
+                Title = "Forbidden",
+                Detail = "You do not have permission to perform this operation."
             },
             ErrorType.Cancelled => new ProblemDetails
             {

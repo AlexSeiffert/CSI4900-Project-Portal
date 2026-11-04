@@ -178,6 +178,9 @@ public class InquiryRepositoryTests
         var persisted = await context.Db.Inquiries.SingleAsync(x => x.Id == inquiry.Id);
         Assert.Null(persisted.ProjectId);
         Assert.Null(persisted.Message);
+        Assert.Equal(InquiryStatus.Pending, persisted.Status);
+        Assert.NotEqual(default, persisted.CreatedAt);
+        Assert.Equal(persisted.CreatedAt, persisted.UpdatedAt);
         var withRelations = await repository.GetInquiryById(inquiry.Id);
         Assert.Equal(context.Student.UserId, withRelations?.Student.UserId);
         Assert.Equal(context.Supervisor.UserId, withRelations?.Supervisor.UserId);

@@ -35,7 +35,7 @@ public class SupervisorServiceTests
     }
 
     [Fact]
-    public async Task GetSupervisors_WrapsRepositoryFailure()
+    public async Task GetSupervisors_PropagatesRepositoryFailure()
     {
         using var cancellation = new CancellationTokenSource();
         var token = cancellation.Token;
@@ -46,11 +46,9 @@ public class SupervisorServiceTests
 
         var service = CreateService();
 
-        var exception = await Assert.ThrowsAsync<ServiceException>(() => service.GetSupervisors(token));
+        var exception = await Assert.ThrowsAsync<RepositoryException>(() => service.GetSupervisors(token));
 
-        Assert.Equal(nameof(SupervisorService.GetSupervisors), exception.Operation);
-        Assert.Equal(ErrorType.Unexpected, exception.Type);
-        Assert.Same(original, exception.InnerException);
+        Assert.Same(original, exception);
         _repository.Verify(repository => repository.GetSupervisors(token), Times.Once);
     }
 
@@ -74,7 +72,7 @@ public class SupervisorServiceTests
     }
 
     [Fact]
-    public async Task GetSupervisorById_WrapsRepositoryFailure()
+    public async Task GetSupervisorById_PropagatesRepositoryFailure()
     {
         var supervisorId = Guid.NewGuid();
         using var cancellation = new CancellationTokenSource();
@@ -86,11 +84,9 @@ public class SupervisorServiceTests
 
         var service = CreateService();
 
-        var exception = await Assert.ThrowsAsync<ServiceException>(() => service.GetSupervisorById(supervisorId, token));
+        var exception = await Assert.ThrowsAsync<RepositoryException>(() => service.GetSupervisorById(supervisorId, token));
 
-        Assert.Equal(nameof(SupervisorService.GetSupervisorById), exception.Operation);
-        Assert.Equal(ErrorType.Unexpected, exception.Type);
-        Assert.Same(original, exception.InnerException);
+        Assert.Same(original, exception);
         _repository.Verify(repository => repository.GetSupervisorById(supervisorId, token), Times.Once);
     }
 
@@ -123,7 +119,7 @@ public class SupervisorServiceTests
     }
 
     [Fact]
-    public async Task UpdateSupervisor_WrapsRepositoryFailure()
+    public async Task UpdateSupervisor_PropagatesRepositoryFailure()
     {
         var topic = new Topic { Id = Guid.NewGuid(), Name = "Databases" };
         var supervisor = new Supervisor { UserId = Guid.NewGuid(), DisplayName = "Supervisor", ContactEmail = "supervisor@example.test", TopicInterests = [topic] };
@@ -139,17 +135,15 @@ public class SupervisorServiceTests
 
         var service = CreateService();
 
-        var exception = await Assert.ThrowsAsync<ServiceException>(() => service.UpdateSupervisor(supervisor.UserId, request, token));
+        var exception = await Assert.ThrowsAsync<RepositoryException>(() => service.UpdateSupervisor(supervisor.UserId, request, token));
 
-        Assert.Equal(nameof(SupervisorService.UpdateSupervisor), exception.Operation);
-        Assert.Equal(ErrorType.Unexpected, exception.Type);
-        Assert.Same(original, exception.InnerException);
+        Assert.Same(original, exception);
         _repository.Verify(repository => repository.GetSupervisorById(supervisor.UserId, token), Times.Once);
         _repository.Verify(repository => repository.UpdateSupervisor(supervisor, request.TopicIds, token), Times.Once);
     }
 
     [Fact]
-    public async Task UpdateSupervisor_WrapsLookupFailure()
+    public async Task UpdateSupervisor_PropagatesLookupFailure()
     {
         var topicId = Guid.NewGuid();
         var supervisorId = Guid.NewGuid();
@@ -163,11 +157,9 @@ public class SupervisorServiceTests
 
         var service = CreateService();
 
-        var exception = await Assert.ThrowsAsync<ServiceException>(() => service.UpdateSupervisor(supervisorId, request, token));
+        var exception = await Assert.ThrowsAsync<RepositoryException>(() => service.UpdateSupervisor(supervisorId, request, token));
 
-        Assert.Equal(nameof(SupervisorService.UpdateSupervisor), exception.Operation);
-        Assert.Equal(ErrorType.Unexpected, exception.Type);
-        Assert.Same(original, exception.InnerException);
+        Assert.Same(original, exception);
         _repository.Verify(repository => repository.GetSupervisorById(supervisorId, token), Times.Once);
     }
 }

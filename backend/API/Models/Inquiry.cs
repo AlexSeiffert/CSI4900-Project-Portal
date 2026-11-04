@@ -12,9 +12,11 @@ public class Inquiry
 
     public string? Message { get; set; }
 
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public InquiryStatus Status { get; set; } = InquiryStatus.Pending;
 
-    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; }
+
+    public DateTime UpdatedAt { get; set; }
 
     public ICollection<InquiryAttachment> Attachments { get; set; } = new List<InquiryAttachment>();
 

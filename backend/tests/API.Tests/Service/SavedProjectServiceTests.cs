@@ -35,7 +35,7 @@ public class SavedProjectServiceTests
     }
 
     [Fact]
-    public async Task GetSavedProjects_WrapsRepositoryFailure()
+    public async Task GetSavedProjects_PropagatesRepositoryFailure()
     {
         var studentId = Guid.NewGuid();
         using var cancellation = new CancellationTokenSource();
@@ -47,11 +47,9 @@ public class SavedProjectServiceTests
 
         var service = CreateService();
 
-        var exception = await Assert.ThrowsAsync<ServiceException>(() => service.GetSavedProjects(studentId, token));
+        var exception = await Assert.ThrowsAsync<RepositoryException>(() => service.GetSavedProjects(studentId, token));
 
-        Assert.Equal(nameof(SavedProjectService.GetSavedProjects), exception.Operation);
-        Assert.Equal(ErrorType.Unexpected, exception.Type);
-        Assert.Same(original, exception.InnerException);
+        Assert.Same(original, exception);
         _repository.Verify(repository => repository.GetSavedProjects(studentId, token), Times.Once);
     }
 
@@ -72,7 +70,7 @@ public class SavedProjectServiceTests
     }
 
     [Fact]
-    public async Task SaveProject_WrapsRepositoryFailure()
+    public async Task SaveProject_PropagatesRepositoryFailure()
     {
         var studentId = Guid.NewGuid();
         var projectId = Guid.NewGuid();
@@ -85,11 +83,9 @@ public class SavedProjectServiceTests
 
         var service = CreateService();
 
-        var exception = await Assert.ThrowsAsync<ServiceException>(() => service.SaveProject(studentId, projectId, token));
+        var exception = await Assert.ThrowsAsync<RepositoryException>(() => service.SaveProject(studentId, projectId, token));
 
-        Assert.Equal(nameof(SavedProjectService.SaveProject), exception.Operation);
-        Assert.Equal(ErrorType.Unexpected, exception.Type);
-        Assert.Same(original, exception.InnerException);
+        Assert.Same(original, exception);
         _repository.Verify(repository => repository.SaveProject(studentId, projectId, token), Times.Once);
     }
 
@@ -110,7 +106,7 @@ public class SavedProjectServiceTests
     }
 
     [Fact]
-    public async Task RemoveSavedProject_WrapsRepositoryFailure()
+    public async Task RemoveSavedProject_PropagatesRepositoryFailure()
     {
         var studentId = Guid.NewGuid();
         var projectId = Guid.NewGuid();
@@ -123,11 +119,9 @@ public class SavedProjectServiceTests
 
         var service = CreateService();
 
-        var exception = await Assert.ThrowsAsync<ServiceException>(() => service.RemoveSavedProject(studentId, projectId, token));
+        var exception = await Assert.ThrowsAsync<RepositoryException>(() => service.RemoveSavedProject(studentId, projectId, token));
 
-        Assert.Equal(nameof(SavedProjectService.RemoveSavedProject), exception.Operation);
-        Assert.Equal(ErrorType.Unexpected, exception.Type);
-        Assert.Same(original, exception.InnerException);
+        Assert.Same(original, exception);
         _repository.Verify(repository => repository.RemoveSavedProject(studentId, projectId, token), Times.Once);
     }
 }

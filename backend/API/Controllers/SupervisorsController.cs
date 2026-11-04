@@ -26,12 +26,11 @@ public class SupervisorsController(ISupervisorService service) : ControllerBase
     }
 
     [HttpPut("{userId:guid}")]
+    [ProducesResponseType<Supervisor>(StatusCodes.Status200OK)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> UpdateSupervisor(Guid userId, UpdateSupervisor request, CancellationToken cancellationToken)
+    public async Task<ActionResult<Supervisor>> UpdateSupervisor(Guid userId, UpdateSupervisor request, CancellationToken cancellationToken)
     {
-        await _service.UpdateSupervisor(userId, request, cancellationToken);
-        return NoContent();
+        return await _service.UpdateSupervisor(userId, request, cancellationToken);
     }
 }

@@ -36,7 +36,7 @@ public class ProjectServiceTests
     }
 
     [Fact]
-    public async Task GetProjects_WrapsRepositoryFailure()
+    public async Task GetProjects_PropagatesRepositoryFailure()
     {
         using var cancellation = new CancellationTokenSource();
         var token = cancellation.Token;
@@ -47,11 +47,9 @@ public class ProjectServiceTests
 
         var service = CreateService();
 
-        var exception = await Assert.ThrowsAsync<ServiceException>(() => service.GetProjects(token));
+        var exception = await Assert.ThrowsAsync<RepositoryException>(() => service.GetProjects(token));
 
-        Assert.Equal(nameof(ProjectService.GetProjects), exception.Operation);
-        Assert.Equal(ErrorType.Unexpected, exception.Type);
-        Assert.Same(original, exception.InnerException);
+        Assert.Same(original, exception);
         _repository.Verify(repository => repository.GetProjects(token), Times.Once);
     }
 
@@ -78,7 +76,7 @@ public class ProjectServiceTests
     }
 
     [Fact]
-    public async Task GetProjectsBySupervisorId_WrapsRepositoryFailure()
+    public async Task GetProjectsBySupervisorId_PropagatesRepositoryFailure()
     {
         var supervisorId = Guid.NewGuid();
         using var cancellation = new CancellationTokenSource();
@@ -90,11 +88,9 @@ public class ProjectServiceTests
 
         var service = CreateService();
 
-        var exception = await Assert.ThrowsAsync<ServiceException>(() => service.GetProjectsBySupervisorId(supervisorId, token));
+        var exception = await Assert.ThrowsAsync<RepositoryException>(() => service.GetProjectsBySupervisorId(supervisorId, token));
 
-        Assert.Equal(nameof(ProjectService.GetProjectsBySupervisorId), exception.Operation);
-        Assert.Equal(ErrorType.Unexpected, exception.Type);
-        Assert.Same(original, exception.InnerException);
+        Assert.Same(original, exception);
         _repository.Verify(repository => repository.GetProjectsBySupervisorId(supervisorId, token), Times.Once);
     }
 
@@ -121,7 +117,7 @@ public class ProjectServiceTests
     }
 
     [Fact]
-    public async Task GetProjectsByTopicId_WrapsRepositoryFailure()
+    public async Task GetProjectsByTopicId_PropagatesRepositoryFailure()
     {
         var topicId = Guid.NewGuid();
         using var cancellation = new CancellationTokenSource();
@@ -133,11 +129,9 @@ public class ProjectServiceTests
 
         var service = CreateService();
 
-        var exception = await Assert.ThrowsAsync<ServiceException>(() => service.GetProjectsByTopicId(topicId, token));
+        var exception = await Assert.ThrowsAsync<RepositoryException>(() => service.GetProjectsByTopicId(topicId, token));
 
-        Assert.Equal(nameof(ProjectService.GetProjectsByTopicId), exception.Operation);
-        Assert.Equal(ErrorType.Unexpected, exception.Type);
-        Assert.Same(original, exception.InnerException);
+        Assert.Same(original, exception);
         _repository.Verify(repository => repository.GetProjectsByTopicId(topicId, token), Times.Once);
     }
 
@@ -164,7 +158,7 @@ public class ProjectServiceTests
     }
 
     [Fact]
-    public async Task GetProjectsByStatus_WrapsRepositoryFailure()
+    public async Task GetProjectsByStatus_PropagatesRepositoryFailure()
     {
         using var cancellation = new CancellationTokenSource();
         var token = cancellation.Token;
@@ -175,11 +169,9 @@ public class ProjectServiceTests
 
         var service = CreateService();
 
-        var exception = await Assert.ThrowsAsync<ServiceException>(() => service.GetProjectsByStatus(ProjectStatus.Available, token));
+        var exception = await Assert.ThrowsAsync<RepositoryException>(() => service.GetProjectsByStatus(ProjectStatus.Available, token));
 
-        Assert.Equal(nameof(ProjectService.GetProjectsByStatus), exception.Operation);
-        Assert.Equal(ErrorType.Unexpected, exception.Type);
-        Assert.Same(original, exception.InnerException);
+        Assert.Same(original, exception);
         _repository.Verify(repository => repository.GetProjectsByStatus(ProjectStatus.Available, token), Times.Once);
     }
 
@@ -205,7 +197,7 @@ public class ProjectServiceTests
     }
 
     [Fact]
-    public async Task GetProjectById_WrapsRepositoryFailure()
+    public async Task GetProjectById_PropagatesRepositoryFailure()
     {
         var projectId = Guid.NewGuid();
         using var cancellation = new CancellationTokenSource();
@@ -217,11 +209,9 @@ public class ProjectServiceTests
 
         var service = CreateService();
 
-        var exception = await Assert.ThrowsAsync<ServiceException>(() => service.GetProjectById(projectId, token));
+        var exception = await Assert.ThrowsAsync<RepositoryException>(() => service.GetProjectById(projectId, token));
 
-        Assert.Equal(nameof(ProjectService.GetProjectById), exception.Operation);
-        Assert.Equal(ErrorType.Unexpected, exception.Type);
-        Assert.Same(original, exception.InnerException);
+        Assert.Same(original, exception);
         _repository.Verify(repository => repository.GetProjectById(projectId, token), Times.Once);
     }
 
@@ -249,7 +239,7 @@ public class ProjectServiceTests
     }
 
     [Fact]
-    public async Task CreateProject_WrapsRepositoryFailure()
+    public async Task CreateProject_PropagatesRepositoryFailure()
     {
         var topicId = Guid.NewGuid();
         var supervisorId = Guid.NewGuid();
@@ -263,11 +253,9 @@ public class ProjectServiceTests
 
         var service = CreateService();
 
-        var exception = await Assert.ThrowsAsync<ServiceException>(() => service.CreateProject(request, token));
+        var exception = await Assert.ThrowsAsync<RepositoryException>(() => service.CreateProject(request, token));
 
-        Assert.Equal(nameof(ProjectService.CreateProject), exception.Operation);
-        Assert.Equal(ErrorType.Unexpected, exception.Type);
-        Assert.Same(original, exception.InnerException);
+        Assert.Same(original, exception);
         _repository.Verify(repository => repository.CreateProject(It.IsAny<Project>(), request.TopicIds, token), Times.Once);
     }
 
@@ -304,7 +292,7 @@ public class ProjectServiceTests
     }
 
     [Fact]
-    public async Task UpdateProject_WrapsRepositoryFailure()
+    public async Task UpdateProject_PropagatesRepositoryFailure()
     {
         var topic = new Topic { Id = Guid.NewGuid(), Name = "Databases" };
         var supervisorId = Guid.NewGuid();
@@ -321,17 +309,15 @@ public class ProjectServiceTests
 
         var service = CreateService();
 
-        var exception = await Assert.ThrowsAsync<ServiceException>(() => service.UpdateProject(project.Id, request, token));
+        var exception = await Assert.ThrowsAsync<RepositoryException>(() => service.UpdateProject(project.Id, request, token));
 
-        Assert.Equal(nameof(ProjectService.UpdateProject), exception.Operation);
-        Assert.Equal(ErrorType.Unexpected, exception.Type);
-        Assert.Same(original, exception.InnerException);
+        Assert.Same(original, exception);
         _repository.Verify(repository => repository.GetProjectById(project.Id, token), Times.Once);
         _repository.Verify(repository => repository.UpdateProject(project, request.TopicIds, token), Times.Once);
     }
 
     [Fact]
-    public async Task UpdateProject_WrapsLookupFailure()
+    public async Task UpdateProject_PropagatesLookupFailure()
     {
         var topicId = Guid.NewGuid();
         var projectId = Guid.NewGuid();
@@ -345,11 +331,9 @@ public class ProjectServiceTests
 
         var service = CreateService();
 
-        var exception = await Assert.ThrowsAsync<ServiceException>(() => service.UpdateProject(projectId, request, token));
+        var exception = await Assert.ThrowsAsync<RepositoryException>(() => service.UpdateProject(projectId, request, token));
 
-        Assert.Equal(nameof(ProjectService.UpdateProject), exception.Operation);
-        Assert.Equal(ErrorType.Unexpected, exception.Type);
-        Assert.Same(original, exception.InnerException);
+        Assert.Same(original, exception);
         _repository.Verify(repository => repository.GetProjectById(projectId, token), Times.Once);
     }
 
@@ -369,7 +353,7 @@ public class ProjectServiceTests
     }
 
     [Fact]
-    public async Task DeleteProject_WrapsRepositoryFailure()
+    public async Task DeleteProject_PropagatesRepositoryFailure()
     {
         var projectId = Guid.NewGuid();
         using var cancellation = new CancellationTokenSource();
@@ -381,11 +365,9 @@ public class ProjectServiceTests
 
         var service = CreateService();
 
-        var exception = await Assert.ThrowsAsync<ServiceException>(() => service.DeleteProject(projectId, token));
+        var exception = await Assert.ThrowsAsync<RepositoryException>(() => service.DeleteProject(projectId, token));
 
-        Assert.Equal(nameof(ProjectService.DeleteProject), exception.Operation);
-        Assert.Equal(ErrorType.Unexpected, exception.Type);
-        Assert.Same(original, exception.InnerException);
+        Assert.Same(original, exception);
         _repository.Verify(repository => repository.DeleteProject(projectId, token), Times.Once);
     }
 }
