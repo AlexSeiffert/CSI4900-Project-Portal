@@ -1,0 +1,96 @@
+@import "tailwindcss";
+
+/* Brand tokens: see ../BRAND.md */
+@theme {
+  /* uOttawa Garnet */
+  --color-primary: #8f001a;
+  --color-primary-hover: #7b0016;
+  /* Text */
+  --color-dark: #2d2d2c;
+  --color-muted: #80746c;
+  --color-faint: #908681;
+  /* Backgrounds and lines */
+  --color-light: #f2f2f2;
+  --color-hover: #dfdfdf;
+  /* uOttawa's hairline divider grey, from its statistics strips */
+  --color-divider: #c8c9c7;
+  --color-disabled: #c4c4c4;
+  --color-disabled-text: #757575;
+
+  --font-sans: "Work Sans", ui-sans-serif, system-ui, sans-serif;
+  /* Status signals: reserved meaning, always beside an icon or label. The base step is for icons,
+     dots and fills; the -text step clears 4.5:1 for written messages. */
+  --color-success: #0ca30c;
+  --color-success-text: #006300;
+  --color-error: #d03b3b;
+  --color-error-text: #b42318;
+
+}
+
+@layer base {
+  body {
+    @apply bg-light text-dark antialiased;
+  }
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-primary;
+  }
+  /* FocusOnNavigate focuses the page heading; no ring for that */
+  h1:focus {
+    @apply outline-none;
+  }
+}
+
+@layer components {
+  /* Underline-only field, as on uottawa.ca. The focus/error underline thickens with an inset
+     shadow so the layout never shifts. */
+  .field {
+    @apply mt-1 block w-full border-b border-dark px-1 py-3 sm:py-4 transition-colors duration-300 placeholder:text-muted hover:bg-hover focus:bg-hover focus:outline-none;
+  }
+  .field:focus-visible {
+    @apply border-primary shadow-[inset_0_-1px_0_var(--color-primary)];
+  }
+  .field.invalid {
+    @apply border-error shadow-[inset_0_-1px_0_var(--color-error)];
+  }
+
+  /* Message under a field that failed validation */
+  .field-error {
+    @apply mt-1 block text-sm text-error-text;
+  }
+
+  /* Pill-shaped primary button, as on uottawa.ca */
+  .btn {
+    @apply inline-flex cursor-pointer items-center justify-center rounded-full bg-primary px-6 py-3 sm:py-3.5 font-semibold text-white transition-colors duration-300 hover:bg-primary-hover disabled:cursor-not-allowed disabled:bg-disabled disabled:text-disabled-text;
+  }
+
+  /* Quiet outline button for secondary actions; small size for dense layouts */
+  .btn-secondary {
+    @apply border border-dark/20 bg-transparent text-dark hover:bg-hover;
+  }
+  .btn-sm {
+    @apply px-4 py-2 text-sm sm:py-2;
+  }
+
+  /* Small uppercase label; also used for form labels */
+  .label {
+    @apply text-xs font-bold uppercase tracking-[2.75px];
+  }
+
+  /* Form-level error */
+  .alert {
+    @apply border-l-4 border-error bg-error/10 px-3 py-2 text-sm text-error-text;
+  }
+
+  /* The logo tinted to the text colour */
+  .logo-mark {
+    @apply aspect-square bg-dark;
+    mask: url("../brand/uottawa.png") center / contain no-repeat;
+  }
+}
+
+#blazor-error-ui {
+  @apply fixed inset-x-0 bottom-0 z-50 hidden bg-dark px-4 py-3 text-sm text-white;
+}
+#blazor-error-ui .dismiss {
+  @apply absolute right-3 top-3 cursor-pointer;
+}
