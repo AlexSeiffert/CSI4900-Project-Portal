@@ -20,6 +20,8 @@ public sealed class ApiClient(HttpClient http, IConfiguration config, AuthSessio
 
     public Task<T> GetAsync<T>(string path) => SendAsync<T>(HttpMethod.Get, path, null);
 
+    public Task<T> PostAsync<T>(string path, object body) => SendAsync<T>(HttpMethod.Post, path, body);
+
     public Task<T> PutAsync<T>(string path, object body) => SendAsync<T>(HttpMethod.Put, path, body);
 
     public Task DeleteAsync(string path) => SendAsync<object?>(HttpMethod.Delete, path, null);

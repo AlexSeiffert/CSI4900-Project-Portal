@@ -1,0 +1,36 @@
+@* Inquiries: how far they get, and how many go out each week. *@
+<Panel Title="Where inquiries end up" Description="Every inquiry sent, and how many were opened, answered and closed.">
+    <InquirySankey Sent="@Data.Inquiries.Count" Viewed="@Data.Reached(InquiryStatus.Viewed)"
+                   Responded="@Data.Reached(InquiryStatus.Responded)" Closed="@Data.Reached(InquiryStatus.Closed)" />
+</Panel>
+
+<Panel Title="Inquiries sent per week" Description="@($"The last {Weeks} weeks. Colours show each inquiry's status today.")" Class="mt-4">
+    <EChart Kind="bars" Data="weekly" Height="280" Label="Inquiries sent per week, split by current status." />
+</Panel>
+
+@code {
+    private const int Weeks = 8;
+
+    [Parameter, EditorRequired] public AdminData Data { get; set; } = default!;
+
+    private object weekly = new();
+
+    protected override void OnParametersSet()
+    {
+        // Week 0 is the last seven days; labels are each week's first day.
+        var weeks = Enumerable.Range(0, Weeks).Reverse().ToList();
+        int WeekOf(Inquiry i) => (int)(AdminData.Age(i.CreatedAt).TotalDays / 7);
+        weekly = new
+        {
+            categories = weeks.Select(w => DateTime.Now.AddDays(-7 * (w + 1) + 1).ToString("MMM d")),
+            stacked = true,
+            barWidth = 56,
+            series = Enum.GetValues<InquiryStatus>().Select(status => new
+            {
+                name = Display.Inquiry(status).Label,
+                color = Display.Inquiry(status).Color,
+                data = weeks.Select(w => Data.Inquiries.Count(i => i.Status == status && WeekOf(i) == w)),
+            }),
+        };
+    }
+}

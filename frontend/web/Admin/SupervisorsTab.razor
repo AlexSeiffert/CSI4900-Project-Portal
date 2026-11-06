@@ -1,0 +1,104 @@
+@using System.Web
+@inject NavigationManager Nav
+
+@* Every supervisor: their load, how often they reply, and a switch for whether they take new inquiries. *@
+<Toolbar>
+    <Start><FilterChips Label="Filter supervisors" Options="filters" @bind-Selected="filter" /></Start>
+    <End><SearchBox @bind-Query="query" Placeholder="Search supervisors" /></End>
+</Toolbar>
+
+@if (error is not null)
+{
+    <p role="alert" class="alert mt-4">@error</p>
+}
+
+<Panel Flush Class="mt-4">
+    <DataTable Items="shown" SortedBy="Name" Empty="No supervisors match.">
+        <DataColumn Title="Name" SortBy="s => s.DisplayName">
+            <a class="font-semibold hover:text-primary hover:underline" href="@($"{BasePath}/supervisors/{context.UserId}")">@context.DisplayName</a>
+            <span class="block text-xs text-muted">@context.ContactEmail</span>
+        </DataColumn>
+        <DataColumn Title="Projects" SortBy="s => OpenProjects(s)" DescendingFirst>@OpenProjects(context)</DataColumn>
+        <DataColumn Title="Inquiries" SortBy="s => Data.InquiriesTo(s.UserId).Count()" DescendingFirst>@Data.InquiriesTo(context.UserId).Count()</DataColumn>
+        <DataColumn Title="Overdue" SortBy="s => Overdue(s)" DescendingFirst>
+            <span class="tabular-nums @(Overdue(context) > 0 ? "font-semibold text-error-text" : "text-muted")" title="@($"Inquiries waiting {AdminData.ReplyOverdue.Days}+ days for a reply")">@Overdue(context)</span>
+        </DataColumn>
+        <DataColumn Title="Reply rate" SortBy="s => Data.ReplyRate(s.UserId)" DescendingFirst>
+            @if (Data.ReplyRate(context.UserId) is { } rate)
+            {
+                <RingMeter Value="rate" Title="Share of their inquiries that got a reply" />
+            }
+            else
+            {
+                <span class="text-muted">No inquiries</span>
+            }
+        </DataColumn>
+        <DataColumn Title="Accepting" SortBy="s => s.AcceptingInquiries" DescendingFirst>
+            <Switch On="context.AcceptingInquiries" Label="@($"{context.DisplayName} is accepting inquiries")"
+                    Disabled="@(busy == context.UserId || !Actions.CanSave)" OnToggle="on => SetAcceptingAsync(context, on)" />
+        </DataColumn>
+    </DataTable>
+</Panel>
+
+@code {
+    [CascadingParameter] public AdminActions Actions { get; set; } = default!;
+    [Parameter, EditorRequired] public AdminData Data { get; set; } = default!;
+    [Parameter, EditorRequired] public string BasePath { get; set; } = "";
+
+    private string query = "";
+    private string filter = "all";
+    private List<FilterChips.Option> filters = [];
+    private Guid? busy;
+    private string? error;
+
+    private int OpenProjects(Supervisor s) => Data.ProjectsOf(s.UserId).Count(p => p.Status != ProjectStatus.Archived);
+    private int Overdue(Supervisor s) => Data.InquiriesTo(s.UserId).Count(AdminData.IsOverdue);
+
+    private bool Keeps(string key, Supervisor s) => key switch
+    {
+        "accepting" => s.AcceptingInquiries,
+        "paused" => !s.AcceptingInquiries,
+        "overdue" => Overdue(s) > 0,
+        _ => true,
+    };
+
+    private List<Supervisor> shown => Data.Supervisors
+        .Where(s => Keeps(filter, s))
+        .Where(s => s.DisplayName.Contains(query.Trim(), StringComparison.OrdinalIgnoreCase) || s.ContactEmail.Contains(query.Trim(), StringComparison.OrdinalIgnoreCase))
+        .ToList();
+
+    // Links from the Insights cards open the list already filtered (?filter=overdue).
+    protected override void OnInitialized()
+    {
+        var from = HttpUtility.ParseQueryString(new Uri(Nav.Uri).Query)["filter"];
+        if (from is not null && from is "accepting" or "paused" or "overdue")
+        {
+            filter = from;
+        }
+    }
+
+    protected override void OnParametersSet()
+    {
+        int Count(string key) => Data.Supervisors.Count(s => Keeps(key, s));
+        filters =
+        [
+            new("all", "All", Count("all")),
+            new("accepting", "Accepting", Count("accepting")),
+            new("paused", "Paused", Count("paused")),
+            new("overdue", "Has overdue", Count("overdue")),
+        ];
+    }
+
+    // The update replaces the whole profile, so fetch it first for the fields the list leaves out (topics).
+    private async Task SetAcceptingAsync(Supervisor supervisor, bool accepting)
+    {
+        busy = supervisor.UserId;
+        error = await Actions.SaveAsync(async api =>
+        {
+            var full = await api.GetAsync<Supervisor>($"supervisors/{supervisor.UserId}");
+            await api.PutAsync<Supervisor>($"supervisors/{supervisor.UserId}", new UpdateSupervisor(
+                full.DisplayName, full.ContactEmail, full.AboutMe, full.ExternalUrl, accepting, [.. (full.TopicInterests ?? []).Select(t => t.Id)]));
+        });
+        busy = null;
+    }
+}

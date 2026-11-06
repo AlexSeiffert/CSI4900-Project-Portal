@@ -19,11 +19,11 @@ public static class TestUser
     }
 
     // Makes the controller act as if that user is logged in.
-    public static T SignedInAs<T>(this T controller, Guid id) where T : ControllerBase
+    public static T SignedInAs<T>(this T controller, Guid id, string? userRole = null) where T : ControllerBase
     {
         controller.ControllerContext = new ControllerContext
         {
-            HttpContext = new DefaultHttpContext { User = Principal(id) }
+            HttpContext = new DefaultHttpContext { User = Principal(id, userRole) }
         };
         return controller;
     }

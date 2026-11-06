@@ -1,0 +1,45 @@
+@* Inquiries, newest first, linking to the people and project involved. Hide the column for whoever the
+   page is already about. Put it in a Flush <Panel> so it runs edge to edge. *@
+<DataTable Items="Inquiries" SortedBy="Sent" Empty="@Empty">
+    @if (ShowStudent)
+    {
+        <DataColumn Title="Student" SortBy="i => Data.NameOf(i.StudentId)">
+            <a class="font-semibold hover:text-primary hover:underline" href="@($"{BasePath}/students/{context.StudentId}")">@Data.NameOf(context.StudentId)</a>
+        </DataColumn>
+    }
+    @if (ShowSupervisor)
+    {
+        <DataColumn Title="Supervisor" SortBy="i => Data.NameOf(i.SupervisorId)">
+            <a class="hover:text-primary hover:underline" href="@($"{BasePath}/supervisors/{context.SupervisorId}")">@Data.NameOf(context.SupervisorId)</a>
+        </DataColumn>
+    }
+    @if (ShowProject)
+    {
+        <DataColumn Title="Project" SortBy="i => Data.Project(i.ProjectId)?.Title" Class="max-w-72 truncate">
+            @if (Data.Project(context.ProjectId) is { } project)
+            {
+                <a class="hover:text-primary hover:underline" href="@($"{BasePath}/projects/{project.Id}")" title="@project.Title">@project.Title</a>
+            }
+            else
+            {
+                <span class="text-muted">General inquiry</span>
+            }
+        </DataColumn>
+    }
+    <DataColumn Title="Status" SortBy="i => i.Status">
+        <StatusPill Status="@Display.Inquiry(context.Status)" />
+    </DataColumn>
+    <DataColumn Title="Sent" SortBy="i => i.CreatedAt" DescendingFirst>
+        <span class="text-muted">@Display.Ago(context.CreatedAt)</span>
+    </DataColumn>
+</DataTable>
+
+@code {
+    [Parameter, EditorRequired] public IEnumerable<Inquiry> Inquiries { get; set; } = [];
+    [Parameter, EditorRequired] public AdminData Data { get; set; } = default!;
+    [Parameter, EditorRequired] public string BasePath { get; set; } = "";
+    [Parameter] public bool ShowStudent { get; set; } = true;
+    [Parameter] public bool ShowSupervisor { get; set; } = true;
+    [Parameter] public bool ShowProject { get; set; } = true;
+    [Parameter] public string Empty { get; set; } = "No inquiries yet.";
+}

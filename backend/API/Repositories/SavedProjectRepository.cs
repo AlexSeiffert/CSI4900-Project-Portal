@@ -26,6 +26,23 @@ public class SavedProjectRepository(ApplicationDbContext db) : ISavedProjectRepo
         }
     }
 
+    // How many students saved each project; projects nobody saved are left out.
+    public async Task<Dictionary<Guid, int>> GetSaveCounts(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            // One row per save; counted here rather than in SQL so the in-memory test database can run it too.
+            var projectIds = await _db.Set<Dictionary<string, object>>("student_saved_projects").AsNoTracking()
+                .Select(saved => EF.Property<Guid>(saved, "project_id"))
+                .ToListAsync(cancellationToken);
+            return projectIds.GroupBy(id => id).ToDictionary(group => group.Key, group => group.Count());
+        }
+        catch (Exception exception) when (exception is not RepositoryException)
+        {
+            throw new RepositoryException(nameof(GetSaveCounts), exception);
+        }
+    }
+
     public async Task SaveProject(Guid studentId, Guid projectId, CancellationToken cancellationToken = default)
     {
         try

@@ -1,0 +1,72 @@
+@* Projects: which ones students want, and the state of the catalogue. *@
+<div class="grid gap-4 lg:grid-cols-[3fr_2fr]">
+    <Panel Title="Most popular projects" Description="@($"The {Top} projects with the most inquiries, and how many students saved each. Click one to open it.")">
+        @if (Data.Inquiries.Count == 0)
+        {
+            <p class="text-muted">No inquiries yet.</p>
+        }
+        else
+        {
+            <EChart Kind="bars" Data="popular" Height="@(Top * 30 + 50)" Label="Projects with the most inquiries, with their saves." />
+        }
+    </Panel>
+
+    <Panel Title="Projects by status" Description="Open projects take inquiries; unavailable and archived ones don't.">
+        @if (Data.Projects.Count == 0)
+        {
+            <p class="text-muted">No projects yet.</p>
+        }
+        else
+        {
+            <EChart Kind="donut" Data="ring" Height="230"
+                    Label="@string.Join(", ", statuses.Select(s => $"{s.Label}: {s.Count}"))" />
+            <ul class="mt-5 divide-y divide-divider text-sm">
+                @foreach (var status in statuses)
+                {
+                    <li class="flex items-center gap-3 py-2.5">
+                        <span class="size-2.5 shrink-0 rounded-full" style="background: @status.Color"></span>
+                        <span class="text-muted">@status.Label</span>
+                        <span class="ml-auto font-semibold tabular-nums">@status.Count</span>
+                        <span class="w-10 text-right tabular-nums text-muted">@InsightMath.Percent(status.Count, Data.Projects.Count)%</span>
+                    </li>
+                }
+            </ul>
+        }
+    </Panel>
+</div>
+
+@code {
+    private const int Top = 10;
+
+    [Parameter, EditorRequired] public AdminData Data { get; set; } = default!;
+    [Parameter, EditorRequired] public string BasePath { get; set; } = "";
+
+    private object popular = new();
+    private object ring = new();
+    private List<(string Label, int Count, string Color)> statuses = [];
+
+    protected override void OnParametersSet()
+    {
+        var top = Data.Projects
+            .OrderByDescending(p => Data.InquiriesFor(p.Id).Count()).ThenByDescending(p => Data.SavesOf(p.Id))
+            .Take(Top).ToList();
+        popular = new
+        {
+            categories = top.Select(p => InsightMath.Clip(p.Title)),
+            horizontal = true,
+            links = top.Select(p => $"{BasePath}/projects/{p.Id}"),
+            series = new object[]
+            {
+                new { name = "Inquiries", color = "mono-5", data = top.Select(p => Data.InquiriesFor(p.Id).Count()) },
+                new { name = "Saves", color = "stage-1", type = "line", data = top.Select(p => Data.SavesOf(p.Id)) },
+            },
+        };
+        statuses = [.. Enum.GetValues<ProjectStatus>().Select(status =>
+            (Display.Project(status).Label, Data.Projects.Count(p => p.Status == status), Display.Project(status).Color))];
+        ring = new
+        {
+            caption = "projects",
+            segments = statuses.Select(s => new { name = s.Label, value = s.Count, color = s.Color }),
+        };
+    }
+}

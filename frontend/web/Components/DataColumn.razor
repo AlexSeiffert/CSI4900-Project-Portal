@@ -1,0 +1,16 @@
+@typeparam TItem
+
+@* One column of a <DataTable>: its heading, how to sort it (optional) and what each cell shows. *@
+
+@code {
+    [CascadingParameter] public DataTable<TItem> Table { get; set; } = default!;
+    [Parameter, EditorRequired] public string Title { get; set; } = "";
+    [Parameter, EditorRequired] public RenderFragment<TItem> ChildContent { get; set; } = default!;
+    /// <summary>The value to sort by; leave out for a column that can't be sorted.</summary>
+    [Parameter] public Func<TItem, object?>? SortBy { get; set; }
+    /// <summary>Sort highest first on the first click (counts and dates usually want this).</summary>
+    [Parameter] public bool DescendingFirst { get; set; }
+    [Parameter] public string? Class { get; set; }
+
+    protected override void OnInitialized() => Table.Add(this);
+}

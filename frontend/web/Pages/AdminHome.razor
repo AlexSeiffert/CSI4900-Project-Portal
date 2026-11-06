@@ -1,5 +1,53 @@
 @page "/admin-home"
+@page "/admin-home/{Tab}"
+@page "/admin-home/{Tab}/{ItemId}"
+@inject ApiClient Api
+@inject AuthSession Auth
+@inject NavigationManager Nav
 
-<PageTitle>Admin · Project Portal</PageTitle>
+<PageTitle>@AdminShell.TitleOf(current) · Admin · Project Portal</PageTitle>
 
-<RoleHome Role="admin" />
+@* Admin home: Insights first, then a tab per thing the admin manages. Each tab and record has its own
+   URL (/admin-home/students/{id}) so it survives a refresh and can be linked to. Data loads once for
+   all tabs and again after every change, so the tabs always agree. *@
+<RoleGate Role="admin" Context="user">
+    <AdminShell Current="@current" BasePath="/admin-home" ItemId="@ItemId" UserName="@user.Name" Data="data" Error="@error"
+                Actions="actions" OnSignOut="SignOutAsync" />
+</RoleGate>
+
+@code {
+    [Parameter] public string? Tab { get; set; }
+    [Parameter] public string? ItemId { get; set; }
+
+    private string current = "insights";
+    private AdminData? data;
+    private string? error;
+    private AdminActions actions = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        actions = new AdminActions(Api, ReloadAsync);
+        try
+        {
+            data = await AdminData.LoadAsync(Api);
+        }
+        catch (ApiException e)
+        {
+            error = e.Message;
+        }
+    }
+
+    protected override void OnParametersSet() => current = AdminShell.Normalize(Tab);
+
+    private async Task ReloadAsync()
+    {
+        data = await AdminData.LoadAsync(Api);
+        StateHasChanged();
+    }
+
+    private async Task SignOutAsync()
+    {
+        await Auth.SignOutAsync();
+        Nav.NavigateTo("/login", replace: true);
+    }
+}

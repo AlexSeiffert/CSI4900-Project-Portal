@@ -1,0 +1,19 @@
+@* A row of toggle buttons that filter a list; exactly one is on. Each shows how many rows it would leave. *@
+<div class="flex flex-wrap gap-2" role="group" aria-label="@Label">
+    @foreach (var option in Options)
+    {
+        <button type="button" class="chip" aria-pressed="@(option.Key == Selected ? "true" : "false")" @onclick="() => SelectedChanged.InvokeAsync(option.Key)">
+            @option.Label
+            <span class="tabular-nums opacity-60">@option.Count</span>
+        </button>
+    }
+</div>
+
+@code {
+    public sealed record Option(string Key, string Label, int Count);
+
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+    [Parameter, EditorRequired] public IReadOnlyList<Option> Options { get; set; } = [];
+    [Parameter] public string Selected { get; set; } = "";
+    [Parameter] public EventCallback<string> SelectedChanged { get; set; }
+}

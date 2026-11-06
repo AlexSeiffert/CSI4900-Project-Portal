@@ -1,0 +1,182 @@
+@using System.Web
+@inject NavigationManager Nav
+
+@* One project, or a new one (Id = null): edit everything about it (including which supervisor owns it),
+   delete it, and see who has asked about it. New projects can start from a supervisor (?supervisor=<id>). *@
+@if (!IsNew && project is null)
+{
+    <BackLink Href="@($"{BasePath}/projects")" Label="All projects" />
+    <p class="mt-6 text-muted">@(loaded ? "This project no longer exists." : "Loading…")</p>
+}
+else
+{
+    <RecordHeader Title="@(IsNew ? "New project" : project!.Title)" BackHref="@($"{BasePath}/projects")" BackLabel="All projects">
+        @if (!IsNew)
+        {
+            <StatusPill Status="@Display.Project(project!.Status)" />
+            <span class="inline-flex items-center gap-1.5"><Icon Name="send" />@Data.InquiriesFor(project.Id).Count() inquiries</span>
+            <span class="inline-flex items-center gap-1.5"><Icon Name="bookmark" />@Data.SavesOf(project.Id) saves</span>
+            <span>Updated @Display.Ago(project.UpdatedAt).ToLowerInvariant()</span>
+        }
+    </RecordHeader>
+
+    <div class="mt-8 grid items-start gap-4 @(IsNew ? "max-w-2xl" : "lg:grid-cols-[3fr_2fr]")">
+        <form class="card space-y-5" @onsubmit="SaveAsync" @onsubmit:preventDefault>
+            <FormField Label="Supervisor">
+                <select class="field" @bind="form.SupervisorId" required>
+                    <option value="">Choose a supervisor</option>
+                    @foreach (var s in Data.Supervisors)
+                    {
+                        <option value="@s.UserId">@s.DisplayName</option>
+                    }
+                </select>
+            </FormField>
+            <FormField Label="Title">
+                <input class="field" @bind="form.Title" @bind:event="oninput" required />
+            </FormField>
+            <FormField Label="Description">
+                <textarea class="field min-h-36 resize-y" @bind="form.Description" @bind:event="oninput" required></textarea>
+            </FormField>
+            <FormField Label="Link">
+                <input class="field" type="url" @bind="form.Url" @bind:event="oninput" placeholder="https://" />
+            </FormField>
+            <FormField Label="Status">
+                <select class="field" @bind="form.Status">
+                    @foreach (var status in Enum.GetValues<ProjectStatus>())
+                    {
+                        <option value="@status">@Display.Project(status).Label</option>
+                    }
+                </select>
+            </FormField>
+            <FormField Label="Topics" Group>
+                <TopicPicker Topics="Data.Topics" Selected="form.Topics" Disabled="!Actions.CanSave" OnChange="() => saved = false" />
+            </FormField>
+            <SaveBar Label="@(IsNew ? "Create project" : "Save changes")" Busy="busy" Saved="saved" Error="@error">
+                @if (!IsNew && Actions.CanSave)
+                {
+                    <span class="ml-auto flex flex-wrap items-center gap-2">
+                        @if (confirmingDelete)
+                        {
+                            <span class="text-sm text-muted">Delete for good? Its inquiries stay, unlinked.</span>
+                            <button type="button" class="btn btn-sm bg-error hover:bg-error-text" @onclick="DeleteAsync">Delete</button>
+                            <button type="button" class="btn btn-secondary btn-sm" @onclick="() => confirmingDelete = false">Cancel</button>
+                        }
+                        else
+                        {
+                            <button type="button" class="btn btn-secondary btn-sm" @onclick="() => confirmingDelete = true">Delete project</button>
+                        }
+                    </span>
+                }
+            </SaveBar>
+        </form>
+
+        @if (!IsNew)
+        {
+            <Panel Title="Inquiries about this project" Flush>
+                <InquiryTable Inquiries="Data.InquiriesFor(project!.Id)" Data="Data" BasePath="@BasePath" ShowSupervisor="false" ShowProject="false" />
+            </Panel>
+        }
+    </div>
+}
+
+@code {
+    [CascadingParameter] public AdminActions Actions { get; set; } = default!;
+    [Parameter, EditorRequired] public AdminData Data { get; set; } = default!;
+    [Parameter, EditorRequired] public string BasePath { get; set; } = "";
+    /// <summary>The project, or null for a new one.</summary>
+    [Parameter] public Guid? Id { get; set; }
+
+    private bool IsNew => Id is null;
+
+    private Project? project;
+    private Guid? loadedId;
+    private bool loaded;
+    private Form form = new();
+    private bool busy;
+    private bool saved;
+    private string? error;
+    private bool confirmingDelete;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (IsNew)
+        {
+            if (loadedId is not null || !loaded)
+            {
+                var from = HttpUtility.ParseQueryString(new Uri(Nav.Uri).Query)["supervisor"];
+                form = new Form { SupervisorId = Guid.TryParse(from, out var s) ? s.ToString() : "" };
+                loadedId = null;
+                loaded = true;
+            }
+            return;
+        }
+        // Reloads after a save pass new Data; only fetch the record again when it's a different project.
+        if (loadedId == Id)
+        {
+            project = Data.Project(Id);
+            return;
+        }
+        loadedId = Id;
+        loaded = false;
+        saved = false;
+        error = null;
+        confirmingDelete = false;
+        project = await Actions.GetAsync($"projects/{Id}", Data.Project(Id));
+        loaded = true;
+        if (project is not null)
+        {
+            form = new Form
+            {
+                SupervisorId = project.SupervisorId.ToString(),
+                Title = project.Title,
+                Description = project.Description,
+                Url = project.ExternalUrl ?? "",
+                Status = project.Status,
+                Topics = [.. (project.Topics ?? [.. Data.TopicsOf(project.Id)]).Select(t => t.Id)],
+            };
+        }
+    }
+
+    private async Task SaveAsync()
+    {
+        busy = true;
+        saved = false;
+        var body = new UpdateProject(form.Title.Trim(), form.Description.Trim(), string.IsNullOrWhiteSpace(form.Url) ? null : form.Url.Trim(),
+            form.Status, [.. form.Topics], Guid.TryParse(form.SupervisorId, out var s) ? s : null);
+        if (IsNew)
+        {
+            Project? created = null;
+            error = await Actions.SaveAsync(async api => created = await api.PostAsync<Project>("projects", body));
+            busy = false;
+            if (created is not null)
+            {
+                Nav.NavigateTo($"{BasePath}/projects/{created.Id}");
+            }
+            return;
+        }
+        error = await Actions.SaveAsync(api => api.PutAsync<Project>($"projects/{Id}", body));
+        saved = error is null;
+        busy = false;
+    }
+
+    private async Task DeleteAsync()
+    {
+        busy = true;
+        error = await Actions.SaveAsync(api => api.DeleteAsync($"projects/{Id}"));
+        busy = false;
+        if (error is null)
+        {
+            Nav.NavigateTo($"{BasePath}/projects");
+        }
+    }
+
+    private sealed class Form
+    {
+        public string SupervisorId { get; set; } = "";
+        public string Title { get; set; } = "";
+        public string Description { get; set; } = "";
+        public string Url { get; set; } = "";
+        public ProjectStatus Status { get; set; } = ProjectStatus.Available;
+        public HashSet<Guid> Topics { get; set; } = [];
+    }
+}
