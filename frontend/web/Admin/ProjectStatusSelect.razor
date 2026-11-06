@@ -1,0 +1,19 @@
+@* A project's status as a menu in a table cell, with the status colour beside it. *@
+<CellSelect Label="@($"Status of {Project.Title}")" Value="@Project.Status.ToString()" Dot="@Display.Project(Project.Status).Color"
+            Disabled="Disabled" OnChange="Changed">
+    @foreach (var status in Enum.GetValues<ProjectStatus>())
+    {
+        <option value="@status">@Display.Project(status).Label</option>
+    }
+</CellSelect>
+
+@code {
+    [Parameter, EditorRequired] public Project Project { get; set; } = default!;
+    [Parameter] public bool Disabled { get; set; }
+    [Parameter] public EventCallback<ProjectStatus> OnChange { get; set; }
+
+    private Task Changed(string? value) =>
+        Enum.TryParse<ProjectStatus>(value, out var status) && status != Project.Status
+            ? OnChange.InvokeAsync(status)
+            : Task.CompletedTask;
+}

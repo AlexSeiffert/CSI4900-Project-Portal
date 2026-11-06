@@ -1,0 +1,21 @@
+@* A menu inside a table cell: a small pill (.cell-select) with an optional coloured dot for the current
+   value. Options go inside; changes arrive as the selected option's value. *@
+<label class="cell-select">
+    @if (Dot is not null)
+    {
+        <span class="size-2 shrink-0 rounded-full" style="background: @Dot"></span>
+    }
+    <select aria-label="@Label" value="@Value" disabled="@Disabled" @onchange="e => OnChange.InvokeAsync(e.Value?.ToString())">
+        @ChildContent
+    </select>
+    <Icon Name="chevron-down" Class="pointer-events-none absolute right-2.5 size-4 text-muted" />
+</label>
+
+@code {
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+    [Parameter] public string? Value { get; set; }
+    [Parameter] public string? Dot { get; set; }
+    [Parameter] public bool Disabled { get; set; }
+    [Parameter] public EventCallback<string?> OnChange { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

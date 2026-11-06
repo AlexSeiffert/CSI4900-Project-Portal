@@ -1,0 +1,115 @@
+@using System.Web
+@inject NavigationManager Nav
+
+@* The catalogue: filter by status and topic, hand a project to another supervisor or change its status
+   right in the table, or add one. *@
+<Toolbar>
+    <Start><FilterChips Label="Filter by status" Options="filters" @bind-Selected="filter" /></Start>
+    <End>
+        <SelectBox Label="Topic" @bind-Value="topic">
+            <option value="">Any</option>
+            @foreach (var t in Data.Topics)
+            {
+                <option value="@t.Id">@t.Name</option>
+            }
+        </SelectBox>
+        <SearchBox @bind-Query="query" Placeholder="Search projects" />
+        <a href="@($"{BasePath}/projects/new")" class="btn btn-sm"><Icon Name="plus" />New project</a>
+    </End>
+</Toolbar>
+
+@if (error is not null)
+{
+    <p role="alert" class="alert mt-4">@error</p>
+}
+
+<Panel Flush Class="mt-4">
+    <DataTable Items="shown" SortedBy="Project" Empty="No projects match.">
+        <DataColumn Title="Project" SortBy="p => p.Title" Class="min-w-72 max-w-[26rem] whitespace-normal">
+            <a class="font-semibold hover:text-primary hover:underline" href="@($"{BasePath}/projects/{context.Id}")">@context.Title</a>
+            @if (Data.TopicsOf(context.Id) is { Count: > 0 } tags)
+            {
+                <span class="mt-2 flex flex-wrap gap-1.5">
+                    @foreach (var tag in tags)
+                    {
+                        <TopicChip Name="@tag.Name" />
+                    }
+                </span>
+            }
+        </DataColumn>
+        <DataColumn Title="Supervisor" SortBy="p => Data.NameOf(p.SupervisorId)">
+            <CellSelect Label="@($"Supervisor of {context.Title}")" Value="@context.SupervisorId.ToString()"
+                        Disabled="@(busy == context.Id || !Actions.CanSave)" OnChange="v => MoveAsync(context, v)">
+                @foreach (var supervisor in Data.Supervisors)
+                {
+                    <option value="@supervisor.UserId">@supervisor.DisplayName</option>
+                }
+            </CellSelect>
+        </DataColumn>
+        <DataColumn Title="Status" SortBy="p => p.Status">
+            <ProjectStatusSelect Project="context" Disabled="@(busy == context.Id || !Actions.CanSave)" OnChange="s => SetStatusAsync(context, s)" />
+        </DataColumn>
+        <DataColumn Title="Inquiries" SortBy="p => Data.InquiriesFor(p.Id).Count()" DescendingFirst>
+            @Data.InquiriesFor(context.Id).Count()
+        </DataColumn>
+        <DataColumn Title="Saves" SortBy="p => Data.SavesOf(p.Id)" DescendingFirst>
+            @Data.SavesOf(context.Id)
+        </DataColumn>
+        <DataColumn Title="Updated" SortBy="p => p.UpdatedAt" DescendingFirst>
+            <span class="text-muted">@Display.Ago(context.UpdatedAt)</span>
+        </DataColumn>
+    </DataTable>
+</Panel>
+
+@code {
+    [CascadingParameter] public AdminActions Actions { get; set; } = default!;
+    [Parameter, EditorRequired] public AdminData Data { get; set; } = default!;
+    [Parameter, EditorRequired] public string BasePath { get; set; } = "";
+
+    private string query = "";
+    private string filter = "all";
+    private string topic = "";
+    private List<FilterChips.Option> filters = [];
+    private Guid? busy;
+    private string? error;
+
+    private List<Project> shown => Data.Projects
+        .Where(p => filter == "all" || p.Status.ToString() == filter)
+        .Where(p => topic == "" || Data.TopicsOf(p.Id).Any(t => t.Id.ToString() == topic))
+        .Where(p => p.Title.Contains(query.Trim(), StringComparison.OrdinalIgnoreCase) || Data.NameOf(p.SupervisorId).Contains(query.Trim(), StringComparison.OrdinalIgnoreCase))
+        .ToList();
+
+    // Links from the Insights cards open the list already filtered (?filter=overdue).
+    protected override void OnInitialized()
+    {
+        var from = HttpUtility.ParseQueryString(new Uri(Nav.Uri).Query)["filter"];
+        if (from is not null && Enum.TryParse<ProjectStatus>(from, out _))
+        {
+            filter = from;
+        }
+    }
+
+    protected override void OnParametersSet()
+    {
+        filters =
+        [
+            new("all", "All", Data.Projects.Count),
+            .. Enum.GetValues<ProjectStatus>().Select(s => new FilterChips.Option(s.ToString(), Display.Project(s).Label, Data.Projects.Count(p => p.Status == s))),
+        ];
+    }
+
+    private Task SetStatusAsync(Project project, ProjectStatus status) =>
+        SaveAsync(project, Data.UpdateFor(project) with { Status = status });
+
+    private Task MoveAsync(Project project, string? supervisorId) =>
+        Guid.TryParse(supervisorId, out var id) && id != project.SupervisorId
+            ? SaveAsync(project, Data.UpdateFor(project) with { SupervisorId = id })
+            : Task.CompletedTask;
+
+    private async Task SaveAsync(Project project, UpdateProject body)
+    {
+        busy = project.Id;
+        error = await Actions.SaveAsync(api => api.PutAsync<Project>($"projects/{project.Id}", body));
+        busy = null;
+    }
+}

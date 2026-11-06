@@ -1,0 +1,9 @@
+@* A topic tag: its icon and name on a neutral grey pill. Hovering says what it covers. *@
+<span class="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-light px-2.5 py-1 text-xs font-semibold text-dark" title="@TopicPalette.Describe(Name)">
+    <Icon Name="@TopicPalette.IconFor(Name)" Class="size-3.5 text-muted" StrokeWidth="2.25" />
+    @Name
+</span>
+
+@code {
+    [Parameter, EditorRequired] public string Name { get; set; } = "";
+}

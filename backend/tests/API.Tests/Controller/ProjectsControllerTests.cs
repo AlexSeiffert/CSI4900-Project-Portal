@@ -126,6 +126,35 @@ public class ProjectsControllerTests
     }
 
     [Fact]
+    public async Task CreateProject_AsAdmin_UsesTheChosenSupervisor()
+    {
+        var supervisorId = Guid.NewGuid();
+        var request = new CreateProject { SupervisorId = supervisorId };
+        var project = new Project { Id = Guid.NewGuid(), SupervisorId = supervisorId };
+
+        _service.Setup(service => service.CreateProject(It.Is<CreateProject>(r => r.SupervisorId == supervisorId), CancellationToken.None))
+            .ReturnsAsync(project);
+
+        var controller = CreateController().SignedInAs(Guid.NewGuid(), "admin");
+
+        var result = await controller.CreateProject(request, CancellationToken.None);
+
+        Assert.Same(project, Assert.IsType<CreatedAtActionResult>(result.Result).Value);
+    }
+
+    [Fact]
+    public async Task CreateProject_AsAdminWithoutSupervisor_ReturnsValidationProblem()
+    {
+        var controller = CreateController().SignedInAs(Guid.NewGuid(), "admin");
+
+        var result = await controller.CreateProject(new CreateProject(), CancellationToken.None);
+
+        Assert.IsType<ObjectResult>(result.Result);
+        Assert.False(controller.ModelState.IsValid);
+        _service.Verify(service => service.CreateProject(It.IsAny<CreateProject>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
     public async Task UpdateProject_ReturnsUpdatedProject()
     {
         var projectId = Guid.NewGuid();
@@ -142,6 +171,33 @@ public class ProjectsControllerTests
 
         Assert.Same(updated, result.Value);
         _service.Verify(service => service.UpdateProject(projectId, request, CancellationToken.None), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdateProject_AsSupervisor_IgnoresSupervisorId()
+    {
+        var projectId = Guid.NewGuid();
+        var request = new UpdateProject { SupervisorId = Guid.NewGuid() };
+        _service.Setup(service => service.UpdateProject(projectId, request, CancellationToken.None))
+            .ReturnsAsync(new Project { Id = projectId });
+
+        await CreateController().SignedInAs(Guid.NewGuid(), "supervisor").UpdateProject(projectId, request, CancellationToken.None);
+
+        Assert.Null(request.SupervisorId);
+    }
+
+    [Fact]
+    public async Task UpdateProject_AsAdmin_KeepsSupervisorId()
+    {
+        var projectId = Guid.NewGuid();
+        var newOwner = Guid.NewGuid();
+        var request = new UpdateProject { SupervisorId = newOwner };
+        _service.Setup(service => service.UpdateProject(projectId, request, CancellationToken.None))
+            .ReturnsAsync(new Project { Id = projectId });
+
+        await CreateController().SignedInAs(Guid.NewGuid(), "admin").UpdateProject(projectId, request, CancellationToken.None);
+
+        Assert.Equal(newOwner, request.SupervisorId);
     }
 
     [Fact]

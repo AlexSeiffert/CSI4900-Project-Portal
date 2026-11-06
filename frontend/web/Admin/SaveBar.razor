@@ -1,0 +1,29 @@
+@* The bottom of an edit form: the save button and what happened on the last save. *@
+<div class="mt-6 flex flex-wrap items-center gap-4">
+    <button type="submit" class="btn btn-sm" disabled="@(Busy || !Actions.CanSave)">@(Busy ? "Saving…" : Label)</button>
+    @if (Error is not null)
+    {
+        <p role="alert" class="alert">@Error</p>
+    }
+    else if (Saved)
+    {
+        <p role="status" class="inline-flex items-center gap-1.5 text-sm font-semibold text-success-text">
+            <Icon Name="check" StrokeWidth="2.5" />
+            Saved
+        </p>
+    }
+    else if (!Actions.CanSave)
+    {
+        <p class="text-sm text-muted">Preview only: changes aren't saved.</p>
+    }
+    @ChildContent
+</div>
+
+@code {
+    [CascadingParameter] public AdminActions Actions { get; set; } = default!;
+    [Parameter] public string Label { get; set; } = "Save changes";
+    [Parameter] public bool Busy { get; set; }
+    [Parameter] public bool Saved { get; set; }
+    [Parameter] public string? Error { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

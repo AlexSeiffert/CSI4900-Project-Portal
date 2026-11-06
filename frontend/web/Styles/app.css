@@ -1,0 +1,218 @@
+@import "tailwindcss";
+
+/* Brand tokens: see ../BRAND.md */
+@theme {
+  /* uOttawa Garnet */
+  --color-primary: #8f001a;
+  --color-primary-hover: #7b0016;
+  /* Text */
+  --color-dark: #2d2d2c;
+  --color-muted: #80746c;
+  --color-faint: #908681;
+  /* Backgrounds and lines */
+  --color-light: #f2f2f2;
+  --color-hover: #dfdfdf;
+  /* uOttawa's hairline divider grey, from its statistics strips */
+  --color-divider: #c8c9c7;
+  --color-disabled: #c4c4c4;
+  --color-disabled-text: #757575;
+
+  --font-sans: "Work Sans", ui-sans-serif, system-ui, sans-serif;
+  /* Status signals: reserved meaning, always beside an icon or label. The base step is for icons,
+     dots and fills; the -text step clears 4.5:1 for written messages. */
+  --color-success: #0ca30c;
+  --color-success-text: #006300;
+  --color-error: #d03b3b;
+  --color-error-text: #b42318;
+
+}
+
+/* Data colours: see ../BRAND.md. `static` keeps every variable in the build, because charts set them
+   from C# and JavaScript where Tailwind can't see them. All are mid-lightness so they also hold up on
+   the planned charcoal theme. */
+@theme static {
+  /* Matching stages, an "afterburner" ramp from cool to hot: Sent → Viewed → Talking → Matched.
+     Only for a student's or inquiry's progress (the matching bar, status pills); not for charts. */
+  --color-stage-1: #4cc9f0;
+  --color-stage-2: #4361ee;
+  --color-stage-3: #7b2cbf;
+  --color-stage-4: #f72585;
+
+  /* Analytics: one slate-blue hue, light to dark. Darker means more, so a chart reads at a glance.
+     Charts about matching stages use the stage colours above instead. */
+  --color-mono-1: #dde3ef;
+  --color-mono-2: #b3bfd6;
+  --color-mono-3: #8496b9;
+  --color-mono-4: #56689a;
+  --color-mono-5: #2f3d6b;
+
+  /* "None", "stopped", "archived", "not started" */
+  --color-chart-neutral: #b9b4af;
+}
+
+@layer base {
+  body {
+    @apply bg-light text-dark antialiased;
+  }
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-primary;
+  }
+  /* FocusOnNavigate focuses the page heading; no ring for that */
+  h1:focus {
+    @apply outline-none;
+  }
+}
+
+@layer components {
+  /* Underline-only field, as on uottawa.ca. The focus/error underline thickens with an inset
+     shadow so the layout never shifts. */
+  .field {
+    @apply mt-1 block w-full border-b border-dark px-1 py-3 sm:py-4 transition-colors duration-300 placeholder:text-muted hover:bg-hover focus:bg-hover focus:outline-none;
+  }
+  .field:focus-visible {
+    @apply border-primary shadow-[inset_0_-1px_0_var(--color-primary)];
+  }
+  .field.invalid {
+    @apply border-error shadow-[inset_0_-1px_0_var(--color-error)];
+  }
+
+  /* Message under a field that failed validation */
+  .field-error {
+    @apply mt-1 block text-sm text-error-text;
+  }
+
+  /* Pill-shaped primary button, as on uottawa.ca */
+  .btn {
+    @apply inline-flex cursor-pointer items-center justify-center rounded-full bg-primary px-6 py-3 sm:py-3.5 font-semibold text-white transition-colors duration-300 hover:bg-primary-hover disabled:cursor-not-allowed disabled:bg-disabled disabled:text-disabled-text;
+  }
+
+  /* Quiet outline button for secondary actions; small size for dense layouts */
+  .btn-secondary {
+    @apply border border-dark/20 bg-transparent text-dark hover:bg-hover;
+  }
+  .btn-sm {
+    @apply h-9 gap-1.5 px-4 py-0 text-sm sm:py-0;
+  }
+
+  /* Small uppercase label; also used for form labels */
+  .label {
+    @apply text-xs font-bold uppercase tracking-[2.75px];
+  }
+
+  /* Form-level error */
+  .alert {
+    @apply border-l-4 border-error bg-error/10 px-3 py-2 text-sm text-error-text;
+  }
+
+  /* White panel on the light page background */
+  .card {
+    @apply rounded-2xl bg-white p-5 sm:p-6;
+  }
+
+  /* Plain list table; wrap in overflow-x-auto for narrow screens */
+  .data-table {
+    @apply w-full border-collapse text-sm tabular-nums;
+  }
+  /* Every column is left-aligned, so the eye always starts in the same place. The outer columns line
+     up with the padding of the panel around the table. */
+  .data-table th {
+    @apply whitespace-nowrap border-b border-divider px-4 py-3 text-left align-bottom text-xs font-bold uppercase tracking-[1.5px] text-muted;
+  }
+  .data-table td {
+    @apply whitespace-nowrap border-b border-dark/10 px-4 py-3.5 text-left align-middle;
+  }
+  .data-table :is(th, td):first-child {
+    @apply pl-5 sm:pl-6;
+  }
+  .data-table :is(th, td):last-child {
+    @apply pr-5 sm:pr-6;
+  }
+  .data-table tbody tr:last-child td {
+    @apply border-b-0;
+  }
+  .data-table tbody tr {
+    @apply transition-colors hover:bg-light;
+  }
+  /* Sortable column heading (Components/DataTable.razor) */
+  .th-sort {
+    @apply -mx-1 inline-flex cursor-pointer items-center gap-1 rounded px-1 uppercase tracking-[1.5px] transition-colors hover:text-dark;
+  }
+  .th-sort[data-active] {
+    @apply text-dark;
+  }
+
+  /* Filter chip (Components/FilterChips.razor); pressed ones go dark */
+  .chip {
+    @apply inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-full border border-dark/15 bg-white px-3.5 text-sm font-semibold text-dark transition-colors hover:bg-hover;
+  }
+  .chip[aria-pressed="true"] {
+    @apply border-dark bg-dark text-white hover:bg-dark;
+  }
+
+  /* Pill-shaped search box or menu, the same height as chips and small buttons so a toolbar lines up */
+  .control {
+    @apply inline-flex h-9 items-center gap-2 rounded-full border border-dark/15 bg-white px-3.5 text-sm text-dark transition-colors hover:border-dark/30 focus-within:border-dark;
+  }
+  .control :is(input, select) {
+    @apply h-full min-w-0 flex-1 appearance-none bg-transparent outline-none placeholder:text-muted;
+  }
+  /* Menu inside a table cell (Components/CellSelect.razor): a small pill, visible at rest so it reads
+     as something you can change, with an optional status dot and a chevron. */
+  .cell-select {
+    @apply relative inline-flex h-8 max-w-60 cursor-pointer items-center gap-2 rounded-full border border-dark/15 bg-white pl-3 pr-8 text-sm transition-colors hover:border-dark/40 focus-within:border-dark has-[select:disabled]:cursor-wait has-[select:disabled]:opacity-60;
+  }
+  .cell-select select {
+    @apply min-w-0 flex-1 cursor-pointer appearance-none truncate bg-transparent font-medium outline-none disabled:cursor-wait;
+  }
+
+  /* Back link above a record's page */
+  .back-link {
+    @apply inline-flex items-center gap-1 text-sm font-semibold text-muted transition-colors hover:text-primary;
+  }
+
+  /* Share bar (Admin/ShareBar.razor): rounded ends, a left-to-right reveal on load, and on hover the
+     other segments fade and a label appears above. The reveal clips with a wide margin so the label
+     isn't cut off once it has finished. */
+  .share-bar {
+    animation: share-reveal 0.9s cubic-bezier(0.25, 1, 0.5, 1) both;
+  }
+  .share-seg {
+    @apply transition-opacity duration-200 first:rounded-l-lg last:rounded-r-lg;
+  }
+  .share-bar:hover .share-seg:not(:hover) {
+    @apply opacity-40;
+  }
+  .share-tip {
+    @apply pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 -translate-x-1/2 translate-y-1 whitespace-nowrap rounded-lg bg-dark px-2.5 py-1.5 text-xs font-semibold text-white opacity-0 shadow-lg transition duration-200;
+  }
+  .share-seg:hover .share-tip {
+    @apply translate-y-0 opacity-100;
+  }
+
+  /* The logo tinted to the text colour */
+  .logo-mark {
+    @apply aspect-square bg-dark;
+    mask: url("../brand/uottawa.png") center / contain no-repeat;
+  }
+}
+
+@keyframes share-reveal {
+  from {
+    clip-path: inset(-4rem 100% -1rem -1rem);
+  }
+  to {
+    clip-path: inset(-4rem -1rem -1rem -1rem);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .share-bar {
+    animation: none;
+  }
+}
+
+#blazor-error-ui {
+  @apply fixed inset-x-0 bottom-0 z-50 hidden bg-dark px-4 py-3 text-sm text-white;
+}
+#blazor-error-ui .dismiss {
+  @apply absolute right-3 top-3 cursor-pointer;
+}

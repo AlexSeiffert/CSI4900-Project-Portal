@@ -1,0 +1,48 @@
+@* One bar split into the shares of a whole, with a one-line legend of counts underneath.
+   Segments wide enough carry their count; hovering one fades the others and shows its label.
+   Styles: .share-* in Styles/app.css. *@
+@if (total == 0)
+{
+    <p class="text-muted">@Empty</p>
+}
+else
+{
+    <div class="share-bar flex w-full gap-[3px] @(Large ? "h-12" : "h-8")" role="img" aria-label="@summary">
+        @foreach (var segment in Segments.Where(s => s.Count > 0))
+        {
+            <div class="share-seg relative min-w-1.5" style="flex: @segment.Count 1 0%; background: @segment.Color">
+                @if (Share(segment.Count) >= 0.07)
+                {
+                    <span class="absolute inset-y-0 left-3 flex items-center text-sm font-semibold tabular-nums @(segment.LightText ? "text-white" : "text-dark")">@segment.Count</span>
+                }
+                <span class="share-tip" aria-hidden="true">@segment.Label · @segment.Count (@Percent(segment.Count))</span>
+            </div>
+        }
+    </div>
+    <ul class="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm">
+        @foreach (var segment in Segments)
+        {
+            <li class="flex items-center gap-2" title="@Percent(segment.Count)">
+                <span class="size-2.5 shrink-0 rounded-full" style="background: @segment.Color"></span>
+                <span class="text-muted">@segment.Label</span>
+                <span class="font-semibold tabular-nums">@segment.Count</span>
+            </li>
+        }
+    </ul>
+}
+
+@code {
+    /// <summary>A share of the bar. LightText for dark colours, so the count stays readable.</summary>
+    public sealed record Segment(string Label, int Count, string Color, bool LightText = false);
+
+    [Parameter, EditorRequired] public IReadOnlyList<Segment> Segments { get; set; } = [];
+    [Parameter] public bool Large { get; set; }
+    [Parameter] public string Empty { get; set; } = "Nothing to show yet.";
+
+    private int total => Segments.Sum(s => s.Count);
+    private string summary => string.Join(", ", Segments.Select(s => $"{s.Label}: {s.Count}"));
+
+    private double Share(int count) => (double)count / total;
+
+    private string Percent(int count) => $"{Math.Round(100 * Share(count))}%";
+}

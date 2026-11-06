@@ -1,0 +1,77 @@
+@* The admin page frame: header with sign-out, the tab bar, the page title and the current tab.
+   Shared by /admin-home and the sample-data preview at /admin-preview. Lists live at
+   /admin-home/{tab}; a record opens at /admin-home/{tab}/{id}. *@
+<header class="bg-white">
+    <div class="mx-auto flex max-w-6xl items-center gap-3 px-4 pt-4 sm:px-6">
+        <div role="img" aria-label="uOttawa" class="logo-mark w-8 shrink-0"></div>
+        <p class="label min-w-0 flex-1 truncate text-muted">Project Portal · Admin</p>
+        <span class="hidden truncate text-sm text-muted sm:inline">@UserName</span>
+        <button type="button" class="btn btn-secondary btn-sm shrink-0" @onclick="OnSignOut">Sign out</button>
+    </div>
+    <nav aria-label="Admin sections" class="mx-auto mt-2 flex max-w-6xl gap-6 overflow-x-auto px-4 sm:px-6">
+        @foreach (var (key, label) in Tabs)
+        {
+            var active = key == Current;
+            <a href="@HrefFor(key)" aria-current="@(active ? "page" : null)"
+               class="whitespace-nowrap border-b-2 py-3 text-sm font-semibold transition-colors @(active ? "border-primary text-dark" : "border-transparent text-muted hover:text-dark")">
+                @label
+            </a>
+        }
+    </nav>
+</header>
+
+<div class="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
+    @if (ItemId is null)
+    {
+        <h1 class="mb-8 text-4xl font-bold leading-[1.1] tracking-tighter sm:mb-10 sm:text-5xl">@TitleOf(Current)</h1>
+    }
+
+    @if (Error is not null)
+    {
+        <p role="alert" class="alert">@Error</p>
+    }
+    else if (Data is null)
+    {
+        <p class="text-muted">Loading…</p>
+    }
+    else
+    {
+        <CascadingValue Value="Actions" IsFixed="true">
+            @switch (Current)
+            {
+                case "students" when RecordId is { } id: <StudentDetail Data="Data" BasePath="@BasePath" Id="id" /> break;
+                case "students": <StudentsTab Data="Data" BasePath="@BasePath" /> break;
+                case "supervisors" when RecordId is { } id: <SupervisorDetail Data="Data" BasePath="@BasePath" Id="id" /> break;
+                case "supervisors": <SupervisorsTab Data="Data" BasePath="@BasePath" /> break;
+                case "projects" when ItemId is not null: <ProjectDetail Data="Data" BasePath="@BasePath" Id="RecordId" /> break;
+                case "projects": <ProjectsTab Data="Data" BasePath="@BasePath" /> break;
+                default: <InsightsTab Data="Data" BasePath="@BasePath" /> break;
+            }
+        </CascadingValue>
+    }
+</div>
+
+@code {
+    public static readonly (string Key, string Label)[] Tabs =
+        [("insights", "Insights"), ("students", "Students"), ("supervisors", "Supervisors"), ("projects", "Projects")];
+
+    /// <summary>The tab key from the URL, or Insights for anything unknown.</summary>
+    public static string Normalize(string? tab) =>
+        Tabs.FirstOrDefault(t => t.Key == tab?.ToLowerInvariant()).Key ?? Tabs[0].Key;
+
+    public static string TitleOf(string key) => Tabs.First(t => t.Key == key).Label;
+
+    [Parameter, EditorRequired] public string Current { get; set; } = "";
+    [Parameter, EditorRequired] public string BasePath { get; set; } = "";
+    [Parameter, EditorRequired] public string UserName { get; set; } = "";
+    [Parameter] public AdminData? Data { get; set; }
+    [Parameter] public string? Error { get; set; }
+    [Parameter, EditorRequired] public AdminActions Actions { get; set; } = default!;
+    /// <summary>The record open within the tab ("new" for a new project), or null for the tab's list.</summary>
+    [Parameter] public string? ItemId { get; set; }
+    [Parameter] public EventCallback OnSignOut { get; set; }
+
+    private Guid? RecordId => Guid.TryParse(ItemId, out var id) ? id : null;
+
+    private string HrefFor(string key) => key == "insights" ? BasePath : $"{BasePath}/{key}";
+}

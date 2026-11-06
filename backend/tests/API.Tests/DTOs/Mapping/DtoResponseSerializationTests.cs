@@ -34,8 +34,11 @@ public class DtoResponseSerializationTests
         using var inquiryJson = JsonDocument.Parse(JsonSerializer.Serialize(inquiries, jsonOptions));
         using var studentJson = JsonDocument.Parse(JsonSerializer.Serialize(students, jsonOptions));
         using var supervisorJson = JsonDocument.Parse(JsonSerializer.Serialize(supervisors, jsonOptions));
-        Assert.Equal(9, projectJson.RootElement.GetArrayLength());
-        Assert.Equal(8, topicJson.RootElement.GetArrayLength());
+        Assert.Equal(54, projectJson.RootElement.GetArrayLength());
+        Assert.Equal(70, studentJson.RootElement.GetArrayLength());
+        Assert.Equal(30, supervisorJson.RootElement.GetArrayLength());
+        Assert.True(inquiryJson.RootElement.GetArrayLength() > 100);
+        Assert.Equal(10, topicJson.RootElement.GetArrayLength()); // the ten topic tags
         Assert.False(projectJson.RootElement[0].TryGetProperty("topics", out _));
         Assert.False(projectJson.RootElement[0].TryGetProperty("supervisor", out _));
         Assert.False(topicJson.RootElement[0].TryGetProperty("projects", out _));

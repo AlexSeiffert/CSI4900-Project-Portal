@@ -1,0 +1,13 @@
+@* A Lucide icon by name (see LucideIcons.cs). Decorative unless given a Label. Sized and coloured
+   by its classes; it draws in currentColor. *@
+<svg class="shrink-0 @Class" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="@StrokeWidth"
+     stroke-linecap="round" stroke-linejoin="round" aria-hidden="@(Label is null ? "true" : null)" role="@(Label is null ? null : "img")"
+     aria-label="@Label" style="@Style">@((MarkupString)LucideIcons.Markup[Name])</svg>
+
+@code {
+    [Parameter, EditorRequired] public string Name { get; set; } = "";
+    [Parameter] public string Class { get; set; } = "size-4";
+    [Parameter] public string? Style { get; set; }
+    [Parameter] public double StrokeWidth { get; set; } = 2;
+    [Parameter] public string? Label { get; set; }
+}
