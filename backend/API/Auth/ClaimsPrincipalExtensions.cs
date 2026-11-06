@@ -19,6 +19,12 @@ public static class ClaimsPrincipalExtensions
         return Guid.TryParse(user?.FindFirstValue(SubjectClaim), out var id) ? id : null;
     }
 
+    // True when the token says the user is an admin.
+    public static bool IsAdmin(this ClaimsPrincipal? user)
+    {
+        return user?.FindFirstValue(UserRoleClaim) == "admin";
+    }
+
     // Same as GetUserId, but throws an error instead of returning null.
     // Use it where a user must be logged in, such as when creating a project.
     public static Guid GetRequiredUserId(this ClaimsPrincipal? user)

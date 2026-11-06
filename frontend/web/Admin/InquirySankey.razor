@@ -1,0 +1,50 @@
+@* Ribbon (Sankey) chart of how far inquiries have got. Each stage keeps the inquiries that reached it and
+   the rest peel off into a grey band. Built from current statuses, so until the API keeps a status
+   history a Closed inquiry counts as viewed and answered. *@
+@if (Sent == 0)
+{
+    <p class="text-muted">No inquiries yet.</p>
+}
+else
+{
+    <div class="-mx-1 overflow-x-auto px-1">
+        <EChart Kind="sankey" Data="data" Height="320" Class="min-w-[620px]"
+                Label="@($"Of {Sent} inquiries, {Viewed} were viewed, {Responded} got a reply and {Closed} are closed.")" />
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public int Sent { get; set; }
+    [Parameter, EditorRequired] public int Viewed { get; set; }
+    [Parameter, EditorRequired] public int Responded { get; set; }
+    [Parameter, EditorRequired] public int Closed { get; set; }
+
+    private object data = new();
+
+    // Kept inquiries run along the top; the ones that stopped drop into a grey node below each stage.
+    // ECharts stacks each column in the order given, so stages go first and drop-offs after.
+    protected override void OnParametersSet()
+    {
+        (string Name, int Value, string Color)[] stages =
+            [("Sent", Sent, "stage-1"), ("Viewed", Viewed, "stage-2"), ("Responded", Responded, "stage-3"), ("Closed", Closed, "stage-4")];
+        string[] drops = ["Never opened", "No reply", "Still open"];
+
+        var nodes = stages.Select((s, i) => (object)new { name = s.Name, value = s.Value, depth = i, color = s.Color }).ToList();
+        var links = new List<object>();
+        for (var i = 0; i < stages.Length - 1; i++)
+        {
+            var next = stages[i + 1];
+            var dropped = stages[i].Value - next.Value;
+            if (next.Value > 0)
+            {
+                links.Add(new { source = stages[i].Name, target = next.Name, value = next.Value, color = "gradient" });
+            }
+            if (dropped > 0)
+            {
+                nodes.Add(new { name = drops[i], value = dropped, depth = i + 1, color = "chart-neutral" });
+                links.Add(new { source = stages[i].Name, target = drops[i], value = dropped, color = "chart-neutral" });
+            }
+        }
+        data = new { nodes, links };
+    }
+}

@@ -35,6 +35,19 @@ public class SavedProjectsControllerTests
     }
 
     [Fact]
+    public async Task GetSaveCounts_ReturnsOkWithCounts()
+    {
+        var counts = new Dictionary<Guid, int> { [Guid.NewGuid()] = 3 };
+
+        _service.Setup(service => service.GetSaveCounts(CancellationToken.None))
+            .ReturnsAsync(counts);
+
+        var result = await CreateController().GetSaveCounts(CancellationToken.None);
+
+        Assert.Same(counts, Assert.IsType<OkObjectResult>(result.Result).Value);
+    }
+
+    [Fact]
     public async Task SaveProject_ReturnsNoContent()
     {
         var studentId = Guid.NewGuid();

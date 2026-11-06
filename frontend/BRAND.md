@@ -39,9 +39,46 @@ Only use these to show status.
 | ![](docs/swatches/error-text.svg) | `error-text` | `#b42318` | |
 | ![](docs/swatches/muted.svg) | `muted` | `#80746c` | Neutral: paused, nothing pending |
 
+### Matching colours
+
+Only use these to show how far a student or inquiry has got.
+
+| | Name | Hex | Means |
+| --- | --- | --- | --- |
+| ![](docs/swatches/stage-1.svg) | `stage-1` | `#4cc9f0` | Sent (inquiry: Pending) |
+| ![](docs/swatches/stage-2.svg) | `stage-2` | `#4361ee` | Viewed |
+| ![](docs/swatches/stage-3.svg) | `stage-3` | `#7b2cbf` | Talking (inquiry: Responded) |
+| ![](docs/swatches/stage-4.svg) | `stage-4` | `#f72585` | Matched (inquiry: Closed) |
+| ![](docs/swatches/chart-neutral.svg) | `chart-neutral` | `#b9b4af` | No inquiries, stopped, archived |
+
 ### Chart colours
 
-To be established.
+One hue, light to dark: darker means more. Charts about matching use the matching colours instead.
+
+| | Name | Hex |
+| --- | --- | --- |
+| ![](docs/swatches/mono-1.svg) | `mono-1` | `#dde3ef` |
+| ![](docs/swatches/mono-2.svg) | `mono-2` | `#b3bfd6` |
+| ![](docs/swatches/mono-3.svg) | `mono-3` | `#8496b9` |
+| ![](docs/swatches/mono-4.svg) | `mono-4` | `#56689a` |
+| ![](docs/swatches/mono-5.svg) | `mono-5` | `#2f3d6b` |
+
+## Topics
+
+All ten topic tags are grey, told apart by a [Lucide](https://lucide.dev) icon. Use `<TopicChip Name="…" />`.
+
+| Topic | Icon |
+| --- | --- |
+| AI/ML | `brain-circuit` |
+| Software Engineering | `code-xml` |
+| Web & Mobile | `globe` |
+| Security & Privacy | `shield-check` |
+| Data & Databases | `database` |
+| Systems & Networks | `server` |
+| HCI & Design | `palette` |
+| Games & Graphics | `gamepad-2` |
+| Theory & Algorithms | `sigma` |
+| Other | `shapes` |
 
 ## Fonts
 
@@ -86,3 +123,13 @@ Add `disabled` to grey a button out. For an arrow that slides on hover, add `gro
 | `field` | Text input with an underline |
 | `field-error` | Error under a field |
 | `alert` | Error box for the whole form |
+
+## Layout
+
+| Class | What it is |
+| --- | --- |
+| `card` | White panel on the light page background |
+| `data-table` | List table, every column left-aligned |
+| `chip` | Pill filter button; goes dark when pressed |
+| `control` | Pill search box or menu, the same height as `chip` and `btn-sm` |
+| `cell-select` | Small pill menu inside a table cell |

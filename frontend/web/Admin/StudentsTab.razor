@@ -1,0 +1,72 @@
+@using System.Web
+@inject NavigationManager Nav
+
+@* Every student, filtered by how far they've got. Each name opens their page. *@
+<Toolbar>
+    <Start><FilterChips Label="Filter by progress" Options="filters" @bind-Selected="filter" /></Start>
+    <End><SearchBox @bind-Query="query" Placeholder="Search students" /></End>
+</Toolbar>
+
+<Panel Flush Class="mt-4">
+    <DataTable Items="shown" SortedBy="Name" Empty="No students match.">
+        <DataColumn Title="Name" SortBy="s => s.DisplayName">
+            <a class="font-semibold hover:text-primary hover:underline" href="@($"{BasePath}/students/{context.UserId}")">@context.DisplayName</a>
+        </DataColumn>
+        <DataColumn Title="Program" SortBy="s => s.Program"><span class="text-muted">@(context.Program ?? "Not set")</span></DataColumn>
+        <DataColumn Title="Progress" SortBy="s => (int?)Data.FurthestStage(s.UserId) ?? -1" DescendingFirst>
+            <StatusPill Status="@Display.Stage(Data.FurthestStage(context.UserId))" />
+        </DataColumn>
+        <DataColumn Title="Inquiries" SortBy="s => Data.InquiriesFrom(s.UserId).Count()" DescendingFirst>@Data.InquiriesFrom(context.UserId).Count()</DataColumn>
+        <DataColumn Title="Last activity" SortBy="s => Data.LastActivity(s.UserId)" DescendingFirst>
+            <span class="text-muted">@(Data.LastActivity(context.UserId) is { } at ? Display.Ago(at) : "None")</span>
+        </DataColumn>
+    </DataTable>
+</Panel>
+
+@code {
+    [Parameter, EditorRequired] public AdminData Data { get; set; } = default!;
+    [Parameter, EditorRequired] public string BasePath { get; set; } = "";
+
+    private string query = "";
+    private string filter = "all";
+    private List<FilterChips.Option> filters = [];
+
+    // Filter key -> which furthest stages it keeps
+    private static readonly Dictionary<string, Func<InquiryStatus?, bool>> Keeps = new()
+    {
+        ["all"] = _ => true,
+        ["not-started"] = s => s is null,
+        ["waiting"] = s => s is InquiryStatus.Pending or InquiryStatus.Viewed,
+        ["talking"] = s => s == InquiryStatus.Responded,
+        ["matched"] = s => s == InquiryStatus.Closed,
+    };
+
+    private List<Student> shown => Data.Students
+        .Where(s => Keeps[filter](Data.FurthestStage(s.UserId)))
+        .Where(s => s.DisplayName.Contains(query.Trim(), StringComparison.OrdinalIgnoreCase) || (s.Program ?? "").Contains(query.Trim(), StringComparison.OrdinalIgnoreCase))
+        .ToList();
+
+    // Links from the Insights cards open the list already filtered (?filter=overdue).
+    protected override void OnInitialized()
+    {
+        var from = HttpUtility.ParseQueryString(new Uri(Nav.Uri).Query)["filter"];
+        if (from is not null && Keeps.ContainsKey(from))
+        {
+            filter = from;
+        }
+    }
+
+    protected override void OnParametersSet()
+    {
+        var stages = Data.Students.Select(s => Data.FurthestStage(s.UserId)).ToList();
+        int Count(string key) => stages.Count(Keeps[key]);
+        filters =
+        [
+            new("all", "All", Count("all")),
+            new("not-started", "No inquiries", Count("not-started")),
+            new("waiting", "Waiting on a reply", Count("waiting")),
+            new("talking", "Talking", Count("talking")),
+            new("matched", "Matched", Count("matched")),
+        ];
+    }
+}

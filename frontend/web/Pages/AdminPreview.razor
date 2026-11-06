@@ -1,0 +1,31 @@
+@page "/admin-preview"
+@page "/admin-preview/{Tab}"
+@page "/admin-preview/{Tab}/{ItemId}"
+@using Microsoft.AspNetCore.Components.WebAssembly.Hosting
+@inject IWebAssemblyHostEnvironment Env
+@inject NavigationManager Nav
+
+@* Development only: the admin pages filled with made-up data (SampleAdminData), for working on the
+   design without signing in or running the API. Nothing can be saved here. *@
+@if (Env.IsDevelopment())
+{
+    <PageTitle>@AdminShell.TitleOf(current) · Admin preview · Project Portal</PageTitle>
+    <AdminShell Current="@current" BasePath="/admin-preview" ItemId="@ItemId" UserName="Sample data" Data="data"
+                Actions="actions" OnSignOut="@(() => Nav.NavigateTo("/login"))" />
+}
+else
+{
+    <NotFound />
+}
+
+@code {
+    private static readonly AdminData data = SampleAdminData.Create();
+    private static readonly AdminActions actions = new(null, () => Task.CompletedTask);
+
+    [Parameter] public string? Tab { get; set; }
+    [Parameter] public string? ItemId { get; set; }
+
+    private string current = "insights";
+
+    protected override void OnParametersSet() => current = AdminShell.Normalize(Tab);
+}

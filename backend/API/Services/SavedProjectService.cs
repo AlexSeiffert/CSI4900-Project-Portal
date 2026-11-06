@@ -14,6 +14,9 @@ public class SavedProjectService(ISavedProjectRepository repository) : ISavedPro
         return projects.Select(project => project.ToDto()).ToList();
     }
 
+    public Task<Dictionary<Guid, int>> GetSaveCounts(CancellationToken cancellationToken = default) =>
+        _repository.GetSaveCounts(cancellationToken);
+
     public Task SaveProject(Guid studentId, Guid projectId, CancellationToken cancellationToken = default) =>
         _repository.SaveProject(studentId, projectId, cancellationToken);
 

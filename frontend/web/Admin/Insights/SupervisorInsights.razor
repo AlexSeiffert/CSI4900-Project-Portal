@@ -1,0 +1,61 @@
+@* Supervisors: who has the most inquiries, and how responsive the supervisors taking inquiries are. The
+   reply-rate chart covers all of them, not just the busiest, so a quiet supervisor who never answers still shows up. *@
+<div class="grid gap-4 lg:grid-cols-2">
+    <Panel Title="Inquiries per supervisor" Description="@($"The {Top} supervisors with the most inquiries, split by status.")">
+        <EChart Kind="bars" Data="load" Height="ChartHeight" Label="Inquiries per supervisor, split by status." />
+    </Panel>
+
+    <Panel Title="Reply rate across supervisors" Description="@replyNote">
+        <EChart Kind="bars" Data="replies" Height="ChartHeight" Label="Number of supervisors in each reply-rate range." />
+    </Panel>
+</div>
+
+@code {
+    private const int Top = 10;
+    private const int ChartHeight = Top * 30 + 50;
+
+    [Parameter, EditorRequired] public AdminData Data { get; set; } = default!;
+
+    private object load = new();
+    private object replies = new();
+    private string replyNote = "";
+
+    protected override void OnParametersSet()
+    {
+        var busiest = Data.Supervisors.OrderByDescending(s => Data.InquiriesTo(s.UserId).Count()).Take(Top).ToList();
+        load = new
+        {
+            categories = busiest.Select(s => s.DisplayName),
+            horizontal = true,
+            stacked = true,
+            series = Enum.GetValues<InquiryStatus>().Select(status => new
+            {
+                name = Display.Inquiry(status).Label,
+                color = Display.Inquiry(status).Color,
+                data = busiest.Select(s => Data.InquiriesTo(s.UserId).Count(i => i.Status == status)),
+            }),
+        };
+
+        // Supervisors accepting inquiries, in 20-point reply-rate ranges (80–100% includes 100); higher ranges are darker.
+        // Those with no inquiries yet get their own grey bar.
+        var accepting = Data.Supervisors.Where(s => s.AcceptingInquiries).ToList();
+        var rates = accepting.Select(s => Data.ReplyRate(s.UserId)).ToList();
+        var ranges = Enumerable.Range(0, 5)
+            .Select(b => (Label: $"{b * 20}–{b * 20 + (b == 4 ? 20 : 19)}%",
+                          Count: rates.Count(r => r is { } rate && Math.Min((int)(rate * 5), 4) == b),
+                          Color: $"mono-{b + 1}"))
+            .Append((Label: "No inquiries", Count: rates.Count(r => r is null), Color: "chart-neutral"))
+            .ToList();
+        replies = new
+        {
+            categories = ranges.Select(r => r.Label),
+            barWidth = 40,
+            legend = false,
+            series = new[]
+            {
+                new { name = "Supervisors", color = "mono-4", data = ranges.Select(r => (object)new { value = r.Count, color = r.Color }) },
+            },
+        };
+        replyNote = $"Distribution of reply rates across the {accepting.Count} supervisors accepting inquiries this term.";
+    }
+}

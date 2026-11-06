@@ -1,13 +1,7 @@
 // Sets up the database: applies each migration whose objects aren't there yet. See README.md.
-import { execFileSync } from 'node:child_process';
 import { readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-
-try {
-  process.loadEnvFile(new URL('../../.env', import.meta.url));
-} catch {
-  // no .env, use existing environmental variables
-}
+import { connectPsql, fail } from './lib.mjs';
 
 // One check per migration, should return true once each sql file is written to the database
 const CHECKS = {
@@ -22,41 +16,11 @@ const CHECKS = {
   '0009_inquiries.sql': "select to_regclass('public.inquiries') is not null",
   '0010_inquiry_attachments.sql': "select to_regclass('public.inquiry_attachments') is not null",
   '0011_saved_projects.sql': "select to_regclass('public.student_saved_projects') is not null",
+  '0012_topic_tags.sql': "select exists (select 1 from public.topics where name = 'Games & Graphics')",
 };
 
-function fail(message) {
-  console.error(message);
-  process.exit(1);
-}
-
-function findPsql() {
-  for (const bin of [process.env.PSQL, 'psql', '/opt/homebrew/opt/libpq/bin/psql', '/usr/local/opt/libpq/bin/psql']) {
-    if (!bin) continue;
-    try {
-      execFileSync(bin, ['--version'], { stdio: 'ignore' });
-      return bin;
-    } catch {
-      // not this one
-    }
-  }
-  return fail('psql not found. Install it (brew install libpq) or set PSQL to its path.');
-}
-
-function databaseUrl() {
-  if (process.env.DATABASE_URL) return process.env.DATABASE_URL;
-  try {
-    return execFileSync('terraform', ['output', '-raw', 'db_connection_string'], {
-      cwd: fileURLToPath(new URL('../../infra/modules/supabase-cloud', import.meta.url)),
-      encoding: 'utf8',
-    }).trim();
-  } catch {
-    return fail('Set DATABASE_URL, or run with `mise x --` so Terraform can provide the connection string.');
-  }
-}
-
-const bin = findPsql();
-const url = databaseUrl();
-const psql = (...args) => execFileSync(bin, [url, '-v', 'ON_ERROR_STOP=1', '-qtAX', ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
+const run = connectPsql();
+const psql = (...args) => run(args);
 
 const dir = fileURLToPath(new URL('../migrations/', import.meta.url));
 const files = readdirSync(dir).filter((f) => f.endsWith('.sql')).sort();

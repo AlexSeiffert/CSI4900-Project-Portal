@@ -102,6 +102,12 @@ builder.Services.AddProblemDetails(options => options.CustomizeProblemDetails = 
 
 builder.Services.AddExceptionHandler<ApiExceptionHandler>();
 
+// The web app runs on its own address, so browsers only let it call the API from the origins listed
+// in Cors:AllowedOrigins (the dev server in appsettings.Development.json; the deployed site in production).
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+builder.Services.AddCors(options => options.AddDefaultPolicy(policy =>
+    policy.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod()));
+
 var provider = builder.Configuration["Database:Provider"] ?? "Postgres";
 var inMemory = provider.Equals("InMemory", StringComparison.OrdinalIgnoreCase);
 if (!inMemory && !provider.Equals("Postgres", StringComparison.OrdinalIgnoreCase))
@@ -156,6 +162,8 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 // Turns empty error responses (such as 401 and 403 from the auth layer) into the same problem-details JSON as other errors.
 app.UseStatusCodePages();
+// Before authentication, so the browser's preflight check (which carries no token) isn't rejected.
+app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

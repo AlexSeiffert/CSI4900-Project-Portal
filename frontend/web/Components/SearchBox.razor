@@ -1,0 +1,14 @@
+@* A search field that filters as you type. Bind with @bind-Query. *@
+<label class="control w-full sm:w-64">
+    <Icon Name="search" Class="size-4 text-muted" />
+    <span class="sr-only">@Placeholder</span>
+    <input type="search" placeholder="@Placeholder" value="@Query" @oninput="OnInput" />
+</label>
+
+@code {
+    [Parameter] public string Query { get; set; } = "";
+    [Parameter] public EventCallback<string> QueryChanged { get; set; }
+    [Parameter] public string Placeholder { get; set; } = "Search";
+
+    private Task OnInput(ChangeEventArgs e) => QueryChanged.InvokeAsync(e.Value?.ToString() ?? "");
+}

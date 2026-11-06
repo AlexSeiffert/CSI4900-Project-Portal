@@ -25,7 +25,10 @@ public sealed record Inquiry(
 
 // Request bodies. TopicIds replaces the whole list.
 
-public sealed record UpdateProject(string Title, string Description, string? ExternalUrl, ProjectStatus Status, List<Guid> TopicIds);
+// Also the body for creating a project. SupervisorId is only read from an admin: the owner of a new
+// project, or the supervisor to hand an existing one to. A supervisor's own requests ignore it.
+public sealed record UpdateProject(
+    string Title, string Description, string? ExternalUrl, ProjectStatus Status, List<Guid> TopicIds, Guid? SupervisorId = null);
 
 public sealed record UpdateSupervisor(
     string DisplayName, string ContactEmail, string? AboutMe, string? ExternalUrl, bool AcceptingInquiries, List<Guid> TopicIds);

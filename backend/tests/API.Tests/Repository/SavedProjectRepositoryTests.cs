@@ -28,6 +28,21 @@ public class SavedProjectRepositoryTests
     }
 
     [Fact]
+    public async Task GetSaveCounts_CountsStudentsPerProject()
+    {
+        await using var context = await RepositoryTestContext.CreateAsync();
+        var repository = new SavedProjectRepository(context.Db);
+        await repository.SaveProject(context.Student.UserId, context.Project.Id);
+        await repository.SaveProject(context.Student.UserId, context.OtherProject.Id);
+        context.Db.ChangeTracker.Clear();
+
+        var result = await repository.GetSaveCounts();
+
+        Assert.Equal(1, result[context.Project.Id]);
+        Assert.Equal(1, result[context.OtherProject.Id]);
+    }
+
+    [Fact]
     public async Task GetSavedProjects_WrapsContextFailure()
     {
         await using var context = await RepositoryTestContext.CreateAsync();

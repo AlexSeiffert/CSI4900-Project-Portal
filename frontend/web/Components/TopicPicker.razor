@@ -1,0 +1,30 @@
+@* Toggle buttons for the topic tags, each with its icon, styled like filter chips: chosen ones go dark.
+   Hovering one says what it covers. Changes the Selected set in place. *@
+<div class="flex flex-wrap gap-2" role="group" aria-label="@Label">
+    @foreach (var topic in Topics)
+    {
+        <button type="button" class="chip disabled:cursor-not-allowed disabled:opacity-60" disabled="@Disabled"
+                aria-pressed="@(Selected.Contains(topic.Id) ? "true" : "false")" title="@TopicPalette.Describe(topic.Name)"
+                @onclick="() => Toggle(topic.Id)">
+            <Icon Name="@TopicPalette.IconFor(topic.Name)" />
+            @topic.Name
+        </button>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<Topic> Topics { get; set; } = [];
+    [Parameter, EditorRequired] public HashSet<Guid> Selected { get; set; } = [];
+    [Parameter] public string Label { get; set; } = "Topics";
+    [Parameter] public bool Disabled { get; set; }
+    [Parameter] public EventCallback OnChange { get; set; }
+
+    private async Task Toggle(Guid id)
+    {
+        if (!Selected.Remove(id))
+        {
+            Selected.Add(id);
+        }
+        await OnChange.InvokeAsync();
+    }
+}
