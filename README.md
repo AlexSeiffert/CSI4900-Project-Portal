@@ -66,22 +66,22 @@ Repository-wide editor settings and tool versions remain at the root.
 ## Local Development
 
 Open the repository root in VS Code. With the C# extension installed, select
-**uoProjects API (Swagger)** in Run and Debug and press **F5**. This builds the
-backend and opens Swagger on an automatically assigned port.
+**uoProjects API (Supabase)** in Run and Debug and press **F5**. This builds the
+backend with Supabase configuration and opens Swagger on an automatically assigned
+port. Configure the root `.env` as described in the backend guide first.
 
 From the repository root, use the .NET 10 SDK to run, build, or test:
 
 ```sh
-dotnet run --project backend/API
+dotnet run --project backend/API --launch-profile https-supabase
 dotnet run --project frontend/uoProjects
 dotnet build uoProjects.slnx
 dotnet test uoProjects.slnx
 ```
 
-Local API development and C# tests use InMemory and do not require database
-migrations. PostgreSQL mappings target the domain schema developed separately;
-those domain migrations must be applied before enabling PostgreSQL/Supabase.
-Database schema changes are excluded from this API change.
+The backend launch profile uses Supabase/PostgreSQL and requires the domain
+migrations to be applied. C# tests use InMemory and do not require database
+migrations.
 
 See the [backend guide](backend/README.md) for configuration, architecture, and endpoints.
 See the [frontend guide](frontend/README.md) for the UI structure and run commands.

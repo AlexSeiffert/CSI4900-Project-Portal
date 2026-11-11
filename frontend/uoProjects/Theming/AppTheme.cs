@@ -4,7 +4,7 @@ namespace uoProjects.Theming;
 
 public static class AppTheme
 {
-    public static MudTheme Dark { get; } = new()
+    public static MudTheme Brand { get; } = new()
     {
         PaletteDark = new PaletteDark
         {

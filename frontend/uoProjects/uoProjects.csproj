@@ -5,6 +5,8 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
+    <!-- Work around dotnet watch reading mixed path separators on macOS/Linux. -->
+    <IntermediateOutputPath Condition="'$(OS)' != 'Windows_NT'">$([MSBuild]::NormalizeDirectory('$(MSBuildProjectDirectory)', '$(BaseIntermediateOutputPath)', '$(Configuration)'))</IntermediateOutputPath>
   </PropertyGroup>
 
   <ItemGroup>

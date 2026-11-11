@@ -30,7 +30,6 @@ From the repo root. The API is at **https://localhost:7049/swagger**.
 
 ```sh
 dotnet run --project backend/API --launch-profile https-supabase   # real Supabase database
-dotnet run --project backend/API                                   # fake in-memory database, no .env needed
 ```
 
 ## 3. Log in to Swagger

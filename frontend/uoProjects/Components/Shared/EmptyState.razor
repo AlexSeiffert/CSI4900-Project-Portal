@@ -1,0 +1,19 @@
+<section class="empty-state">
+    <MudIcon Icon="@Icon" Size="Size.Large" aria-hidden="true" />
+    <MudText Typo="Typo.h3" HtmlTag="h2">@Title</MudText>
+    @if (!string.IsNullOrWhiteSpace(Description))
+    {
+        <MudText>@Description</MudText>
+    }
+    @if (ChildContent is not null)
+    {
+        <div class="empty-state-actions">@ChildContent</div>
+    }
+</section>
+
+@code {
+    [Parameter, EditorRequired] public string Title { get; set; } = string.Empty;
+    [Parameter] public string? Description { get; set; }
+    [Parameter] public string Icon { get; set; } = Icons.Material.Outlined.Search;
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

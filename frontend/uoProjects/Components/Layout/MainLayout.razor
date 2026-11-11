@@ -1,28 +1,50 @@
+@using Microsoft.AspNetCore.Components.Routing
+@using MudBlazor
+@using uoProjects.Components.Shared
+
 @inherits LayoutComponentBase
 
-<MudThemeProvider Theme="uoProjects.Theming.AppTheme.Dark" IsDarkMode="true" />
+<MudThemeProvider Theme="uoProjects.Theming.AppTheme.Brand" IsDarkMode="true" />
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
 
 <a class="skip-link" href="#main-content">Skip to content</a>
 <div class="site-shell">
-    <header class="site-header">
-        <div class="site-container header-content">
-            <a class="brand" href="/" aria-label="uoProjects home">
-                <img src="uoProjects-logo.png" alt="uoProjects" width="1045" height="669" />
-            </a>
-        </div>
-    </header>
+    <aside class="site-sidebar" aria-label="Site sidebar">
+        <a class="brand" href="/" aria-label="uoProjects home">
+            <picture>
+                <source media="(max-width: 700px)" srcset="svg/uoProjectsLogo-minimal.svg" width="499" height="582" />
+                <img src="svg/uoProjectsLogo.svg" alt="uoProjects" width="874" height="584" />
+            </picture>
+        </a>
+        <nav class="site-nav" aria-label="Main navigation">
+            <NavLink href="/" Match="NavLinkMatch.All" title="Home">
+                <MudIcon Icon="@Icons.Material.Outlined.Home" aria-hidden="true" />
+                <span>Home</span>
+            </NavLink>
+            <NavLink href="projects" title="Projects">
+                <MudIcon Icon="@Icons.Material.Outlined.Science" aria-hidden="true" />
+                <span>Projects</span>
+            </NavLink>
+            <NavLink href="supervisors" title="Supervisors">
+                <MudIcon Icon="@Icons.Material.Outlined.Groups" aria-hidden="true" />
+                <span>Supervisors</span>
+            </NavLink>
+        </nav>
+        <nav class="site-nav account-nav" aria-label="Account navigation">
+            <NavLink href="user" title="My Profile">
+                <MudIcon Icon="@Icons.Material.Outlined.Person" aria-hidden="true" />
+                <span>My Profile</span>
+            </NavLink>
+        </nav>
+    </aside>
 
-    <main id="main-content" class="site-container site-main" tabindex="-1">
-        @Body
-    </main>
+    <div class="site-content">
+        <main id="main-content" class="site-container site-main" tabindex="-1">
+            @Body
+        </main>
 
-</div>
-
-<div id="blazor-error-ui" data-nosnippet role="alert">
-    Something went wrong. Please reload to continue.
-    <a href="." class="reload">Reload</a>
-    <button type="button" class="dismiss" aria-label="Dismiss error">×</button>
+        <SiteFooter />
+    </div>
 </div>
