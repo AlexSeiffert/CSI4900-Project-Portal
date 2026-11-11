@@ -1,0 +1,47 @@
+@page "/projects"
+@using uoProjects.Services
+@inject ProjectsService ProjectsService
+@inject NotificationService Notifications
+
+<PageTitle>Projects</PageTitle>
+
+<PageHeader Title="Projects" Description="Find an honours project based on your interests." />
+
+<div class="projects-content">
+    @if (IsLoading)
+    {
+        <LoadingState Message="Loading projects…" />
+    }
+    else if (ProjectList is null)
+    {
+        <ErrorState Message="An error occurred when fetching projects." OnRetry="LoadDataAsync" />
+    }
+    else if (ProjectList.Count == 0)
+    {
+        <EmptyState Title="No projects yet" Description="Check back soon for new projects." />
+    }
+    else
+    {
+        <div class="projects-table-container" role="region" aria-label="Projects" tabindex="0">
+            <table class="data-table projects-table">
+                <thead>
+                    <tr>
+                        <th scope="col">Title</th>
+                        <th scope="col">Description</th>
+                        <th scope="col">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var project in ProjectList)
+                    {
+                        <tr @key="project.Id">
+                            <th scope="row">@project.Title</th>
+                            <td class="project-description">@project.Description</td>
+                            <td class="project-status">@project.Status</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

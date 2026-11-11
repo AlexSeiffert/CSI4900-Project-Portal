@@ -5,7 +5,7 @@
       "name": "uoProjects Frontend",
       "type": "node-terminal",
       "request": "launch",
-      "command": "dotnet watch --project frontend/uoProjects --launch-profile http-watch",
+      "command": "mise exec -- dotnet watch --project frontend/uoProjects --launch-profile http-watch",
       "cwd": "${workspaceFolder}",
       "env": {
         "DOTNET_WATCH_RESTART_ON_RUDE_EDIT": "true"
@@ -22,9 +22,6 @@
       "launchSettingsProfile": "https-supabase",
       "console": "internalConsole",
       "stopAtEntry": false,
-      "env": {
-        "ASPNETCORE_URLS": "https://127.0.0.1:0;http://127.0.0.1:0"
-      },
       "serverReadyAction": {
         "action": "openExternally",
         "pattern": "\\bNow listening on:\\s+(https://\\S+)",

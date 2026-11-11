@@ -8,4 +8,7 @@
   <Folder Name="/frontend/">
     <Project Path="frontend/uoProjects/uoProjects.csproj" />
   </Folder>
+  <Folder Name="/frontend/tests/">
+    <Project Path="frontend/tests/uoProjects.Tests/uoProjects.Tests.csproj" />
+  </Folder>
 </Solution>

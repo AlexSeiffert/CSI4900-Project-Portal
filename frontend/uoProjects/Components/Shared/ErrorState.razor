@@ -1,0 +1,12 @@
+<div class="alert error-state" role="alert">
+    <p>@Message</p>
+    @if (OnRetry.HasDelegate)
+    {
+        <MudButton OnClick="OnRetry" Variant="Variant.Outlined">Try again</MudButton>
+    }
+</div>
+
+@code {
+    [Parameter] public string Message { get; set; } = "The request could not be completed.";
+    [Parameter] public EventCallback OnRetry { get; set; }
+}
