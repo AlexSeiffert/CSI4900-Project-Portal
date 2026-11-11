@@ -1,0 +1,28 @@
+@inherits LayoutComponentBase
+
+<MudThemeProvider Theme="uoProjects.Theming.AppTheme.Dark" IsDarkMode="true" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<a class="skip-link" href="#main-content">Skip to content</a>
+<div class="site-shell">
+    <header class="site-header">
+        <div class="site-container header-content">
+            <a class="brand" href="/" aria-label="uoProjects home">
+                <img src="uoProjects-logo.png" alt="uoProjects" width="1045" height="669" />
+            </a>
+        </div>
+    </header>
+
+    <main id="main-content" class="site-container site-main" tabindex="-1">
+        @Body
+    </main>
+
+</div>
+
+<div id="blazor-error-ui" data-nosnippet role="alert">
+    Something went wrong. Please reload to continue.
+    <a href="." class="reload">Reload</a>
+    <button type="button" class="dismiss" aria-label="Dismiss error">×</button>
+</div>

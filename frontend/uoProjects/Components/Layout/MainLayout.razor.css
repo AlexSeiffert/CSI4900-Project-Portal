@@ -1,0 +1,27 @@
+#blazor-error-ui {
+    display: none;
+    position: fixed;
+    inset: auto 0 0;
+    z-index: 2000;
+    padding: 1rem 3rem 1rem 1.5rem;
+    background: var(--color-dark);
+    border-top: 2px solid var(--color-error);
+    color: var(--color-text);
+}
+
+#blazor-error-ui .reload {
+    margin-left: 1rem;
+    color: inherit;
+    text-decoration: underline;
+}
+
+#blazor-error-ui .dismiss {
+    position: absolute;
+    right: 1rem;
+    top: .75rem;
+    background: none;
+    border: 0;
+    color: inherit;
+    font-size: 1.5rem;
+    cursor: pointer;
+}

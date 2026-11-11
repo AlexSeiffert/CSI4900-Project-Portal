@@ -2,7 +2,7 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Project Portal API (Swagger)",
+      "name": "uoProjects API (Swagger)",
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build-api",
@@ -21,9 +21,10 @@
       }
     },
     {
-      "name": "Project Portal API (Supabase)",
+      "name": "uoProjects API (Supabase)",
       "type": "coreclr",
       "request": "launch",
+      "envFile": "${workspaceFolder}/.env",
       "preLaunchTask": "build-api",
       "program": "${workspaceFolder}/backend/API/bin/Debug/net10.0/API.dll",
       "cwd": "${workspaceFolder}/backend/API",

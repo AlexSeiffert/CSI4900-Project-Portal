@@ -164,7 +164,7 @@ Every path starts with `/api/v1`.
 ## 5. Tests
 
 ```sh
-dotnet test ProjectPortal.slnx
+dotnet test uoProjects.slnx
 ```
 
 They use the fake database, need no `.env`, and run on every pull request. Database permission rules are tested in [db/tests](../db/tests).
