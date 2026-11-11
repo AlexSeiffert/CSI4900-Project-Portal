@@ -1,4 +1,3 @@
-// Create, modify and remove users on the live Supabase project. Usage and config: see README.md.
 import { parseArgs } from 'node:util';
 import { randomBytes } from 'node:crypto';
 import { connect, fail } from './lib.mjs';
@@ -52,7 +51,6 @@ const { positionals, values } = parseArgs({
 const command = positionals[0];
 
 
-// Commands (create, modify, remove)
 if (command === 'create') {
   if (!values.email) fail(USAGE);
   checkRole(values.role);

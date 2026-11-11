@@ -5,8 +5,6 @@
 @inject IWebAssemblyHostEnvironment Env
 @inject NavigationManager Nav
 
-@* Development only: the admin pages filled with made-up data (SampleAdminData), for working on the
-   design without signing in or running the API. Nothing can be saved here. *@
 @if (Env.IsDevelopment())
 {
     <PageTitle>@AdminShell.TitleOf(current) · Admin preview · Project Portal</PageTitle>

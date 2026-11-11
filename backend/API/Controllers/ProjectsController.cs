@@ -53,8 +53,6 @@ public class ProjectsController(IProjectService service) : ControllerBase
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<Project>> CreateProject(CreateProject request, CancellationToken cancellationToken)
     {
-        // A supervisor's project is always their own: the owner comes from the login token, not the request.
-        // Only an admin may name the owner, and must, since an admin has no projects of their own.
         if (!User.IsAdmin())
         {
             request.SupervisorId = User.GetRequiredUserId();
@@ -74,7 +72,6 @@ public class ProjectsController(IProjectService service) : ControllerBase
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<Project>> UpdateProject(Guid projectId, UpdateProject request, CancellationToken cancellationToken)
     {
-        // Only an admin may move a project to another supervisor.
         if (!User.IsAdmin())
         {
             request.SupervisorId = null;

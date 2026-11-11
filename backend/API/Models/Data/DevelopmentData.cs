@@ -12,7 +12,6 @@ internal static class DevelopmentData
         }
 
         var now = DateTime.UtcNow;
-        // The ten topic tags (db/migrations/0012_topic_tags.sql)
         var topics = new[]
         {
             new Topic { Id = Guid.Parse("33333333-3333-3333-3333-333333333333"), Name = "Software Engineering" },
@@ -61,7 +60,6 @@ internal static class DevelopmentData
                 UserId = Guid.Parse("11111111-1111-1111-1111-111111111114"),
                 DisplayName = "Dr. Noah Williams",
                 ContactEmail = "noah.williams@example.test"
-                // A profile with no projects, inquiries, or interests.
             }
         };
 
@@ -70,31 +68,30 @@ internal static class DevelopmentData
             new Student
             {
                 UserId = Guid.Parse("22222222-2222-2222-2222-222222222222"),
-                DisplayName = "Alex Morgan", Program = "Computer Science",
+                DisplayName = "Alex Morgan",
                 TopicInterests = [topics[0], topics[4]]
             },
             new Student
             {
                 UserId = Guid.Parse("22222222-2222-2222-2222-222222222223"),
-                DisplayName = "Maya Singh", Program = "Computer Science — Data Science",
+                DisplayName = "Maya Singh",
                 TopicInterests = [topics[1], topics[2]]
             },
             new Student
             {
                 UserId = Guid.Parse("22222222-2222-2222-2222-222222222224"),
-                DisplayName = "Liam Brooks", Program = "Software Engineering",
+                DisplayName = "Liam Brooks",
                 TopicInterests = [topics[3], topics[6]]
             },
             new Student
             {
                 UserId = Guid.Parse("22222222-2222-2222-2222-222222222225"),
                 DisplayName = "Sofia Garcia"
-                // Null program and empty interests, inquiries, and saved projects.
             },
             new Student
             {
                 UserId = Guid.Parse("22222222-2222-2222-2222-222222222226"),
-                DisplayName = "Oliver Martin", Program = "Computer Science",
+                DisplayName = "Oliver Martin",
                 TopicInterests = [topics[5], topics[7]]
             }
         };
@@ -165,7 +162,6 @@ internal static class DevelopmentData
                 Title = "Exploratory Security Research",
                 Description = "Define an independent security research question with the supervisor.",
                 Status = ProjectStatus.Available
-                // No topic tags, inquiries, saved relationships, or external URL.
             }
         };
 
@@ -187,14 +183,13 @@ internal static class DevelopmentData
             new Inquiry
             {
                 Id = Guid.Parse("55555555-5555-5555-5555-555555555552"),
-                Status = InquiryStatus.Viewed,
                 Student = students[1], Supervisor = supervisors[1], Project = projects[3],
                 Message = "I have completed a machine learning course and would like to work on recommendations."
             },
             new Inquiry
             {
                 Id = Guid.Parse("55555555-5555-5555-5555-555555555553"),
-                Status = InquiryStatus.Responded,
+                Status = InquiryStatus.Matched,
                 Student = students[2], Supervisor = supervisors[2], Project = projects[6],
                 Message = "I would like to explore privacy-preserving access controls."
             },
@@ -215,12 +210,10 @@ internal static class DevelopmentData
             {
                 Id = Guid.Parse("55555555-5555-5555-5555-555555555556"),
                 Student = students[2], Supervisor = supervisors[1]
-                // A general inquiry with a null project and message.
             },
             new Inquiry
             {
                 Id = Guid.Parse("55555555-5555-5555-5555-555555555557"),
-                Status = InquiryStatus.Viewed,
                 Student = students[4], Supervisor = supervisors[0], Project = projects[2],
                 Message = "Thank you for discussing the results of the campus usability study."
             },
@@ -241,7 +234,6 @@ internal static class DevelopmentData
             inquiries[index].UpdatedAt = inquiries[index].CreatedAt.AddHours(1);
         }
 
-        // Saving a project is independent of sending an inquiry.
         students[0].SavedProjects = [projects[0], projects[3], projects[4]];
         students[1].SavedProjects = [projects[3], projects[4], projects[6]];
         students[2].SavedProjects = [projects[6], projects[7]];
@@ -254,7 +246,6 @@ internal static class DevelopmentData
         db.Inquiries.AddRange(inquiries);
         AddGeneratedData(db, topics, now);
 
-        // The InMemory provider does not evaluate the SQL default for saved_at.
         db.ChangeTracker.DetectChanges();
         foreach (var entry in db.ChangeTracker.Entries().Where(entry =>
                      entry.Metadata.GetTableName() == "student_saved_projects" && entry.State == EntityState.Added))
@@ -265,8 +256,6 @@ internal static class DevelopmentData
         await db.SaveChangesAsync();
     }
 
-    // Bulk records on top of the hand-written ones above, so lists, filters and dashboards have realistic
-    // volume (30 supervisors, 70 students, 54 projects in total). The seed is fixed, so every run is the same.
     private static void AddGeneratedData(ApplicationDbContext db, Topic[] topics, DateTime now)
     {
         var random = new Random(4900);
@@ -330,13 +319,10 @@ internal static class DevelopmentData
             {
                 UserId = Guid.Parse($"22222222-0000-0000-0000-{students.Count + 1:D12}"),
                 DisplayName = name,
-                Program = roll < 55 ? "Computer Science" : roll < 73 ? "Software Engineering"
-                    : roll < 83 ? "Computer Engineering" : roll < 93 ? "Data Science" : null,
                 TopicInterests = pickTopics(random.Next(topics.Length), random.Next(0, 3))
             });
         }
 
-        // Students mostly save and ask about open projects in their own topics.
         var open = projects.Where(p => p.Status == ProjectStatus.Available).ToList();
         var choose = (Student student, int count) => open
             .OrderByDescending(p => random.NextDouble() * (p.Topics.Any(student.TopicInterests.Contains) ? 4 : 1))
@@ -347,7 +333,7 @@ internal static class DevelopmentData
             student.SavedProjects = choose(student, random.Next(0, 6));
             if (random.NextDouble() < 0.15)
             {
-                continue; // hasn't reached out to anyone yet
+                continue;
             }
             foreach (var project in choose(student, random.Next(1, 4)))
             {
@@ -361,8 +347,7 @@ internal static class DevelopmentData
                     Student = student, StudentId = student.UserId,
                     Supervisor = project.Supervisor, SupervisorId = project.SupervisorId,
                     Project = general ? null : project, ProjectId = general ? null : project.Id,
-                    Status = roll < 35 ? InquiryStatus.Pending : roll < 60 ? InquiryStatus.Viewed
-                        : roll < 85 ? InquiryStatus.Responded : InquiryStatus.Closed,
+                    Status = roll < 55 ? InquiryStatus.Sent : roll < 85 ? InquiryStatus.Matched : InquiryStatus.Closed,
                     Message = InquiryMessages[random.Next(InquiryMessages.Length)],
                     CreatedAt = created,
                     UpdatedAt = updated > now ? now : updated
@@ -408,7 +393,6 @@ internal static class DevelopmentData
         "Xu", "Yilmaz", "Zhang", "Ali", "Côté", "Diallo", "Gauthier", "Kaur", "Lefebvre", "Pelletier"
     ];
 
-    // Topic is an index into the topics array in Seed.
     private static readonly (int Topic, string Title, string Description)[] ProjectIdeas =
     [
         (0, "Flaky test detection in CI pipelines", "Find and classify flaky tests in large open-source repositories using their CI history."),

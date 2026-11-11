@@ -18,8 +18,6 @@ public class SavedProjectsController(ISavedProjectService service) : ControllerB
         return Ok(projects);
     }
 
-    // Project id -> how many students saved it. Counts only the saves the caller may see, so in practice
-    // this is for admins (everyone else sees only their own).
     [HttpGet("/api/v1/saved-projects/counts")]
     [ProducesResponseType<Dictionary<Guid, int>>(StatusCodes.Status200OK)]
     public async Task<ActionResult<Dictionary<Guid, int>>> GetSaveCounts(CancellationToken cancellationToken)

@@ -1,32 +1,24 @@
 @using System.Web
 @inject NavigationManager Nav
 
-@* The catalogue: filter by status and topic, hand a project to another supervisor or change its status
-   right in the table, or add one. *@
 <Toolbar>
     <Start><FilterChips Label="Filter by status" Options="filters" @bind-Selected="filter" /></Start>
     <End>
-        <SelectBox Label="Topic" @bind-Value="topic">
-            <option value="">Any</option>
-            @foreach (var t in Data.Topics)
-            {
-                <option value="@t.Id">@t.Name</option>
-            }
-        </SelectBox>
+        <SelectBox Label="Topic" @bind-Value="topic" Options="TopicOptions" />
         <SearchBox @bind-Query="query" Placeholder="Search projects" />
-        <a href="@($"{BasePath}/projects/new")" class="btn btn-sm"><Icon Name="plus" />New project</a>
+        <MudButton Href="@($"{BasePath}/projects/new")" Variant="Variant.Filled" Color="Color.Primary" DropShadow="false" DisableRipple="true" Class="btn btn-sm"><Icon Name="plus" />New project</MudButton>
     </End>
 </Toolbar>
 
 @if (error is not null)
 {
-    <p role="alert" class="alert mt-4">@error</p>
+    <MudAlert Severity="Severity.Error" Variant="Variant.Text" NoIcon="true" Class="alert mt-4">@error</MudAlert>
 }
 
 <Panel Flush Class="mt-4">
-    <DataTable Items="shown" SortedBy="Project" Empty="No projects match.">
+    <DataTable Items="shown" AllItems="Data.Projects" ExportName="projects" SortedBy="Project" Empty="No projects match.">
         <DataColumn Title="Project" SortBy="p => p.Title" Class="min-w-72 max-w-[26rem] whitespace-normal">
-            <a class="font-semibold hover:text-primary hover:underline" href="@($"{BasePath}/projects/{context.Id}")">@context.Title</a>
+            <a class="font-semibold hover:text-focus hover:underline" href="@($"{BasePath}/projects/{context.Id}")">@context.Title</a>
             @if (Data.TopicsOf(context.Id) is { Count: > 0 } tags)
             {
                 <span class="mt-2 flex flex-wrap gap-1.5">
@@ -39,14 +31,10 @@
         </DataColumn>
         <DataColumn Title="Supervisor" SortBy="p => Data.NameOf(p.SupervisorId)">
             <CellSelect Label="@($"Supervisor of {context.Title}")" Value="@context.SupervisorId.ToString()"
-                        Disabled="@(busy == context.Id || !Actions.CanSave)" OnChange="v => MoveAsync(context, v)">
-                @foreach (var supervisor in Data.Supervisors)
-                {
-                    <option value="@supervisor.UserId">@supervisor.DisplayName</option>
-                }
-            </CellSelect>
+                        Disabled="@(busy == context.Id || !Actions.CanSave)" OnChange="v => MoveAsync(context, v)"
+                        Options="SupervisorOptions" />
         </DataColumn>
-        <DataColumn Title="Status" SortBy="p => p.Status">
+        <DataColumn Title="Status" SortBy="p => p.Status" Export="p => Display.Project(p.Status).Label">
             <ProjectStatusSelect Project="context" Disabled="@(busy == context.Id || !Actions.CanSave)" OnChange="s => SetStatusAsync(context, s)" />
         </DataColumn>
         <DataColumn Title="Inquiries" SortBy="p => Data.InquiriesFor(p.Id).Count()" DescendingFirst>
@@ -56,7 +44,7 @@
             @Data.SavesOf(context.Id)
         </DataColumn>
         <DataColumn Title="Updated" SortBy="p => p.UpdatedAt" DescendingFirst>
-            <span class="text-muted">@Display.Ago(context.UpdatedAt)</span>
+            <span class="text-text-secondary">@Display.Ago(context.UpdatedAt)</span>
         </DataColumn>
     </DataTable>
 </Panel>
@@ -65,6 +53,12 @@
     [CascadingParameter] public AdminActions Actions { get; set; } = default!;
     [Parameter, EditorRequired] public AdminData Data { get; set; } = default!;
     [Parameter, EditorRequired] public string BasePath { get; set; } = "";
+
+    private IEnumerable<(string Value, string Label)> TopicOptions =>
+        Data.Topics.Select(t => (t.Id.ToString(), t.Name)).Prepend(("", "Any"));
+
+    private IEnumerable<(string Value, string Label)> SupervisorOptions =>
+        Data.Supervisors.Select(s => (s.UserId.ToString(), s.DisplayName));
 
     private string query = "";
     private string filter = "all";
@@ -79,7 +73,6 @@
         .Where(p => p.Title.Contains(query.Trim(), StringComparison.OrdinalIgnoreCase) || Data.NameOf(p.SupervisorId).Contains(query.Trim(), StringComparison.OrdinalIgnoreCase))
         .ToList();
 
-    // Links from the Insights cards open the list already filtered (?filter=overdue).
     protected override void OnInitialized()
     {
         var from = HttpUtility.ParseQueryString(new Uri(Nav.Uri).Query)["filter"];

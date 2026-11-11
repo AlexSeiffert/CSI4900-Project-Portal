@@ -1,11 +1,11 @@
-@* A row of toggle buttons that filter a list; exactly one is on. Each shows how many rows it would leave. *@
 <div class="flex flex-wrap gap-2" role="group" aria-label="@Label">
     @foreach (var option in Options)
     {
-        <button type="button" class="chip" aria-pressed="@(option.Key == Selected ? "true" : "false")" @onclick="() => SelectedChanged.InvokeAsync(option.Key)">
+        <MudChip T="string" Class="chip" Variant="Variant.Outlined" Ripple="false" aria-pressed="@(option.Key == Selected ? "true" : "false")"
+                 OnClick="@(() => SelectedChanged.InvokeAsync(option.Key))">
             @option.Label
             <span class="tabular-nums opacity-60">@option.Count</span>
-        </button>
+        </MudChip>
     }
 </div>
 

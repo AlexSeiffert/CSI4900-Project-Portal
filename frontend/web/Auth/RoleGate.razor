@@ -1,8 +1,6 @@
 @inject AuthSession Auth
 @inject NavigationManager Nav
 
-@* Renders its content only for a signed-in user with this role. Sends signed-out visitors to
-   /login and other roles to their own home. *@
 @if (user is not null)
 {
     @ChildContent(user)

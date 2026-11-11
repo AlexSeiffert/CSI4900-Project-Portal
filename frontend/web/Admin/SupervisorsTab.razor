@@ -1,7 +1,6 @@
 @using System.Web
 @inject NavigationManager Nav
 
-@* Every supervisor: their load, how often they reply, and a switch for whether they take new inquiries. *@
 <Toolbar>
     <Start><FilterChips Label="Filter supervisors" Options="filters" @bind-Selected="filter" /></Start>
     <End><SearchBox @bind-Query="query" Placeholder="Search supervisors" /></End>
@@ -9,28 +8,28 @@
 
 @if (error is not null)
 {
-    <p role="alert" class="alert mt-4">@error</p>
+    <MudAlert Severity="Severity.Error" Variant="Variant.Text" NoIcon="true" Class="alert mt-4">@error</MudAlert>
 }
 
 <Panel Flush Class="mt-4">
-    <DataTable Items="shown" SortedBy="Name" Empty="No supervisors match.">
+    <DataTable Items="shown" AllItems="Data.Supervisors" ExportName="supervisors" SortedBy="Name" Empty="No supervisors match.">
         <DataColumn Title="Name" SortBy="s => s.DisplayName">
-            <a class="font-semibold hover:text-primary hover:underline" href="@($"{BasePath}/supervisors/{context.UserId}")">@context.DisplayName</a>
-            <span class="block text-xs text-muted">@context.ContactEmail</span>
+            <a class="font-semibold hover:text-focus hover:underline" href="@($"{BasePath}/supervisors/{context.UserId}")">@context.DisplayName</a>
+            <span class="block text-xs text-text-secondary">@context.ContactEmail</span>
         </DataColumn>
         <DataColumn Title="Projects" SortBy="s => OpenProjects(s)" DescendingFirst>@OpenProjects(context)</DataColumn>
         <DataColumn Title="Inquiries" SortBy="s => Data.InquiriesTo(s.UserId).Count()" DescendingFirst>@Data.InquiriesTo(context.UserId).Count()</DataColumn>
-        <DataColumn Title="Overdue" SortBy="s => Overdue(s)" DescendingFirst>
-            <span class="tabular-nums @(Overdue(context) > 0 ? "font-semibold text-error-text" : "text-muted")" title="@($"Inquiries waiting {AdminData.ReplyOverdue.Days}+ days for a reply")">@Overdue(context)</span>
+        <DataColumn Title="Open 7+ days" SortBy="s => Stale(s)" DescendingFirst>
+            <span class="tabular-nums @(Stale(context) > 0 ? "font-semibold text-feedback-error" : "text-text-secondary")" title="@($"Inquiries sent {AdminData.StaleAfter.Days}+ days ago with no outcome yet")">@Stale(context)</span>
         </DataColumn>
-        <DataColumn Title="Reply rate" SortBy="s => Data.ReplyRate(s.UserId)" DescendingFirst>
-            @if (Data.ReplyRate(context.UserId) is { } rate)
+        <DataColumn Title="Match rate" SortBy="s => Data.MatchRate(s.UserId)" Export="s => MatchRateText(s)" DescendingFirst>
+            @if (Data.MatchRate(context.UserId) is { } rate)
             {
-                <RingMeter Value="rate" Title="Share of their inquiries that got a reply" />
+                <RingMeter Value="rate" Title="Share of their inquiries that ended in a match" />
             }
             else
             {
-                <span class="text-muted">No inquiries</span>
+                <span class="text-text-secondary">No inquiries</span>
             }
         </DataColumn>
         <DataColumn Title="Accepting" SortBy="s => s.AcceptingInquiries" DescendingFirst>
@@ -52,13 +51,14 @@
     private string? error;
 
     private int OpenProjects(Supervisor s) => Data.ProjectsOf(s.UserId).Count(p => p.Status != ProjectStatus.Archived);
-    private int Overdue(Supervisor s) => Data.InquiriesTo(s.UserId).Count(AdminData.IsOverdue);
+    private string MatchRateText(Supervisor s) => Data.MatchRate(s.UserId) is { } r ? $"{Math.Round(r * 100)}%" : "";
+    private int Stale(Supervisor s) => Data.InquiriesTo(s.UserId).Count(AdminData.IsStale);
 
     private bool Keeps(string key, Supervisor s) => key switch
     {
         "accepting" => s.AcceptingInquiries,
         "paused" => !s.AcceptingInquiries,
-        "overdue" => Overdue(s) > 0,
+        "stale" => Stale(s) > 0,
         _ => true,
     };
 
@@ -67,11 +67,10 @@
         .Where(s => s.DisplayName.Contains(query.Trim(), StringComparison.OrdinalIgnoreCase) || s.ContactEmail.Contains(query.Trim(), StringComparison.OrdinalIgnoreCase))
         .ToList();
 
-    // Links from the Insights cards open the list already filtered (?filter=overdue).
     protected override void OnInitialized()
     {
         var from = HttpUtility.ParseQueryString(new Uri(Nav.Uri).Query)["filter"];
-        if (from is not null && from is "accepting" or "paused" or "overdue")
+        if (from is not null && from is "accepting" or "paused" or "stale")
         {
             filter = from;
         }
@@ -85,11 +84,10 @@
             new("all", "All", Count("all")),
             new("accepting", "Accepting", Count("accepting")),
             new("paused", "Paused", Count("paused")),
-            new("overdue", "Has overdue", Count("overdue")),
+            new("stale", "Open 7+ days", Count("stale")),
         ];
     }
 
-    // The update replaces the whole profile, so fetch it first for the fields the list leaves out (topics).
     private async Task SetAcceptingAsync(Supervisor supervisor, bool accepting)
     {
         busy = supervisor.UserId;

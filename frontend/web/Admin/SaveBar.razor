@@ -1,9 +1,8 @@
-@* The bottom of an edit form: the save button and what happened on the last save. *@
 <div class="mt-6 flex flex-wrap items-center gap-4">
-    <button type="submit" class="btn btn-sm" disabled="@(Busy || !Actions.CanSave)">@(Busy ? "Saving…" : Label)</button>
+    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" DropShadow="false" DisableRipple="true" Class="btn btn-sm" Disabled="@(Busy || !Actions.CanSave)">@(Busy ? "Saving…" : Label)</MudButton>
     @if (Error is not null)
     {
-        <p role="alert" class="alert">@Error</p>
+        <MudAlert Severity="Severity.Error" Variant="Variant.Text" NoIcon="true" Class="alert">@Error</MudAlert>
     }
     else if (Saved)
     {
@@ -14,7 +13,7 @@
     }
     else if (!Actions.CanSave)
     {
-        <p class="text-sm text-muted">Preview only: changes aren't saved.</p>
+        <p class="text-sm text-text-secondary">Preview only: changes aren't saved.</p>
     }
     @ChildContent
 </div>

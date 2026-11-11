@@ -4,7 +4,6 @@ using Npgsql.NameTranslation;
 
 namespace API.Models.Data;
 
-// SQL in db/migrations owns the schema. Never call Migrate or EnsureCreated here.
 public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : DbContext(options)
 {
     public DbSet<Student> Students => Set<Student>();
@@ -76,7 +75,6 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
                 if (Database.IsNpgsql() && property.Name == "UpdatedAt")
                 {
-                    // Read back the value produced by the database's BEFORE UPDATE trigger.
                     property.ValueGenerated = ValueGenerated.OnAddOrUpdate;
                     property.SetBeforeSaveBehavior(PropertySaveBehavior.Ignore);
                     property.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
@@ -87,17 +85,15 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
                 }
             }
         }
-        // Keep the existing C# name, but map to SQL's posted_at (there is no created_at).
         model.Entity<Project>().Property(x => x.CreatedAt).HasColumnName("posted_at");
         model.Entity<Project>().Property(x => x.Status).HasColumnType("public.project_status")
             .HasDefaultValue(ProjectStatus.Available);
         model.Entity<Inquiry>().Property(x => x.Status).HasColumnType("public.inquiry_status")
-            .HasDefaultValue(InquiryStatus.Pending);
+            .HasDefaultValue(InquiryStatus.Sent);
     }
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        // PostgreSQL owns timestamps: now() defaults on insert and triggers on update. Mirror them for local InMemory use.
         if (Database.IsNpgsql())
         {
             return base.SaveChangesAsync(cancellationToken);
@@ -112,7 +108,6 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
                     continue;
                 }
                 var property = entry.Property(name);
-                // On insert keep a value the caller set on purpose (sample data, tests); on update always refresh UpdatedAt.
                 if ((entry.State == EntityState.Added && (DateTime)property.CurrentValue! == default)
                     || (entry.State == EntityState.Modified && name == "UpdatedAt"))
                 {

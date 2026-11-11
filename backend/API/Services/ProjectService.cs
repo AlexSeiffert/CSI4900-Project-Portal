@@ -6,8 +6,6 @@ using API.Services.Interfaces;
 
 namespace API.Services;
 
-// Repository errors are not caught here: ApiExceptionHandler turns RepositoryException into the right status.
-// Request bodies are validated by [ApiController] before they reach a service.
 public class ProjectService(IProjectRepository repository) : IProjectService
 {
     private readonly IProjectRepository _repository = repository;

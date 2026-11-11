@@ -1,9 +1,4 @@
-@* An on/off switch. On is green, because it's used for "accepting inquiries" (a status). *@
-<button type="button" role="switch" aria-checked="@(On ? "true" : "false")" aria-label="@Label" disabled="@Disabled"
-        class="relative inline-flex h-6 w-10 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 disabled:cursor-wait disabled:opacity-60 @(On ? "bg-success" : "bg-divider")"
-        @onclick="() => OnToggle.InvokeAsync(!On)">
-    <span class="size-5 rounded-full bg-white shadow transition-transform duration-200 @(On ? "translate-x-[18px]" : "translate-x-0.5")"></span>
-</button>
+<MudSwitch T="bool" Value="On" ValueChanged="OnToggle" ReadOnly="Disabled" Color="Color.Success" Class="@($"app-switch {(Disabled ? "is-disabled" : "")}")" aria-label="@Label" aria-disabled="@(Disabled ? "true" : null)" />
 
 @code {
     [Parameter, EditorRequired] public bool On { get; set; }

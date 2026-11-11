@@ -1,11 +1,6 @@
-@* A project's status as a menu in a table cell, with the status colour beside it. *@
 <CellSelect Label="@($"Status of {Project.Title}")" Value="@Project.Status.ToString()" Dot="@Display.Project(Project.Status).Color"
-            Disabled="Disabled" OnChange="Changed">
-    @foreach (var status in Enum.GetValues<ProjectStatus>())
-    {
-        <option value="@status">@Display.Project(status).Label</option>
-    }
-</CellSelect>
+            Disabled="Disabled" OnChange="Changed"
+            Options="Enum.GetValues<ProjectStatus>().Select(s => (s.ToString(), Display.Project(s).Label))" />
 
 @code {
     [Parameter, EditorRequired] public Project Project { get; set; } = default!;

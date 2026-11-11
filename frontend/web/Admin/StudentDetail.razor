@@ -1,16 +1,13 @@
-@* One student: their progress, inquiries and saved projects, and their program and interests to edit.
-   The name isn't editable: it will come from the university sign-in. *@
 @if (student is null)
 {
     <BackLink Href="@($"{BasePath}/students")" Label="All students" />
-    <p class="mt-6 text-muted">@(loaded ? "This student no longer exists." : "Loading…")</p>
+    <p class="mt-6 text-text-secondary">@(loaded ? "This student no longer exists." : "Loading…")</p>
 }
 else
 {
     var inquiries = Data.InquiriesFrom(student.UserId).ToList();
     <RecordHeader Title="@student.DisplayName" BackHref="@($"{BasePath}/students")" BackLabel="All students">
         <StatusPill Status="@Display.Stage(Data.FurthestStage(student.UserId))" />
-        <span>@(student.Program ?? "No program")</span>
         <span class="inline-flex items-center gap-1.5"><Icon Name="send" />@inquiries.Count @(inquiries.Count == 1 ? "inquiry" : "inquiries")</span>
         <span class="inline-flex items-center gap-1.5"><Icon Name="bookmark" />@savedProjects.Count saved</span>
     </RecordHeader>
@@ -18,15 +15,6 @@ else
     <div class="mt-8 grid items-start gap-4 lg:grid-cols-[2fr_3fr]">
         <form class="card space-y-5" @onsubmit="SaveAsync" @onsubmit:preventDefault>
             <h2 class="text-lg font-semibold">Profile</h2>
-            <FormField Label="Program">
-                <input class="field" list="programs" @bind="program" @bind:event="oninput" placeholder="Not set" />
-                <datalist id="programs">
-                    @foreach (var option in Data.Students.Select(s => s.Program).OfType<string>().Distinct().Order())
-                    {
-                        <option value="@option"></option>
-                    }
-                </datalist>
-            </FormField>
             <FormField Label="Interested in" Group>
                 <TopicPicker Topics="Data.Topics" Selected="topics" Label="Interested in" Disabled="!Actions.CanSave" OnChange="() => saved = false" />
             </FormField>
@@ -38,18 +26,18 @@ else
                 <InquiryTable Inquiries="inquiries" Data="Data" BasePath="@BasePath" ShowStudent="false" Empty="Hasn't sent an inquiry yet." />
             </Panel>
             <Panel Title="Saved projects" Flush>
-                <DataTable Items="savedProjects" SortedBy="Project" Empty="@(Actions.CanSave ? "Nothing saved." : "Not available in the preview.")">
+                <DataTable Items="savedProjects" ExportName="saved-projects" SortedBy="Project" Empty="@(Actions.CanSave ? "Nothing saved." : "Not available in the preview.")">
                     <DataColumn Title="Project" SortBy="p => p.Title" Class="max-w-80 truncate">
-                        <a class="hover:text-primary hover:underline" href="@($"{BasePath}/projects/{context.Id}")" title="@context.Title">@context.Title</a>
+                        <a class="hover:text-focus hover:underline" href="@($"{BasePath}/projects/{context.Id}")" title="@context.Title">@context.Title</a>
                     </DataColumn>
                     <DataColumn Title="Inquired" SortBy="p => inquiries.Any(i => i.ProjectId == p.Id)">
                         @if (inquiries.Any(i => i.ProjectId == context.Id))
                         {
-                            <span class="inline-flex items-center gap-1.5"><Icon Name="check" Class="size-4 text-muted" />Yes</span>
+                            <span class="inline-flex items-center gap-1.5"><Icon Name="check" Class="size-4 text-text-secondary" />Yes</span>
                         }
                         else
                         {
-                            <span class="text-muted">Not yet</span>
+                            <span class="text-text-secondary">Not yet</span>
                         }
                     </DataColumn>
                 </DataTable>
@@ -68,7 +56,6 @@ else
     private List<Project> savedProjects = [];
     private Guid? loadedId;
     private bool loaded;
-    private string program = "";
     private HashSet<Guid> topics = [];
     private bool busy;
     private bool saved;
@@ -76,7 +63,6 @@ else
 
     protected override async Task OnParametersSetAsync()
     {
-        // Reloads after a save pass new Data; only fetch the record again when it's a different student.
         if (loadedId == Id)
         {
             student = Data.Student(Id) is { } fresh ? fresh with { TopicInterests = student?.TopicInterests } : null;
@@ -91,7 +77,6 @@ else
         loaded = true;
         if (student is not null)
         {
-            program = student.Program ?? "";
             topics = [.. (student.TopicInterests ?? []).Select(t => t.Id)];
         }
     }
@@ -100,7 +85,7 @@ else
     {
         busy = true;
         saved = false;
-        var body = new UpdateStudent(student!.DisplayName, string.IsNullOrWhiteSpace(program) ? null : program.Trim(), [.. topics]);
+        var body = new UpdateStudent(student!.DisplayName, [.. topics]);
         error = await Actions.SaveAsync(api => api.PutAsync<Student>($"students/{Id}", body));
         saved = error is null;
         busy = false;

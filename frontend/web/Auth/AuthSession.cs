@@ -7,10 +7,6 @@ using Microsoft.JSInterop;
 
 namespace ProjectPortal.Web.Auth;
 
-/// <summary>
-/// The signed-in user. Signs in against Supabase Auth (the API checks the same token), then looks up
-/// the user's display name from the API. Kept in localStorage so a page refresh keeps the session.
-/// </summary>
 public sealed class AuthSession(HttpClient http, IConfiguration config, IJSRuntime js)
 {
     private const string StorageKey = "projectPortal.session";
@@ -23,10 +19,8 @@ public sealed class AuthSession(HttpClient http, IConfiguration config, IJSRunti
     private SignedInUser? user;
     private bool restored;
 
-    /// <summary>The page each role lands on after signing in.</summary>
     public static string HomeFor(string role) => $"/{role}-home";
 
-    /// <summary>The signed-in user, or null when signed out or the session has expired.</summary>
     public async Task<SignedInUser?> GetUserAsync()
     {
         if (!restored)
@@ -35,7 +29,6 @@ public sealed class AuthSession(HttpClient http, IConfiguration config, IJSRunti
             var saved = await js.InvokeAsync<string?>("localStorage.getItem", StorageKey);
             user = saved is null ? null : JsonSerializer.Deserialize<SignedInUser>(saved);
         }
-        // Tokens last an hour; after that the API rejects them, so treat the session as over.
         if (user is not null && user.ExpiresAt <= DateTimeOffset.UtcNow)
         {
             await ClearAsync();
@@ -43,7 +36,6 @@ public sealed class AuthSession(HttpClient http, IConfiguration config, IJSRunti
         return user;
     }
 
-    /// <summary>Signs in. Returns null on success, otherwise a message to show the user.</summary>
     public async Task<string?> SignInAsync(string email, string password)
     {
         if (authUrl.Length == 0 || publishableKey.Length == 0)
@@ -102,7 +94,6 @@ public sealed class AuthSession(HttpClient http, IConfiguration config, IJSRunti
         {
             try
             {
-                // Ends the session on Supabase too. The local sign-out below happens either way.
                 using var request = new HttpRequestMessage(HttpMethod.Post, $"{authUrl}/logout");
                 request.Headers.Add("apikey", publishableKey);
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", user.AccessToken);
@@ -115,7 +106,6 @@ public sealed class AuthSession(HttpClient http, IConfiguration config, IJSRunti
         await ClearAsync();
     }
 
-    // Students and supervisors have a profile with a display name. Admins don't, so they get null.
     private async Task<string?> LookUpNameAsync(Guid id, string role, string accessToken)
     {
         if (role == "admin" || apiUrl.Length == 0)
@@ -146,7 +136,6 @@ public sealed class AuthSession(HttpClient http, IConfiguration config, IJSRunti
         await js.InvokeVoidAsync("localStorage.removeItem", StorageKey);
     }
 
-    // The middle part of a JWT is base64url-encoded JSON. Supabase already verified it; this only reads it.
     private static JsonElement ReadClaims(string jwt)
     {
         var payload = jwt.Split('.')[1].Replace('-', '+').Replace('_', '/');

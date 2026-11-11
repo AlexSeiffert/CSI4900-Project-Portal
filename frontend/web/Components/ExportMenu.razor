@@ -1,0 +1,87 @@
+@implements IDisposable
+
+@if (Host.Sources.Count > 0)
+{
+    var source = Current!;
+    <div class="relative">
+        <MudButton Variant="Variant.Outlined" DropShadow="false" DisableRipple="true" Class="btn btn-secondary btn-sm" aria-haspopup="true" aria-expanded="@(open ? "true" : "false")"
+                   OnClick="@(() => { open = !open; })">
+            <Icon Name="download" />Export
+        </MudButton>
+        @if (open)
+        {
+            <div class="fixed inset-0 z-10" @onclick="() => open = false" aria-hidden="true"></div>
+            <div role="group" aria-label="Export" @onkeydown="OnKey"
+                 class="absolute right-0 top-full z-20 mt-1 flex w-72 flex-col gap-3 rounded-xl border border-border bg-surface p-4 shadow-lg">
+                @if (Host.Sources.Count > 1)
+                {
+                    <SelectBox Label="Table" Value="@sourceIndex.ToString()" ValueChanged="v => sourceIndex = int.Parse(v)"
+                               Options="Host.Sources.Select((x, i) => (i.ToString(), x.Name))" />
+                }
+                <SelectBox Label="Format" @bind-Value="format" Options="FormatOptions" />
+                @if (source.AllCount is { } all)
+                {
+                    <SelectBox Label="Rows" @bind-Value="scope" Options="RowOptions(source, all)" />
+                }
+                @if (error is not null)
+                {
+                    <p role="alert" class="text-sm text-feedback-error">@error</p>
+                }
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" DropShadow="false" DisableRipple="true" Class="btn btn-sm" Disabled="@busy" OnClick="DownloadAsync">
+                    <Icon Name="download" />@(busy ? "Preparing…" : "Download")
+                </MudButton>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public ExportHost Host { get; set; } = default!;
+
+    private static readonly (string Value, string Label)[] FormatOptions = [("csv", "CSV"), ("excel", "Excel"), ("json", "JSON"), ("pdf", "PDF")];
+
+    private static (string Value, string Label)[] RowOptions(IExportSource source, int all) =>
+        [("filter", $"Current filter ({source.FilteredCount})"), ("all", $"All data ({all})")];
+
+    private bool open;
+    private bool busy;
+    private string format = "csv";
+    private string scope = "filter";
+    private int sourceIndex;
+    private string? error;
+
+    private IExportSource? Current => Host.Sources.Count == 0 ? null : Host.Sources[Math.Min(sourceIndex, Host.Sources.Count - 1)];
+
+    protected override void OnInitialized() => Host.Changed += OnChanged;
+
+    public void Dispose() => Host.Changed -= OnChanged;
+
+    private void OnChanged() => _ = InvokeAsync(StateHasChanged);
+
+    private void OnKey(KeyboardEventArgs e)
+    {
+        if (e.Key == "Escape")
+        {
+            open = false;
+        }
+    }
+
+    private async Task DownloadAsync()
+    {
+        busy = true;
+        error = null;
+        try
+        {
+            await Current!.ExportAsync(format, scope);
+            open = false;
+        }
+        catch (Exception e) when (e is JSException or InvalidOperationException)
+        {
+            error = "Couldn't create the file. Check your connection and try again.";
+        }
+        finally
+        {
+            busy = false;
+        }
+    }
+}

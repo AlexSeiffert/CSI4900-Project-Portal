@@ -17,7 +17,7 @@ public class StudentServiceTests
     public async Task GetStudents_MapsProfilesAndTopics()
     {
         var topic = new Topic { Id = Guid.NewGuid(), Name = "Databases" };
-        var student = new Student { UserId = Guid.NewGuid(), DisplayName = "Student", Program = "CS", TopicInterests = [topic] };
+        var student = new Student { UserId = Guid.NewGuid(), DisplayName = "Student", TopicInterests = [topic] };
 
         _repository.Setup(repository => repository.GetStudents(CancellationToken.None))
             .ReturnsAsync(new List<Student> { student });
@@ -56,7 +56,7 @@ public class StudentServiceTests
     public async Task GetStudentById_ReturnsMatchingProfile()
     {
         var topic = new Topic { Id = Guid.NewGuid(), Name = "Databases" };
-        var student = new Student { UserId = Guid.NewGuid(), DisplayName = "Student", Program = "CS", TopicInterests = [topic] };
+        var student = new Student { UserId = Guid.NewGuid(), DisplayName = "Student", TopicInterests = [topic] };
 
         _repository.Setup(repository => repository.GetStudentById(student.UserId, CancellationToken.None))
             .ReturnsAsync(student);
@@ -94,8 +94,8 @@ public class StudentServiceTests
     public async Task UpdateStudent_UpdatesFieldsAndPreservesIdentity()
     {
         var topic = new Topic { Id = Guid.NewGuid(), Name = "Databases" };
-        var student = new Student { UserId = Guid.NewGuid(), DisplayName = "Student", Program = "CS", TopicInterests = [topic] };
-        var request = new UpdateStudent { DisplayName = "Updated", Program = "Engineering", TopicIds = [topic.Id] };
+        var student = new Student { UserId = Guid.NewGuid(), DisplayName = "Student", TopicInterests = [topic] };
+        var request = new UpdateStudent { DisplayName = "Updated", TopicIds = [topic.Id] };
         var before = student.UpdatedAt;
 
         _repository.Setup(repository => repository.GetStudentById(student.UserId, CancellationToken.None))
@@ -109,7 +109,6 @@ public class StudentServiceTests
 
         Assert.Equal(student.UserId, result.UserId);
         Assert.Equal(request.DisplayName, result.DisplayName);
-        Assert.Equal(request.Program, result.Program);
         Assert.True(result.UpdatedAt >= before);
         _repository.Verify(repository => repository.GetStudentById(student.UserId, CancellationToken.None), Times.Once);
         _repository.Verify(repository => repository.UpdateStudent(student, request.TopicIds, CancellationToken.None), Times.Once);
@@ -119,8 +118,8 @@ public class StudentServiceTests
     public async Task UpdateStudent_PropagatesRepositoryFailure()
     {
         var topic = new Topic { Id = Guid.NewGuid(), Name = "Databases" };
-        var student = new Student { UserId = Guid.NewGuid(), DisplayName = "Student", Program = "CS", TopicInterests = [topic] };
-        var request = new UpdateStudent { DisplayName = "Updated", Program = "Engineering", TopicIds = [topic.Id] };
+        var student = new Student { UserId = Guid.NewGuid(), DisplayName = "Student", TopicInterests = [topic] };
+        var request = new UpdateStudent { DisplayName = "Updated", TopicIds = [topic.Id] };
         using var cancellation = new CancellationTokenSource();
         var token = cancellation.Token;
         var original = new RepositoryException("dependency", new InvalidOperationException("Database failed"));
@@ -144,7 +143,7 @@ public class StudentServiceTests
     {
         var topicId = Guid.NewGuid();
         var studentId = Guid.NewGuid();
-        var request = new UpdateStudent { DisplayName = "Updated", Program = "Engineering", TopicIds = [topicId] };
+        var request = new UpdateStudent { DisplayName = "Updated", TopicIds = [topicId] };
         using var cancellation = new CancellationTokenSource();
         var token = cancellation.Token;
         var original = new RepositoryException("dependency", new InvalidOperationException("Database failed"));

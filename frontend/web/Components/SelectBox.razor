@@ -1,20 +1,26 @@
-@* A pill-shaped menu for toolbars, labelled inside the pill. Bind with @bind-Value; options go inside. *@
-<label class="control relative pr-8">
-    @if (IconName is not null)
-    {
-        <Icon Name="@IconName" Class="size-4 text-muted" />
-    }
-    <span class="shrink-0 text-muted">@Label</span>
-    <select value="@Value" @onchange="e => ValueChanged.InvokeAsync(e.Value?.ToString() ?? string.Empty)" class="font-semibold">
-        @ChildContent
-    </select>
-    <Icon Name="chevron-down" Class="pointer-events-none absolute right-3 size-4 text-muted" />
-</label>
+<span class="app-select-wrap">
+    <span class="app-select-sizer" aria-hidden="true">
+        <span>@Label</span>
+        <span class="app-select-sizer-options">
+            @foreach (var option in Options)
+            {
+                <span>@option.Label</span>
+            }
+        </span>
+    </span>
+    <MudSelect T="string" Value="Value" ValueChanged="ValueChanged" Variant="Variant.Text" Underline="false" Margin="Margin.None"
+               Adornment="Adornment.End" Style="@($"--select-label: '{Label}'")" OpenIcon="@LucideIcons.Svg("chevron-down")" CloseIcon="@LucideIcons.Svg("chevron-down")"
+               AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft" Dense="true" Class="app-select" aria-label="@Label">
+        @foreach (var option in Options)
+        {
+            <MudSelectItem T="string" Value="@option.Value">@option.Label</MudSelectItem>
+        }
+    </MudSelect>
+</span>
 
 @code {
     [Parameter, EditorRequired] public string Label { get; set; } = "";
-    [Parameter] public string? IconName { get; set; }
     [Parameter] public string Value { get; set; } = "";
     [Parameter] public EventCallback<string> ValueChanged { get; set; }
-    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter, EditorRequired] public IEnumerable<(string Value, string Label)> Options { get; set; } = [];
 }

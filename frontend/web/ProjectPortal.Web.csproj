@@ -10,9 +10,9 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.13" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.13" PrivateAssets="all" />
+    <PackageReference Include="MudBlazor" Version="9.12.0" GeneratePathProperty="true" />
   </ItemGroup>
 
-  <!-- ../public holds shared brand assets (logos); copied to wwwroot/brand and served at /brand/* -->
   <Target Name="CopyBrandAssets" BeforeTargets="BeforeBuild">
     <ItemGroup>
       <BrandAsset Include="..\public\**" />
@@ -20,12 +20,8 @@
     <Copy SourceFiles="@(BrandAsset)" DestinationFiles="@(BrandAsset->'wwwroot\brand\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
   </Target>
 
-  <!-- Local runs: writes the Supabase settings from the repo .env (loaded by mise) into a gitignored
-       appsettings.Development.json, which overrides the empty values in appsettings.json. -->
   <Target Name="WriteDevSettings" BeforeTargets="BeforeBuild" Condition="'$(Auth__Authority)' != '' and '$(SUPABASE_PUBLISHABLE_KEY)' != ''">
-    <WriteLinesToFile File="wwwroot\appsettings.Development.json" Overwrite="true" WriteOnlyWhenDifferent="true"
-                      Lines="{ &quot;Supabase&quot;: { &quot;AuthUrl&quot;: &quot;$(Auth__Authority)&quot;, &quot;PublishableKey&quot;: &quot;$(SUPABASE_PUBLISHABLE_KEY)&quot; } }" />
-    <!-- On the first build the file didn't exist when wwwroot was scanned, so add it here. -->
+    <WriteLinesToFile File="wwwroot\appsettings.Development.json" Overwrite="true" WriteOnlyWhenDifferent="true" Lines="{ &quot;Supabase&quot;: { &quot;AuthUrl&quot;: &quot;$(Auth__Authority)&quot;, &quot;PublishableKey&quot;: &quot;$(SUPABASE_PUBLISHABLE_KEY)&quot; } }" />
     <ItemGroup>
       <Content Include="wwwroot\appsettings.Development.json" Exclude="@(Content)" />
     </ItemGroup>
@@ -33,6 +29,7 @@
 
   <Target Name="BuildTailwind" BeforeTargets="BeforeBuild" Condition="'$(SkipTailwind)' != 'true'">
     <Exec Command="npm install --no-audit --no-fund" Condition="!Exists('node_modules')" WorkingDirectory="$(MSBuildProjectDirectory)" />
+    <Exec Command="node Styles/prepare-mud.mjs &quot;$(PkgMudBlazor)/staticwebassets/MudBlazor.min.css&quot; Styles/vendor/MudBlazor.min.css" WorkingDirectory="$(MSBuildProjectDirectory)" />
     <Exec Command="npm run css:build" WorkingDirectory="$(MSBuildProjectDirectory)" />
   </Target>
 

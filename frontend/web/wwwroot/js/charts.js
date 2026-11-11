@@ -1,14 +1,9 @@
-// Bridge between Blazor and ECharts (loaded by index.html). Blazor sends the data (Components/EChart.razor
-// calls the function named by Kind); the look lives here. Colours are read from the --color-* tokens in
-// Styles/app.css, so charts always match the site and will follow it to a dark theme.
-
 const mounted = new WeakMap();
 
 function token(name) {
   return getComputedStyle(document.documentElement).getPropertyValue(`--color-${name}`).trim();
 }
 
-// Accepts a token name ("mono-3"), a CSS variable ("var(--color-stage-2)") or a plain colour.
 function color(value) {
   if (!value || value.startsWith('#') || value.startsWith('rgb')) return value;
   const match = value.match(/^var\(--color-(.+)\)$/);
@@ -33,11 +28,10 @@ function mount(el) {
 
 const FONT = '"Work Sans", ui-sans-serif, system-ui, sans-serif';
 
-// Settings every chart shares: Work Sans, a dark rounded tooltip and a quick ease-out entrance.
 function base() {
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
   return {
-    textStyle: { fontFamily: FONT, color: token('dark') },
+    textStyle: { fontFamily: FONT, color: token('text') },
     animation: !reduced,
     animationDuration: 800,
     animationEasing: 'quarticOut',
@@ -45,10 +39,11 @@ function base() {
     animationEasingUpdate: 'quarticOut',
     tooltip: {
       backgroundColor: token('dark'),
-      borderWidth: 0,
+      borderColor: token('border'),
+      borderWidth: 1,
       padding: [8, 12],
-      textStyle: { color: token('white'), fontFamily: FONT, fontSize: 12, lineHeight: 18 },
-      extraCssText: 'border-radius:10px;box-shadow:0 10px 30px rgb(45 45 44 / 0.22);',
+      textStyle: { color: token('text'), fontFamily: FONT, fontSize: 12, lineHeight: 18 },
+      extraCssText: 'border-radius:10px;box-shadow:0 10px 30px rgb(0 0 0 / 0.4);',
     },
   };
 }
@@ -57,23 +52,20 @@ function axis(extra = {}) {
   return {
     axisLine: { show: false },
     axisTick: { show: false },
-    axisLabel: { color: token('muted'), fontSize: 11, fontFamily: FONT },
-    splitLine: { lineStyle: { color: token('divider'), opacity: 0.6 } },
+    axisLabel: { color: token('text-secondary'), fontSize: 11, fontFamily: FONT },
+    splitLine: { lineStyle: { color: token('border'), opacity: 0.6 } },
     ...extra,
   };
 }
 
 function legend(show) {
   return show
-    ? { top: 0, left: 0, icon: 'circle', itemWidth: 8, itemHeight: 8, itemGap: 16, textStyle: { color: token('muted'), fontSize: 12, fontFamily: FONT } }
+    ? { top: 0, left: 0, icon: 'circle', itemWidth: 8, itemHeight: 8, itemGap: 16, textStyle: { color: token('text-secondary'), fontSize: 12, fontFamily: FONT } }
     : { show: false };
 }
 
 const dot = (c) => `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;background:${c}"></span>`;
 
-// Flow chart. nodes: [{ name, value, depth, color }]; links: [{ source, target, value, color }] where a
-// link's color is "gradient" (blend its ends), "source" or "target" (that end's colour) or a colour/token.
-// leftLabels puts the first column's labels on its left, so they don't sit on the ribbons.
 export function sankey(el, { nodes, links, labelRoom = 150, leftLabels = false }) {
   const shared = base();
   const valueOf = Object.fromEntries(nodes.map((n) => [n.name, n.value]));
@@ -94,10 +86,9 @@ export function sankey(el, { nodes, links, labelRoom = 150, leftLabels = false }
       series: [
         {
           type: 'sankey',
-          // Sankey series default to their own slower, linear entrance; match the bars.
           animationDuration: shared.animationDuration,
           animationEasing: shared.animationEasing,
-          left: leftLabels ? 190 : 0, // room for "Software Engineering 58"
+          left: leftLabels ? 190 : 0,
           right: labelRoom,
           top: 6,
           bottom: 6,
@@ -113,8 +104,8 @@ export function sankey(el, { nodes, links, labelRoom = 150, leftLabels = false }
             distance: 10,
             formatter: (p) => `{name|${p.name}}  {value|${p.value}}`,
             rich: {
-              name: { fontWeight: 600, fontSize: 13, color: token('dark') },
-              value: { fontSize: 13, color: token('muted') },
+              name: { fontWeight: 600, fontSize: 13, color: token('text') },
+              value: { fontSize: 13, color: token('text-secondary') },
             },
           },
           lineStyle: { curveness: 0.5 },
@@ -139,17 +130,11 @@ export function sankey(el, { nodes, links, labelRoom = 150, leftLabels = false }
   );
 }
 
-// Bar chart. series: [{ name, color, data, type }] where each value is a number or { value, color };
-// type 'line' draws that series as a line with dots over the bars.
-// horizontal puts categories down the side (first at the top); stacked piles the series up;
-// unit is added after values ("%"); max caps the value axis (100 for percentages). legend defaults
-// to showing only with two or more series; barWidth overrides the default bar thickness. links holds a
-// page for each category: clicking its label or bars opens it.
 export function bars(el, { categories, series, horizontal = false, stacked = false, unit = '', max, legend: showLegend, barWidth, links }) {
   const withLegend = showLegend ?? series.length > 1;
   const shared = base();
   const categoryAxis = axis({ type: 'category', data: categories, inverse: horizontal, splitLine: { show: false }, triggerEvent: !!links,
-    axisLabel: { ...axis().axisLabel, color: token(horizontal ? 'dark' : 'muted'), fontSize: horizontal ? 12 : 11 } });
+    axisLabel: { ...axis().axisLabel, color: token(horizontal ? 'text' : 'text-secondary'), fontSize: horizontal ? 12 : 11 } });
   const valueAxis = axis({ type: 'value', minInterval: 1, max, axisLabel: { ...axis().axisLabel, formatter: `{value}${unit}` } });
   const last = series.length - 1;
   const chart = mount(el);
@@ -169,11 +154,11 @@ export function bars(el, { categories, series, horizontal = false, stacked = fal
     {
       ...shared,
       legend: legend(withLegend),
-      grid: { left: 0, right: 18, top: withLegend ? 34 : 8, bottom: 0, containLabel: true }, // right: room for "100%"
+      grid: { left: 0, right: 18, top: withLegend ? 34 : 8, bottom: 0, containLabel: true },
       tooltip: {
         ...shared.tooltip,
         trigger: 'axis',
-        axisPointer: { type: 'shadow', shadowStyle: { color: 'rgba(45,45,44,0.05)' } },
+        axisPointer: { type: 'shadow', shadowStyle: { color: 'rgba(255,255,255,0.06)' } },
         formatter: (items) =>
           `<b>${items[0].axisValue}</b><br>` + items.map((i) => `${dot(i.color)}${i.seriesName} <b>${i.value}${unit}</b>`).join('<br>'),
       },
@@ -199,7 +184,6 @@ export function bars(el, { categories, series, horizontal = false, stacked = fal
         barGap: '20%',
         itemStyle: {
           color: color(s.color),
-          // Round only the outer end of a stack
           borderRadius: !stacked || index === last ? (horizontal ? [0, 4, 4, 0] : [4, 4, 0, 0]) : 0,
         },
         emphasis: { focus: 'series' },
@@ -210,8 +194,6 @@ export function bars(el, { categories, series, horizontal = false, stacked = fal
   );
 }
 
-// Ring of the shares of a whole, with the total in the middle. segments: [{ name, value, color }];
-// caption sits under the total ("projects"). The legend is left to the page, so it can sit beside or below.
 export function donut(el, { segments, caption = '' }) {
   const shared = base();
   const total = segments.reduce((sum, s) => sum + s.value, 0);
@@ -230,8 +212,8 @@ export function donut(el, { segments, caption = '' }) {
         left: 'center',
         top: 'middle',
         itemGap: 2,
-        textStyle: { fontFamily: FONT, fontSize: 40, fontWeight: 600, color: token('dark') },
-        subtextStyle: { fontFamily: FONT, fontSize: 13, color: token('muted') },
+        textStyle: { fontFamily: FONT, fontSize: 40, fontWeight: 600, color: token('text') },
+        subtextStyle: { fontFamily: FONT, fontSize: 13, color: token('text-secondary') },
       },
       series: [
         {

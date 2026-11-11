@@ -2,12 +2,6 @@ namespace API.DTOs.Mapping;
 
 internal static class DtoMapping
 {
-    // ToDto maps only the object's own fields. ToDtoWithRelations also adds its relationships,
-    // one level deep: those related objects come back plain, without their own lists. So an inquiry
-    // includes its student, but not the student's other inquiries. Call that endpoint for those.
-    // This keeps responses small, avoids loops, and never shows a half-loaded list as if it were complete.
-    // Endpoints opt in to relationships with ToDtoWithRelations and a matching repository query.
-
     public static Topic ToDto(this Models.Topic x) => new() { Id = x.Id, Name = x.Name };
 
     public static Project ToDto(this Models.Project x) => new()
@@ -27,7 +21,7 @@ internal static class DtoMapping
     public static Student ToDto(this Models.Student x) => new()
     {
         UserId = x.UserId, DisplayName = x.DisplayName,
-        Program = x.Program, UpdatedAt = x.UpdatedAt
+        UpdatedAt = x.UpdatedAt
     };
 
     public static Supervisor ToDto(this Models.Supervisor x) => new()

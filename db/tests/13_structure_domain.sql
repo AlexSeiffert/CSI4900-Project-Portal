@@ -1,11 +1,9 @@
--- Structure: the tables, keys, triggers, policies and grants migrations 0005-0011 should have created.
 begin;
 select plan(73);
 
 
--- tables, columns and policies
 select has_table('public', 'student_profiles', 'public.student_profiles exists');
-select columns_are('public', 'student_profiles', array['user_id', 'display_name', 'program', 'updated_at'], 'public.student_profiles has exactly its expected columns');
+select columns_are('public', 'student_profiles', array['user_id', 'display_name', 'updated_at'], 'public.student_profiles has exactly its expected columns');
 select policies_are('public', 'student_profiles', array['student_profiles_admin_full_access', 'student_profiles_select_inquiring', 'student_profiles_select_own', 'student_profiles_update_own'], 'public.student_profiles has exactly its expected policies');
 select has_table('public', 'supervisor_profiles', 'public.supervisor_profiles exists');
 select columns_are('public', 'supervisor_profiles', array['user_id', 'display_name', 'contact_email', 'external_url', 'about_me', 'accepting_inquiries', 'updated_at'], 'public.supervisor_profiles has exactly its expected columns');
@@ -36,7 +34,6 @@ select columns_are('public', 'student_saved_projects', array['student_id', 'proj
 select policies_are('public', 'student_saved_projects', array['student_saved_projects_admin_full_access', 'student_saved_projects_delete_own', 'student_saved_projects_insert_own', 'student_saved_projects_select_own'], 'public.student_saved_projects has exactly its expected policies');
 select ok((select bool_and(relrowsecurity) from pg_class where oid = any(array['public.student_profiles'::regclass, 'public.supervisor_profiles'::regclass, 'public.topics'::regclass, 'public.projects'::regclass, 'public.supervisor_topic_interests'::regclass, 'public.student_topic_interests'::regclass, 'public.project_topic_tags'::regclass, 'public.inquiries'::regclass, 'public.inquiry_attachments'::regclass, 'public.student_saved_projects'::regclass])), 'RLS is enabled on every new table');
 
--- keys
 select col_is_pk('public', 'student_profiles', 'user_id', 'student_profiles is keyed by user_id');
 select col_is_pk('public', 'supervisor_profiles', 'user_id', 'supervisor_profiles is keyed by user_id');
 select col_is_pk('public', 'topics', 'id', 'topics is keyed by id');
@@ -63,9 +60,8 @@ select fk_ok('public', 'inquiry_attachments', 'inquiry_id', 'public', 'inquiries
 select fk_ok('public', 'student_saved_projects', 'student_id', 'public', 'student_profiles', 'user_id', 'student_saved_projects.student_id references student_profiles.user_id');
 select fk_ok('public', 'student_saved_projects', 'project_id', 'public', 'projects', 'id', 'student_saved_projects.project_id references projects.id');
 
--- types, indexes, functions and triggers
 select enum_has_labels('public', 'project_status', array['available', 'unavailable', 'archived'], 'project_status has exactly its three values');
-select enum_has_labels('public', 'inquiry_status', array['pending', 'viewed', 'responded', 'closed'], 'inquiry_status has exactly its four values');
+select enum_has_labels('public', 'inquiry_status', array['sent', 'matched', 'closed'], 'inquiry_status has exactly its three values');
 select index_is_unique('public', 'topics', 'topics_name_lower_key', 'topic names are unique ignoring case');
 select is_definer('public', 'get_or_create_topic', 'get_or_create_topic() is SECURITY DEFINER');
 select function_privs_are('public', 'get_or_create_topic', array['text'], 'authenticated', array['EXECUTE'], 'signed-in users can call get_or_create_topic()');
@@ -78,7 +74,6 @@ select trigger_is('public', 'projects', 'projects_set_updated_at', 'public', 'se
 select trigger_is('public', 'inquiries', 'inquiries_set_updated_at', 'public', 'set_updated_at', 'inquiries keeps updated_at current');
 select trigger_is('public', 'inquiries', 'inquiries_limit_updates', 'public', 'limit_inquiry_updates', 'inquiries_limit_updates runs limit_inquiry_updates()');
 
--- storage
 select ok(exists (select 1 from pg_policies where schemaname = 'storage' and tablename = 'objects' and policyname = 'inquiry_attachments_files_upload'), 'storage policy inquiry_attachments_files_upload exists');
 select ok(exists (select 1 from pg_policies where schemaname = 'storage' and tablename = 'objects' and policyname = 'inquiry_attachments_files_read'), 'storage policy inquiry_attachments_files_read exists');
 select ok(exists (select 1 from pg_policies where schemaname = 'storage' and tablename = 'objects' and policyname = 'inquiry_attachments_files_delete'), 'storage policy inquiry_attachments_files_delete exists');

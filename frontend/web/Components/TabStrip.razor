@@ -1,20 +1,23 @@
-@* Tabs within a page: underlined like the admin navigation, for switching between views without
-   leaving the page. Bind with @bind-Selected. *@
-<div class="flex gap-6 overflow-x-auto overflow-y-hidden shadow-[inset_0_-1px_0_var(--color-divider)]" role="tablist" aria-label="@Label">
+<MudTabs Elevation="0" Rounded="false" HideSlider="true" DisableSliderAnimation="true" MinimumTabWidth="0px" Class="app-tabs" aria-label="@Label"
+         ActivePanelIndex="ActiveIndex" ActivePanelIndexChanged="OnIndexChanged">
     @foreach (var (key, label, icon) in Tabs)
     {
-        var active = key == Selected;
-        <button type="button" role="tab" aria-selected="@(active ? "true" : "false")" @onclick="() => SelectedChanged.InvokeAsync(key)"
-                class="inline-flex cursor-pointer items-center gap-2 whitespace-nowrap border-b-2 py-3 text-sm font-semibold transition-colors @(active ? "border-primary text-dark" : "border-transparent text-muted hover:text-dark")">
-            <Icon Name="@icon" />
-            @label
-        </button>
+        <MudTabPanel Class="app-tab" ID="@key">
+            <TabContent>
+                <Icon Name="@icon" />
+                @label
+            </TabContent>
+        </MudTabPanel>
     }
-</div>
+</MudTabs>
 
 @code {
     [Parameter, EditorRequired] public string Label { get; set; } = "";
     [Parameter, EditorRequired] public IReadOnlyList<(string Key, string Label, string Icon)> Tabs { get; set; } = [];
     [Parameter] public string Selected { get; set; } = "";
     [Parameter] public EventCallback<string> SelectedChanged { get; set; }
+
+    private int ActiveIndex => Math.Max(0, Tabs.ToList().FindIndex(t => t.Key == Selected));
+
+    private Task OnIndexChanged(int index) => SelectedChanged.InvokeAsync(Tabs[index].Key);
 }

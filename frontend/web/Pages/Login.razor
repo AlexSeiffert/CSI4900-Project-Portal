@@ -7,10 +7,10 @@
 
 <div class="flex flex-1 items-center justify-center px-6 py-8 sm:py-16">
     <section class="w-full max-w-sm">
-        <div role="img" aria-label="uOttawa" class="logo-mark mx-auto mb-5 w-24 sm:mb-8 sm:w-36"></div>
+        <img src="brand/uoProjectsLogo.svg" alt="uoProjects" class="mx-auto mb-5 h-auto w-32 sm:mb-8 sm:w-44" />
 
         <h1 class="text-center text-4xl font-bold sm:text-5xl leading-[1.1] tracking-tighter">Sign in</h1>
-        <p class="mt-2 text-balance text-center text-muted sm:mt-3 sm:text-lg">Use your uOttawa email to continue.</p>
+        <p class="mt-2 text-balance text-center text-text-secondary sm:mt-3 sm:text-lg">Use your uOttawa email to continue.</p>
 
         <EditForm Model="model" OnValidSubmit="SubmitAsync" FormName="login" class="mt-6 space-y-4 sm:mt-10 sm:space-y-6">
             <DataAnnotationsValidator />
@@ -21,7 +21,6 @@
                     <LiveInputText id="email" type="email" autocomplete="username" @bind-Value="model.Email"
                                    OnInput="text => emailValid = emailRule.IsValid(text)"
                                    class="field pr-9" placeholder="you@uottawa.ca" />
-                    @* lucide "check" *@
                     <svg class="pointer-events-none absolute right-2 top-1/2 size-5 -translate-y-1/2 text-success transition-opacity duration-200 @(emailValid ? "opacity-100" : "opacity-0")"
                          viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <path d="M20 6 9 17l-5-5" />
@@ -39,19 +38,21 @@
 
             @if (error is not null)
             {
-                <p role="alert" class="alert">@error</p>
+                <MudAlert Severity="Severity.Error" Variant="Variant.Text" NoIcon="true" Class="alert">@error</MudAlert>
             }
 
-            <button type="submit" disabled="@busy" class="group btn w-full">
+            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" DropShadow="false" DisableRipple="true" Disabled="@busy" Class="group btn w-full">
                 @(busy ? "Signing in…" : "Sign in")
                 @if (!busy)
                 {
                     <Arrow />
                 }
-            </button>
+            </MudButton>
         </EditForm>
     </section>
 </div>
+
+<SiteFooter />
 
 @code {
     private static readonly EmailAddressAttribute emailRule = new();

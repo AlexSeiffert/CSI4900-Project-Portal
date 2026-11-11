@@ -26,12 +26,10 @@ public class SavedProjectRepository(ApplicationDbContext db) : ISavedProjectRepo
         }
     }
 
-    // How many students saved each project; projects nobody saved are left out.
     public async Task<Dictionary<Guid, int>> GetSaveCounts(CancellationToken cancellationToken = default)
     {
         try
         {
-            // One row per save; counted here rather than in SQL so the in-memory test database can run it too.
             var projectIds = await _db.Set<Dictionary<string, object>>("student_saved_projects").AsNoTracking()
                 .Select(saved => EF.Property<Guid>(saved, "project_id"))
                 .ToListAsync(cancellationToken);
@@ -52,7 +50,6 @@ public class SavedProjectRepository(ApplicationDbContext db) : ISavedProjectRepo
                 await _db.Database.ExecuteSqlInterpolatedAsync($"INSERT INTO public.student_saved_projects (student_id, project_id) VALUES ({studentId}, {projectId}) ON CONFLICT (student_id, project_id) DO NOTHING", cancellationToken);
                 return;
             }
-            // Saving twice is fine: Postgres uses ON CONFLICT above, and the fake database checks first.
             var savedProjects = _db.Set<Dictionary<string, object>>("student_saved_projects");
             if (await savedProjects.AnyAsync(saved => EF.Property<Guid>(saved, "student_id") == studentId
                     && EF.Property<Guid>(saved, "project_id") == projectId, cancellationToken))

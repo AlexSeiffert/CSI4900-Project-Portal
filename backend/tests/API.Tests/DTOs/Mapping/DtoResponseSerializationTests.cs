@@ -38,7 +38,7 @@ public class DtoResponseSerializationTests
         Assert.Equal(70, studentJson.RootElement.GetArrayLength());
         Assert.Equal(30, supervisorJson.RootElement.GetArrayLength());
         Assert.True(inquiryJson.RootElement.GetArrayLength() > 100);
-        Assert.Equal(10, topicJson.RootElement.GetArrayLength()); // the ten topic tags
+        Assert.Equal(10, topicJson.RootElement.GetArrayLength());
         Assert.False(projectJson.RootElement[0].TryGetProperty("topics", out _));
         Assert.False(projectJson.RootElement[0].TryGetProperty("supervisor", out _));
         Assert.False(topicJson.RootElement[0].TryGetProperty("projects", out _));

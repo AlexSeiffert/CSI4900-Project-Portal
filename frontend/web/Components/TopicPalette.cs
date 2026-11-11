@@ -1,10 +1,5 @@
 namespace ProjectPortal.Web.Components;
 
-/// <summary>
-/// The ten topic tags (db/migrations/0012_topic_tags.sql): each one's Lucide icon and what it covers.
-/// Tags are all the same neutral grey, told apart by their icon and name; colour is kept for data.
-/// Unknown names are shown as Other.
-/// </summary>
 public static class TopicPalette
 {
     private sealed record Tag(string Icon, string Covers);
@@ -27,16 +22,12 @@ public static class TopicPalette
 
     private static Tag Find(string topicName) => Tags.GetValueOrDefault(topicName.Trim()) ?? Tags["Other"];
 
-    /// <summary>The tag names, in display order.</summary>
     public static IEnumerable<string> Names => Order;
 
-    /// <summary>The topic's Lucide icon name, for &lt;Icon /&gt;.</summary>
     public static string IconFor(string topicName) => Find(topicName).Icon;
 
-    /// <summary>What the tag covers, for tooltips and pickers.</summary>
     public static string Describe(string topicName) => Find(topicName).Covers;
 
-    /// <summary>Sorts topics into the palette's order rather than alphabetically.</summary>
     public static int OrderOf(string topicName)
     {
         var index = Order.FindIndex(name => name.Equals(topicName.Trim(), StringComparison.OrdinalIgnoreCase));

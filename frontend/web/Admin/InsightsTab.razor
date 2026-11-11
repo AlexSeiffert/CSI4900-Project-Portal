@@ -1,9 +1,6 @@
 @using System.Web
 @inject NavigationManager Nav
 
-@* The admin's overview: the matching progress bar, the four figures worth checking every day (each card
-   opens the list behind it), then a tab per area with at most two charts each. *@
-
 <section aria-labelledby="progress-heading">
     <div class="flex flex-wrap items-end justify-between gap-x-10 gap-y-2">
         <div>
@@ -12,7 +9,7 @@
             </h2>
         </div>
         <p class="text-6xl font-semibold leading-none tracking-tighter tabular-nums sm:text-7xl" aria-hidden="true">
-            @InsightMath.Percent(matched, Data.Students.Count)<span class="text-3xl text-muted sm:text-4xl">%</span>
+            @InsightMath.Percent(matched, Data.Students.Count)<span class="text-3xl text-text-secondary sm:text-4xl">%</span>
         </p>
     </div>
     <div class="mt-7">
@@ -23,10 +20,10 @@
 <div class="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
     <StatCard Label="No inquiry" Value="@notStarted.ToString()" Unit="@($"of {Data.Students.Count} students")"
               Note="Haven't messaged a supervisor" LinkText="See students" Href="@($"{BasePath}/students?filter=not-started")" />
-    <StatCard Label="No supervisor reply" Value="@overdue.ToString()" Unit="inquiries"
-              Note="@($"Waiting {AdminData.ReplyOverdue.Days}+ days")" LinkText="See supervisors" Href="@($"{BasePath}/supervisors?filter=overdue")" />
-    <StatCard Label="Inquiry reply rate" Value="@($"{InsightMath.Percent(replied, Data.Inquiries.Count)}%")"
-              Note="From supervisors" LinkText="See supervisors" Href="@($"{BasePath}/supervisors")" />
+    <StatCard Label="Still open" Value="@stale.ToString()" Unit="inquiries"
+              Note="@($"Sent {AdminData.StaleAfter.Days}+ days ago, no outcome")" LinkText="See supervisors" Href="@($"{BasePath}/supervisors?filter=stale")" />
+    <StatCard Label="Inquiry match rate" Value="@($"{InsightMath.Percent(matchedInquiries, Data.Inquiries.Count)}%")"
+              Note="Of inquiries sent" LinkText="See supervisors" Href="@($"{BasePath}/supervisors")" />
     <StatCard Label="Open projects" Value="@open.ToString()"
               Note="@($"{looking} students still need one")" LinkText="See projects" Href="@($"{BasePath}/projects?filter=Available")" />
 </div>
@@ -58,10 +55,9 @@
     [Parameter, EditorRequired] public string BasePath { get; set; } = "";
 
     private string area = "inquiries";
-    private int matched, notStarted, overdue, replied, open, looking;
+    private int matched, notStarted, stale, matchedInquiries, open, looking;
     private List<ShareBar.Segment> studentStages = [];
 
-    // ?area=topics opens that tab, so a view can be linked to.
     protected override void OnInitialized()
     {
         var from = HttpUtility.ParseQueryString(new Uri(Nav.Uri).Query)["area"];
@@ -74,20 +70,18 @@
     protected override void OnParametersSet()
     {
         var stages = Data.Students.Select(s => Data.FurthestStage(s.UserId)).ToList();
-        matched = stages.Count(s => s == InquiryStatus.Closed);
+        matched = stages.Count(s => s == InquiryStatus.Matched);
         notStarted = stages.Count(s => s is null);
         looking = Data.Students.Count - matched;
-        overdue = Data.Overdue.Count();
-        replied = Data.Reached(InquiryStatus.Responded);
+        stale = Data.Stale.Count();
+        matchedInquiries = Data.Inquiries.Count(i => i.Status == InquiryStatus.Matched);
         open = Data.Projects.Count(p => p.Status == ProjectStatus.Available);
 
-        // No inquiries at the 0% end, then each stage in order, so the bar reads left to right as progress to Matched.
         studentStages =
         [
             new("No inquiries", notStarted, "var(--color-chart-neutral)"),
-            new("Sent", stages.Count(s => s == InquiryStatus.Pending), "var(--color-stage-1)"),
-            new("Viewed", stages.Count(s => s == InquiryStatus.Viewed), "var(--color-stage-2)", LightText: true),
-            new("Talking", stages.Count(s => s == InquiryStatus.Responded), "var(--color-stage-3)", LightText: true),
+            new("Sent", stages.Count(s => s == InquiryStatus.Sent), "var(--color-stage-1)"),
+            new("Closed, no match", stages.Count(s => s == InquiryStatus.Closed), "var(--color-muted)", LightText: true),
             new("Matched", matched, "var(--color-stage-4)", LightText: true),
         ];
     }

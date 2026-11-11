@@ -1,9 +1,8 @@
 @using System.Globalization
 
-@* A share from 0 to 1 as a small ring with its percentage beside it. *@
 <span class="inline-flex items-center gap-2 tabular-nums" title="@Title">
     <svg class="size-6 -rotate-90" viewBox="0 0 24 24" aria-hidden="true">
-        <circle cx="12" cy="12" r="9" fill="none" stroke-width="3.5" class="stroke-hover" />
+        <circle cx="12" cy="12" r="9" fill="none" stroke-width="3.5" class="stroke-border" />
         <circle cx="12" cy="12" r="9" fill="none" stroke-width="3.5" stroke-linecap="round" stroke="@Color"
                 stroke-dasharray="@DashArray" pathLength="100" />
     </svg>
@@ -17,6 +16,5 @@
 
     private int Percent => (int)Math.Round(Value * 100);
 
-    // A full circle at 100% still shows a tiny gap so the ring reads as a meter, not a dot.
     private string DashArray => $"{Math.Max(Value * 100 - 0.01, 0).ToString("0.##", CultureInfo.InvariantCulture)} 100";
 }

@@ -3,10 +3,6 @@ using ProjectPortal.Web.Components;
 
 namespace ProjectPortal.Web.Admin;
 
-/// <summary>
-/// Made-up data for /admin-preview, so the admin pages can be designed without signing in or running
-/// the API. Seeded, so every load looks the same.
-/// </summary>
 public static class SampleAdminData
 {
     private static readonly string[] Surnames =
@@ -15,7 +11,6 @@ public static class SampleAdminData
     private static readonly string[] FirstNames =
         ["Amara", "Liam", "Sofia", "Noah", "Zara", "Ethan", "Maya", "Omar", "Chloé", "Lucas", "Priya", "Félix",
          "Hana", "Mateo", "Aisha", "Samuel", "Léa", "Kai", "Nadia", "Theo"];
-    private static readonly string[] Programs = ["Computer Science", "Software Engineering", "Computer Engineering", "Data Science"];
     private static readonly string[] Titles =
         ["Explainable models for", "A dashboard for", "Privacy-preserving tools for", "Benchmarking", "Accessible interfaces for",
          "Low-power sensing for", "Automated testing of", "Real-time visualisation of"];
@@ -28,7 +23,6 @@ public static class SampleAdminData
         var random = new Random(4900);
         var now = DateTime.UtcNow;
         DateTime DaysAgo(int max) => now.AddDays(-random.Next(1, max)).AddHours(-random.Next(24));
-        // Ids come from the seeded random too, so links to sample records work after a reload.
         Guid NextGuid()
         {
             var bytes = new byte[16];
@@ -44,7 +38,7 @@ public static class SampleAdminData
 
         var students = Enumerable.Range(0, 120).Select(i => new Student(
             NextGuid(), $"{FirstNames[i % FirstNames.Length]} {Surnames[(i * 7 + 3) % Surnames.Length]}",
-            i % 11 == 0 ? null : Programs[i % Programs.Length], DaysAgo(40), null)).ToList();
+            DaysAgo(40), null)).ToList();
 
         var projects = Enumerable.Range(0, 80).Select(i => new Project(
             NextGuid(), supervisors[i % supervisors.Count].UserId,
@@ -52,7 +46,6 @@ public static class SampleAdminData
             i < 47 ? ProjectStatus.Available : i < 68 ? ProjectStatus.Unavailable : ProjectStatus.Archived,
             DaysAgo(150), DaysAgo(i % 9 == 0 ? 120 : 50), null)).ToList();
 
-        // 18 students haven't started; the rest sent one to three inquiries.
         var inquiries = new List<Inquiry>();
         foreach (var student in students.Skip(18))
         {
@@ -60,14 +53,12 @@ public static class SampleAdminData
             {
                 var project = projects[random.Next(47)];
                 var roll = random.Next(100);
-                var status = roll < 20 ? InquiryStatus.Pending : roll < 45 ? InquiryStatus.Viewed : roll < 66 ? InquiryStatus.Responded : InquiryStatus.Closed;
-                // Most open inquiries are recent; a few have been left waiting.
-                var created = status is InquiryStatus.Pending or InquiryStatus.Viewed && random.Next(4) > 0 ? DaysAgo(7) : DaysAgo(35);
+                var status = roll < 55 ? InquiryStatus.Sent : roll < 80 ? InquiryStatus.Matched : InquiryStatus.Closed;
+                var created = status == InquiryStatus.Sent && random.Next(4) > 0 ? DaysAgo(7) : DaysAgo(35);
                 inquiries.Add(new Inquiry(NextGuid(), student.UserId, project.SupervisorId, project.Id, null, status, created, created));
             }
         }
 
-        // One or two tags per project, leaning towards AI/ML like the real demand.
         var projectTopics = projects.ToDictionary(p => p.Id, p => topics
             .OrderBy(t => t.Name == "AI/ML" ? random.Next(3) : random.Next(10)).Take(random.Next(1, 3)).ToList());
 

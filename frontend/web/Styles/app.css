@@ -1,25 +1,29 @@
+@layer theme, base, mud, components, utilities;
 @import "tailwindcss";
+@import "./vendor/MudBlazor.min.css" layer(mud);
 
-/* Brand tokens: see ../BRAND.md */
 @theme {
-  /* uOttawa Garnet */
   --color-primary: #8f001a;
   --color-primary-hover: #7b0016;
-  /* Text */
+  --color-background: #3a3a37;
   --color-dark: #2d2d2c;
+  --color-surface: #42423f;
+  --color-surface-hover: #4b4b47;
+  --color-text: #f2f2f2;
+  --color-text-secondary: #ccc5c0;
+  --color-text-faint: #b8afa8;
+  --color-border: #62625d;
+  --color-focus: #e4b6bf;
+  --color-feedback-error: #ffaaaa;
   --color-muted: #80746c;
   --color-faint: #908681;
-  /* Backgrounds and lines */
   --color-light: #f2f2f2;
   --color-hover: #dfdfdf;
-  /* uOttawa's hairline divider grey, from its statistics strips */
   --color-divider: #c8c9c7;
   --color-disabled: #c4c4c4;
   --color-disabled-text: #757575;
 
   --font-sans: "Work Sans", ui-sans-serif, system-ui, sans-serif;
-  /* Status signals: reserved meaning, always beside an icon or label. The base step is for icons,
-     dots and fills; the -text step clears 4.5:1 for written messages. */
   --color-success: #0ca30c;
   --color-success-text: #006300;
   --color-error: #d03b3b;
@@ -27,99 +31,153 @@
 
 }
 
-/* Data colours: see ../BRAND.md. `static` keeps every variable in the build, because charts set them
-   from C# and JavaScript where Tailwind can't see them. All are mid-lightness so they also hold up on
-   the planned charcoal theme. */
 @theme static {
-  /* Matching stages, an "afterburner" ramp from cool to hot: Sent → Viewed → Talking → Matched.
-     Only for a student's or inquiry's progress (the matching bar, status pills); not for charts. */
   --color-stage-1: #4cc9f0;
   --color-stage-2: #4361ee;
   --color-stage-3: #7b2cbf;
   --color-stage-4: #f72585;
 
-  /* Analytics: one slate-blue hue, light to dark. Darker means more, so a chart reads at a glance.
-     Charts about matching stages use the stage colours above instead. */
   --color-mono-1: #dde3ef;
   --color-mono-2: #b3bfd6;
   --color-mono-3: #8496b9;
   --color-mono-4: #56689a;
   --color-mono-5: #2f3d6b;
 
-  /* "None", "stopped", "archived", "not started" */
   --color-chart-neutral: #b9b4af;
 }
 
 @layer base {
   body {
-    @apply bg-light text-dark antialiased;
+    @apply bg-background text-text antialiased;
+  }
+  html {
+    color-scheme: dark;
   }
   :focus-visible {
-    @apply outline-2 outline-offset-2 outline-primary;
+    @apply outline-2 outline-offset-2 outline-focus;
   }
-  /* FocusOnNavigate focuses the page heading; no ring for that */
   h1:focus {
     @apply outline-none;
   }
 }
 
 @layer components {
-  /* Underline-only field, as on uottawa.ca. The focus/error underline thickens with an inset
-     shadow so the layout never shifts. */
+  :where(a:not([class*="mud-"])) {
+    color: inherit;
+  }
+  :where(button:not([class*="mud-"])) {
+    display: revert;
+    position: revert;
+    align-items: revert;
+    justify-content: revert;
+    vertical-align: revert;
+    user-select: revert;
+  }
+
+  .site-footer {
+    padding-block: 0.5rem;
+    color: var(--color-text-secondary);
+  }
+  .site-footer-links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0 1.25rem;
+    padding-inline: 1.5rem;
+  }
+  .site-footer-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    min-height: 28px;
+    padding-block: 0.25rem;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    white-space: nowrap;
+    transition: color 0.15s ease;
+  }
+  .site-footer-link:hover {
+    color: var(--color-text);
+    text-decoration: underline;
+    text-underline-offset: 0.25em;
+  }
+  .site-footer-icon {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+  }
+  @media (max-width: 700px) {
+    .site-footer-links {
+      gap: 0 1rem;
+    }
+    .site-footer-link {
+      min-height: 32px;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .site-footer-link {
+      transition: none;
+    }
+  }
+
   .field {
-    @apply mt-1 block w-full border-b border-dark px-1 py-3 sm:py-4 transition-colors duration-300 placeholder:text-muted hover:bg-hover focus:bg-hover focus:outline-none;
+    @apply mt-1 block w-full border-b border-text-secondary px-1 py-3 sm:py-4 transition-colors duration-300 placeholder:text-text-faint hover:bg-surface-hover focus:bg-surface-hover focus:outline-none;
   }
   .field:focus-visible {
-    @apply border-primary shadow-[inset_0_-1px_0_var(--color-primary)];
+    @apply border-focus shadow-[inset_0_-1px_0_var(--color-focus)];
   }
   .field.invalid {
     @apply border-error shadow-[inset_0_-1px_0_var(--color-error)];
   }
 
-  /* Message under a field that failed validation */
   .field-error {
-    @apply mt-1 block text-sm text-error-text;
+    @apply mt-1 block text-sm text-feedback-error;
   }
 
-  /* Pill-shaped primary button, as on uottawa.ca */
   .btn {
-    @apply inline-flex cursor-pointer items-center justify-center rounded-full bg-primary px-6 py-3 sm:py-3.5 font-semibold text-white transition-colors duration-300 hover:bg-primary-hover disabled:cursor-not-allowed disabled:bg-disabled disabled:text-disabled-text;
+    @apply inline-flex min-w-0 cursor-pointer items-center justify-center rounded-full bg-primary px-6 py-3 sm:py-3.5 text-base font-semibold tracking-normal normal-case text-white shadow-none transition-colors duration-300 hover:bg-primary-hover disabled:cursor-not-allowed disabled:bg-disabled disabled:text-disabled-text;
+  }
+  .btn {
+    line-height: 1.5;
+  }
+  .btn .mud-button-label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: inherit;
   }
 
-  /* Quiet outline button for secondary actions; small size for dense layouts */
   .btn-secondary {
-    @apply border border-dark/20 bg-transparent text-dark hover:bg-hover;
+    @apply border border-border bg-transparent text-text hover:bg-surface-hover;
   }
   .btn-sm {
     @apply h-9 gap-1.5 px-4 py-0 text-sm sm:py-0;
   }
 
-  /* Small uppercase label; also used for form labels */
   .label {
     @apply text-xs font-bold uppercase tracking-[2.75px];
   }
 
-  /* Form-level error */
   .alert {
-    @apply border-l-4 border-error bg-error/10 px-3 py-2 text-sm text-error-text;
+    @apply m-0 rounded-none border-l-4 border-error bg-error/10 px-3 py-2 text-sm font-normal tracking-normal text-feedback-error;
+  }
+  .alert .mud-alert-message {
+    padding: 0;
   }
 
-  /* White panel on the light page background */
   .card {
-    @apply rounded-2xl bg-white p-5 sm:p-6;
+    @apply rounded-xl border border-border bg-surface p-5 sm:p-6;
   }
 
-  /* Plain list table; wrap in overflow-x-auto for narrow screens */
   .data-table {
     @apply w-full border-collapse text-sm tabular-nums;
   }
-  /* Every column is left-aligned, so the eye always starts in the same place. The outer columns line
-     up with the padding of the panel around the table. */
   .data-table th {
-    @apply whitespace-nowrap border-b border-divider px-4 py-3 text-left align-bottom text-xs font-bold uppercase tracking-[1.5px] text-muted;
+    @apply whitespace-nowrap border-b border-border px-4 py-3 text-left align-bottom text-xs font-bold uppercase tracking-[1.5px] text-text-secondary;
   }
   .data-table td {
-    @apply whitespace-nowrap border-b border-dark/10 px-4 py-3.5 text-left align-middle;
+    @apply whitespace-nowrap border-b border-border/60 px-4 py-3.5 text-left align-middle;
   }
   .data-table :is(th, td):first-child {
     @apply pl-5 sm:pl-6;
@@ -131,48 +189,272 @@
     @apply border-b-0;
   }
   .data-table tbody tr {
-    @apply transition-colors hover:bg-light;
+    @apply transition-colors hover:bg-surface-hover;
   }
-  /* Sortable column heading (Components/DataTable.razor) */
   .th-sort {
-    @apply -mx-1 inline-flex cursor-pointer items-center gap-1 rounded px-1 uppercase tracking-[1.5px] transition-colors hover:text-dark;
+    @apply -mx-1 inline-flex cursor-pointer items-center gap-1 rounded px-1 uppercase tracking-[1.5px] transition-colors hover:text-text;
   }
   .th-sort[data-active] {
-    @apply text-dark;
+    @apply text-text;
   }
 
-  /* Filter chip (Components/FilterChips.razor); pressed ones go dark */
   .chip {
-    @apply inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-full border border-dark/15 bg-white px-3.5 text-sm font-semibold text-dark transition-colors hover:bg-hover;
+    @apply m-0 inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-full border border-border bg-surface px-3.5 text-sm font-semibold tracking-normal text-text transition-colors hover:bg-surface-hover;
+  }
+  .chip .mud-chip-content,
+  .topic-chip .mud-chip-content {
+    display: inline-flex;
+    align-items: center;
+    gap: inherit;
+    overflow: visible;
+  }
+  .app-tabs {
+    background: transparent;
+  }
+  .app-tabs .mud-tabs-tabbar {
+    min-height: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+  .app-tabs .mud-tabs-tabbar-inner,
+  .app-tabs .mud-tabs-tabbar-content {
+    min-height: 0;
+  }
+  .app-tabs .mud-tabs-tabbar-wrapper {
+    gap: 0.5rem;
+  }
+  .app-tabs .mud-tab {
+    @apply inline-flex min-h-0 min-w-0 cursor-pointer items-center gap-2 whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold normal-case tracking-normal text-text-secondary opacity-100 transition-colors hover:bg-surface-hover hover:text-text;
+    flex-direction: row;
+    line-height: 1.25rem;
+  }
+  .app-tabs .mud-tab.mud-tab-active {
+    @apply bg-primary text-white hover:bg-primary;
+  }
+  .app-tabs .mud-tabs-panels {
+    display: none;
+  }
+  .app-search {
+    margin: 0;
+  }
+  .app-search .mud-input-control-input-container {
+    width: 100%;
+  }
+  .app-search .mud-input {
+    @apply m-0 inline-flex h-9 w-full items-center gap-2 rounded-full border border-border bg-surface px-3.5 text-sm tracking-normal text-text transition-colors hover:border-text-faint focus-within:border-text;
+    line-height: 1.25rem;
+  }
+  .app-search .mud-input::before,
+  .app-search .mud-input::after {
+    content: none;
+  }
+  .app-search .mud-input-root {
+    @apply m-0 h-full min-w-0 flex-1 appearance-none bg-transparent p-0 text-sm tracking-normal outline-none placeholder:text-text-faint placeholder:opacity-100;
+    line-height: 1.25rem;
+  }
+  .app-search .mud-input-adornment {
+    @apply m-0 text-text-secondary;
+  }
+  .app-search .mud-input-adornment .mud-icon-root {
+    @apply size-4;
+  }
+  .app-select-wrap {
+    display: inline-grid;
+    grid-template-areas: "cell";
+    max-width: 100%;
+  }
+  .app-cell-select-wrap {
+    max-width: 15rem;
+  }
+  .app-select-wrap > * {
+    grid-area: cell;
+  }
+  .app-select-sizer {
+    @apply invisible flex h-0 items-center gap-2 overflow-hidden border border-transparent text-sm tracking-normal;
+    padding-right: calc(2rem + 1px);
+    line-height: 1.25rem;
+    padding-left: 0.875rem;
+    pointer-events: none;
+  }
+  .app-cell-select-wrap .app-select-sizer {
+    padding-left: 0.75rem;
+    padding-right: 2rem;
+  }
+  .app-select-sizer-options {
+    display: inline-grid;
+    @apply font-semibold;
+  }
+  .app-cell-select-wrap .app-select-sizer-options {
+    @apply font-medium;
+  }
+  .app-select-sizer-options > * {
+    grid-area: 1 / 1;
+    white-space: nowrap;
+  }
+  .app-cell-select .mud-input-adornment-end {
+    opacity: 1;
+  }
+  .app-select-wrap.is-disabled {
+    opacity: 0.6;
+    cursor: wait;
+  }
+  .app-select,
+  .app-cell-select {
+    margin: 0;
+    display: flex;
+  }
+  .app-select .mud-input-control-input-container,
+  .app-cell-select .mud-input-control-input-container {
+    flex: 1;
+  }
+  .app-select .mud-input,
+  .app-cell-select .mud-input {
+    width: 100%;
+  }
+  .app-select .mud-input,
+  .app-cell-select .mud-input {
+    @apply relative m-0 inline-flex items-center gap-2 rounded-full border border-border bg-surface text-sm tracking-normal text-text transition-colors hover:border-text-faint focus-within:border-text;
+    line-height: 1.25rem;
+  }
+  .app-select .mud-input {
+    @apply h-9 pl-3.5 pr-8;
+  }
+  .app-cell-select .mud-input {
+    @apply h-8 max-w-60 cursor-pointer pl-3 pr-8;
+  }
+  .app-select .mud-input::before {
+    content: var(--select-label);
+    @apply static inset-auto h-auto shrink-0 border-0 text-text-secondary;
+    transform: none;
+    transition: none;
+    position: static;
+  }
+  .app-cell-select .mud-input::before {
+    content: "";
+    @apply static inset-auto size-2 shrink-0 rounded-full border-0;
+    background: var(--cell-dot);
+    transform: none;
+    transition: none;
+    position: static;
+    display: var(--cell-dot-display, block);
+  }
+  .app-select .mud-input::after,
+  .app-cell-select .mud-input::after {
+    content: none;
+  }
+  .app-select .mud-input-root,
+  .app-cell-select .mud-input-root {
+    @apply m-0 h-auto min-w-0 flex-1 cursor-pointer truncate bg-transparent p-0 text-sm tracking-normal;
+    line-height: 1.25rem;
+  }
+  .app-select .mud-input-root {
+    @apply font-semibold;
+  }
+  .app-cell-select .mud-input-root {
+    @apply font-medium;
+  }
+  .app-select .mud-input-adornment-end,
+  .app-cell-select .mud-input-adornment-end {
+    @apply pointer-events-none absolute m-0 text-text-secondary;
+  }
+  .app-select .mud-input-adornment-end {
+    @apply right-3;
+  }
+  .app-cell-select .mud-input-adornment-end {
+    @apply right-2.5;
+  }
+  .app-select .mud-input-adornment-end .mud-icon-root,
+  .app-cell-select .mud-input-adornment-end .mud-icon-root {
+    @apply size-4;
+  }
+  .mud-popover {
+    --mud-palette-primary: var(--color-focus);
+    --mud-palette-primary-rgb: 228, 182, 191;
+  }
+  .app-switch {
+    display: inline-flex;
+    height: 1.5rem;
+    min-height: 0;
+    margin: 0;
+    line-height: 0;
+    vertical-align: baseline;
+    position: relative;
+    top: 0.5px;
+  }
+  .app-switch .mud-input-control-input-container {
+    display: inline-flex;
+    height: 1.5rem;
+  }
+  .app-switch .mud-switch {
+    margin: 0;
+  }
+  .app-switch .mud-switch-span {
+    width: 2.5rem;
+    height: 1.5rem;
+    padding: 0;
+    overflow: visible;
+  }
+  .app-switch .mud-switch-track {
+    opacity: 1;
+    border-radius: 9999px;
+    background-color: var(--color-border);
+    transition: background-color 0.2s;
+  }
+  .app-switch .mud-switch-base {
+    padding: 2px;
+    background-color: transparent;
+  }
+  .app-switch .mud-switch-base:hover {
+    background-color: transparent;
+  }
+  .app-switch .mud-switch-base.mud-checked {
+    transform: translateX(16px);
+  }
+  .app-switch .mud-switch-base.mud-checked + .mud-switch-track {
+    opacity: 1;
+    background-color: var(--color-success);
+  }
+  .app-switch .mud-switch-thumb-medium {
+    width: 1.25rem;
+    height: 1.25rem;
+    background-color: #fff;
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  }
+  .app-switch.is-disabled {
+    opacity: 0.6;
+    cursor: wait;
+  }
+  .app-switch.is-disabled .mud-switch {
+    cursor: wait;
+  }
+  .chip.is-disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+  .topic-chip {
+    @apply m-0 inline-flex h-auto items-center gap-1.5 whitespace-nowrap rounded-full border-0 bg-surface-hover px-2.5 py-1 text-xs font-semibold tracking-normal text-text;
   }
   .chip[aria-pressed="true"] {
-    @apply border-dark bg-dark text-white hover:bg-dark;
+    @apply border-text bg-text text-dark hover:bg-text;
   }
 
-  /* Pill-shaped search box or menu, the same height as chips and small buttons so a toolbar lines up */
   .control {
-    @apply inline-flex h-9 items-center gap-2 rounded-full border border-dark/15 bg-white px-3.5 text-sm text-dark transition-colors hover:border-dark/30 focus-within:border-dark;
+    @apply inline-flex h-9 items-center gap-2 rounded-full border border-border bg-surface px-3.5 text-sm text-text transition-colors hover:border-text-faint focus-within:border-text;
   }
   .control :is(input, select) {
-    @apply h-full min-w-0 flex-1 appearance-none bg-transparent outline-none placeholder:text-muted;
+    @apply h-full min-w-0 flex-1 appearance-none bg-transparent outline-none placeholder:text-text-faint;
   }
-  /* Menu inside a table cell (Components/CellSelect.razor): a small pill, visible at rest so it reads
-     as something you can change, with an optional status dot and a chevron. */
   .cell-select {
-    @apply relative inline-flex h-8 max-w-60 cursor-pointer items-center gap-2 rounded-full border border-dark/15 bg-white pl-3 pr-8 text-sm transition-colors hover:border-dark/40 focus-within:border-dark has-[select:disabled]:cursor-wait has-[select:disabled]:opacity-60;
+    @apply relative inline-flex h-8 max-w-60 cursor-pointer items-center gap-2 rounded-full border border-border bg-surface pl-3 pr-8 text-sm transition-colors hover:border-text-faint focus-within:border-text has-[select:disabled]:cursor-wait has-[select:disabled]:opacity-60;
   }
   .cell-select select {
     @apply min-w-0 flex-1 cursor-pointer appearance-none truncate bg-transparent font-medium outline-none disabled:cursor-wait;
   }
 
-  /* Back link above a record's page */
   .back-link {
-    @apply inline-flex items-center gap-1 text-sm font-semibold text-muted transition-colors hover:text-primary;
+    @apply inline-flex items-center gap-1 text-sm font-semibold text-text-secondary transition-colors hover:text-focus;
   }
 
-  /* Share bar (Admin/ShareBar.razor): rounded ends, a left-to-right reveal on load, and on hover the
-     other segments fade and a label appears above. The reveal clips with a wide margin so the label
-     isn't cut off once it has finished. */
   .share-bar {
     animation: share-reveal 0.9s cubic-bezier(0.25, 1, 0.5, 1) both;
   }
@@ -183,15 +465,14 @@
     @apply opacity-40;
   }
   .share-tip {
-    @apply pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 -translate-x-1/2 translate-y-1 whitespace-nowrap rounded-lg bg-dark px-2.5 py-1.5 text-xs font-semibold text-white opacity-0 shadow-lg transition duration-200;
+    @apply pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 -translate-x-1/2 translate-y-1 whitespace-nowrap rounded-lg border border-border bg-dark px-2.5 py-1.5 text-xs font-semibold text-text opacity-0 shadow-lg transition duration-200;
   }
   .share-seg:hover .share-tip {
     @apply translate-y-0 opacity-100;
   }
 
-  /* The logo tinted to the text colour */
   .logo-mark {
-    @apply aspect-square bg-dark;
+    @apply aspect-square bg-text;
     mask: url("../brand/uottawa.png") center / contain no-repeat;
   }
 }
@@ -208,6 +489,13 @@
   .share-bar {
     animation: none;
   }
+}
+
+.side-link {
+  @apply -mx-2 flex min-h-11 items-center justify-center gap-2 px-2 text-sm font-semibold text-text-secondary transition-colors duration-150 hover:bg-surface-hover hover:text-text min-[700px]:-mx-6 min-[700px]:justify-start min-[700px]:px-9;
+}
+.side-link[aria-current="page"] {
+  @apply bg-primary text-white hover:bg-primary-hover;
 }
 
 #blazor-error-ui {

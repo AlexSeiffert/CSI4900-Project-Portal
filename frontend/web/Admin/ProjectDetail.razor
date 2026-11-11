@@ -1,12 +1,10 @@
 @using System.Web
 @inject NavigationManager Nav
 
-@* One project, or a new one (Id = null): edit everything about it (including which supervisor owns it),
-   delete it, and see who has asked about it. New projects can start from a supervisor (?supervisor=<id>). *@
 @if (!IsNew && project is null)
 {
     <BackLink Href="@($"{BasePath}/projects")" Label="All projects" />
-    <p class="mt-6 text-muted">@(loaded ? "This project no longer exists." : "Loading…")</p>
+    <p class="mt-6 text-text-secondary">@(loaded ? "This project no longer exists." : "Loading…")</p>
 }
 else
 {
@@ -57,13 +55,13 @@ else
                     <span class="ml-auto flex flex-wrap items-center gap-2">
                         @if (confirmingDelete)
                         {
-                            <span class="text-sm text-muted">Delete for good? Its inquiries stay, unlinked.</span>
-                            <button type="button" class="btn btn-sm bg-error hover:bg-error-text" @onclick="DeleteAsync">Delete</button>
-                            <button type="button" class="btn btn-secondary btn-sm" @onclick="() => confirmingDelete = false">Cancel</button>
+                            <span class="text-sm text-text-secondary">Delete for good? Its inquiries stay, unlinked.</span>
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" DropShadow="false" DisableRipple="true" Class="btn btn-sm bg-error hover:bg-error-text" OnClick="DeleteAsync">Delete</MudButton>
+                            <MudButton Variant="Variant.Outlined" DropShadow="false" DisableRipple="true" Class="btn btn-secondary btn-sm" OnClick="@(() => { confirmingDelete = false; })">Cancel</MudButton>
                         }
                         else
                         {
-                            <button type="button" class="btn btn-secondary btn-sm" @onclick="() => confirmingDelete = true">Delete project</button>
+                            <MudButton Variant="Variant.Outlined" DropShadow="false" DisableRipple="true" Class="btn btn-secondary btn-sm" OnClick="@(() => { confirmingDelete = true; })">Delete project</MudButton>
                         }
                     </span>
                 }
@@ -83,7 +81,6 @@ else
     [CascadingParameter] public AdminActions Actions { get; set; } = default!;
     [Parameter, EditorRequired] public AdminData Data { get; set; } = default!;
     [Parameter, EditorRequired] public string BasePath { get; set; } = "";
-    /// <summary>The project, or null for a new one.</summary>
     [Parameter] public Guid? Id { get; set; }
 
     private bool IsNew => Id is null;
@@ -110,7 +107,6 @@ else
             }
             return;
         }
-        // Reloads after a save pass new Data; only fetch the record again when it's a different project.
         if (loadedId == Id)
         {
             project = Data.Project(Id);

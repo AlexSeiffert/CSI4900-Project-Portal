@@ -1,4 +1,3 @@
-// Shared by the seed scripts: the Supabase Admin API (users.mjs) and psql (database.mjs).
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
@@ -7,7 +6,6 @@ const PROJECT_NAME = 'CSI-4900 Project Portal';
 try {
   process.loadEnvFile(new URL('../../.env', import.meta.url));
 } catch {
-  // no .env: rely on the environment
 }
 
 export function fail(message) {
@@ -26,13 +24,11 @@ async function request(method, url, headers, body) {
   try {
     json = text ? JSON.parse(text) : null;
   } catch {
-    // non-JSON body, keep the text
   }
   if (!res.ok) fail(`${method} ${url} -> ${res.status} ${typeof json === 'string' ? json : JSON.stringify(json)}`);
   return json;
 }
 
-/** Connects to the live project's Admin API: auth() for logins, rest() for public.users. */
 export async function connect() {
   const mgmtToken = process.env.SUPABASE_ACCESS_TOKEN ?? process.env.TF_VAR_supabase_access_token;
   const mgmt = { Authorization: `Bearer ${mgmtToken}` };
@@ -68,7 +64,6 @@ function findPsql() {
       execFileSync(bin, ['--version'], { stdio: 'ignore' });
       return bin;
     } catch {
-      // not this one
     }
   }
   return fail('psql not found. Install it (brew install libpq) or set PSQL to its path.');
@@ -86,7 +81,6 @@ function databaseUrl() {
   }
 }
 
-/** Returns psql(...args), which runs psql against the live database and returns its trimmed output. */
 export function connectPsql() {
   const bin = findPsql();
   const url = databaseUrl();

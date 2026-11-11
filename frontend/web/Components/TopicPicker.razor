@@ -1,14 +1,12 @@
-@* Toggle buttons for the topic tags, each with its icon, styled like filter chips: chosen ones go dark.
-   Hovering one says what it covers. Changes the Selected set in place. *@
 <div class="flex flex-wrap gap-2" role="group" aria-label="@Label">
     @foreach (var topic in Topics)
     {
-        <button type="button" class="chip disabled:cursor-not-allowed disabled:opacity-60" disabled="@Disabled"
-                aria-pressed="@(Selected.Contains(topic.Id) ? "true" : "false")" title="@TopicPalette.Describe(topic.Name)"
-                @onclick="() => Toggle(topic.Id)">
+        <MudChip T="string" Class="@($"chip {(Disabled ? "is-disabled" : "")}")" Variant="Variant.Outlined" Ripple="false"
+                 aria-pressed="@(Selected.Contains(topic.Id) ? "true" : "false")" aria-disabled="@(Disabled ? "true" : null)" title="@TopicPalette.Describe(topic.Name)"
+                 OnClick="@(() => Toggle(topic.Id))">
             <Icon Name="@TopicPalette.IconFor(topic.Name)" />
             @topic.Name
-        </button>
+        </MudChip>
     }
 </div>
 
@@ -21,6 +19,10 @@
 
     private async Task Toggle(Guid id)
     {
+        if (Disabled)
+        {
+            return;
+        }
         if (!Selected.Remove(id))
         {
             Selected.Add(id);

@@ -1,30 +1,8 @@
--- 0012: the fixed list of topic tags
---
--- Ten broad tags that between them describe almost any project. What each one covers is shown
--- in the app (frontend/web/Components/TopicPalette.cs), along with its colour.
---
--- | tag                 | covers                                                                     |
--- | ------------------- | -------------------------------------------------------------------------- |
--- | AI/ML               | machine learning, deep learning, NLP, computer vision, LLMs, RL, data mining |
--- | Software Engineering| software design, testing and verification, DevOps, languages, compilers, tools |
--- | Web & Mobile        | web apps, mobile apps, full-stack systems, APIs, cross-platform            |
--- | Security & Privacy  | cybersecurity, cryptography, network security, privacy, blockchain         |
--- | Data & Databases    | databases, big data, data engineering, analytics, visualization, IR        |
--- | Systems & Networks  | OS, distributed and cloud, networking, embedded, IoT, HPC                  |
--- | HCI & Design        | UX, accessibility, usability studies, human-centred design, VR/AR          |
--- | Games & Graphics    | game development, graphics, simulation, animation, multimedia              |
--- | Theory & Algorithms | algorithms, complexity, formal methods, computational math, quantum, bioinformatics |
--- | Other               | education tech, robotics, ethics and society, anything else                |
---
--- Topics created before this migration are folded into the matching tag (links are kept and
--- duplicates dropped); anything without a match goes to Other.
-
 do $$
 declare
   tags constant text[] := array[
     'AI/ML', 'Software Engineering', 'Web & Mobile', 'Security & Privacy', 'Data & Databases',
     'Systems & Networks', 'HCI & Design', 'Games & Graphics', 'Theory & Algorithms', 'Other'];
-  -- earlier topic name (lower case) -> tag
   renames constant jsonb := '{
     "artificial intelligence": "AI/ML", "machine learning": "AI/ML", "ai": "AI/ML",
     "software engineering": "Software Engineering",
@@ -58,7 +36,7 @@ begin
       select supervisor_id, target from public.supervisor_topic_interests where topic_id = old.id
       on conflict do nothing;
 
-    delete from public.topics where id = old.id; -- its links go with it (on delete cascade)
+    delete from public.topics where id = old.id;
   end loop;
 end;
 $$;

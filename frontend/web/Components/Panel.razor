@@ -1,6 +1,4 @@
-@* A white panel with an optional heading, description and actions on the right. Flush drops the inner
-   padding so a table can run edge to edge (DataTable lines its outer columns up with the heading). *@
-<section class="card @(Flush ? "px-0 py-0 sm:px-0 sm:py-0" : "") @Class" aria-label="@Title">
+<MudPaper Elevation="0" Class="@($"card {(Flush ? "px-0 py-0 sm:px-0 sm:py-0" : "")} {Class}")" role="region" aria-label="@Title">
     @if (Title is not null)
     {
         <header class="flex flex-wrap items-start justify-between gap-x-4 gap-y-2 @(Flush ? "px-5 pb-2 pt-5 sm:px-6 sm:pt-6" : "mb-4")">
@@ -8,14 +6,14 @@
                 <h2 class="text-lg font-semibold">@Title</h2>
                 @if (Description is not null)
                 {
-                    <p class="text-sm text-muted">@Description</p>
+                    <p class="text-sm text-text-secondary">@Description</p>
                 }
             </div>
             @Actions
         </header>
     }
     @ChildContent
-</section>
+</MudPaper>
 
 @code {
     [Parameter] public string? Title { get; set; }

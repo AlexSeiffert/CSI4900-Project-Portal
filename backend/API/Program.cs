@@ -21,10 +21,6 @@ builder.Services.AddControllers().AddJsonOptions(options =>
     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, allowIntegerValues: false));
     options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
 });
-// Adds an Authorize button to Swagger so its requests can log in: paste a Supabase token,
-// or (Development only) a user id that is sent as the X-Dev-User-Id header.
-// The OpenAPI document is built from these JSON settings, not the controllers' ones above, so it needs the same
-// enum setting. Without it Swagger says statuses are integers and rejects "available".
 builder.Services.ConfigureHttpJsonOptions(options =>
     options.SerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, allowIntegerValues: false)));
 builder.Services.AddOpenApi(options => options.AddDocumentTransformer((document, context, cancellationToken) =>
@@ -54,17 +50,12 @@ builder.Services.AddOpenApi(options => options.AddDocumentTransformer((document,
     return Task.CompletedTask;
 }));
 builder.Services.AddHttpContextAccessor();
-// Every endpoint requires a logged-in user.
 builder.Services.AddAuthorizationBuilder()
     .SetFallbackPolicy(new Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
 
-// When a user logs in, Supabase gives them a token. The API checks that token on every request.
-// Auth:Authority is your Supabase project's auth address. The API uses it to check tokens are real.
-// Auth:JwtSecret is only needed for older Supabase projects.
 var authority = builder.Configuration["Auth:Authority"];
 var jwtSecret = builder.Configuration["Auth:JwtSecret"];
 var isDevelopment = builder.Environment.IsDevelopment();
-// Outside Development, the API won't start without one of those two settings.
 if (!isDevelopment && !builder.Environment.IsEnvironment("Testing") && string.IsNullOrEmpty(authority) && string.IsNullOrEmpty(jwtSecret))
 {
     throw new InvalidOperationException("Set Auth__Authority or Auth__JwtSecret to validate Supabase tokens.");
@@ -85,15 +76,12 @@ var authentication = builder.Services.AddAuthentication(isDevelopment ? "Smart" 
     });
 if (isDevelopment)
 {
-    // Development only: lets you skip logging in. Send an X-Dev-User-Id header to act as that user.
-    // A real token in the Authorization header still works.
     authentication.AddScheme<AuthenticationSchemeOptions, DevelopmentAuthHandler>(DevelopmentAuthHandler.SchemeName, null)
         .AddPolicyScheme("Smart", "Bearer or development", options =>
             options.ForwardDefaultSelector = context => context.Request.Headers.Authorization.Count > 0
                 ? JwtBearerDefaults.AuthenticationScheme
                 : DevelopmentAuthHandler.SchemeName);
 }
-// Also adds the trace id to errors the framework writes itself (for example 401 and 403 from the auth layer).
 builder.Services.AddProblemDetails(options => options.CustomizeProblemDetails = context =>
 {
     context.ProblemDetails.Instance ??= context.HttpContext.Request.Path;
@@ -102,8 +90,6 @@ builder.Services.AddProblemDetails(options => options.CustomizeProblemDetails = 
 
 builder.Services.AddExceptionHandler<ApiExceptionHandler>();
 
-// The web app runs on its own address, so browsers only let it call the API from the origins listed
-// in Cors:AllowedOrigins (the dev server in appsettings.Development.json; the deployed site in production).
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
 builder.Services.AddCors(options => options.AddDefaultPolicy(policy =>
     policy.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod()));
@@ -150,7 +136,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUi(options =>
     {
         options.DocumentPath = "/openapi/v1.json";
-        // Keep what you entered under Authorize after a page refresh.
         options.PersistAuthorization = true;
     });
     if (inMemory && builder.Configuration.GetValue<bool>("Database:SeedDevelopmentData"))
@@ -160,9 +145,7 @@ if (app.Environment.IsDevelopment())
     }
 }
 app.UseHttpsRedirection();
-// Turns empty error responses (such as 401 and 403 from the auth layer) into the same problem-details JSON as other errors.
 app.UseStatusCodePages();
-// Before authentication, so the browser's preflight check (which carries no token) isn't rejected.
 app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();

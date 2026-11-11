@@ -1,17 +1,16 @@
-@* Topics: how many inquiries each topic draws, and where those inquiries stand now. *@
 <div class="grid gap-4 lg:grid-cols-2">
     <Panel Title="Inquiries by topic" Description="How many inquiries students sent about projects in each topic.">
         <EChart Kind="bars" Data="demand" Height="@(Data.Topics.Count * 30 + 20)" Label="Number of inquiries about each topic." />
     </Panel>
 
-    <Panel Title="Inquiry status by topic" Description="Inquiries about each topic, split into matched, talking and waiting.">
+    <Panel Title="Inquiry status by topic" Description="Inquiries about each topic, split into matched, closed without a match and still open.">
         @if (Data.Inquiries.Count == 0)
         {
-            <p class="text-muted">No inquiries yet.</p>
+            <p class="text-text-secondary">No inquiries yet.</p>
         }
         else
         {
-            <EChart Kind="sankey" Data="outcomes" Height="@(Data.Topics.Count * 30 + 20)" Label="Inquiries by topic, flowing to matched, talking or waiting." />
+            <EChart Kind="sankey" Data="outcomes" Height="@(Data.Topics.Count * 30 + 20)" Label="Inquiries by topic, flowing to matched, closed or still open." />
         }
     </Panel>
 </div>
@@ -43,12 +42,11 @@
             },
         };
 
-        // Topic nodes (grey, like tags everywhere) on the left, three outcomes on the right; each band takes its outcome's colour.
         (string Name, Func<Inquiry, bool> Has, string Color)[] ends =
         [
-            ("Matched", i => i.Status == InquiryStatus.Closed, "stage-4"),
-            ("Talking", i => i.Status == InquiryStatus.Responded, "stage-3"),
-            ("Waiting", AdminData.AwaitingReply, "stage-1"),
+            ("Matched", i => i.Status == InquiryStatus.Matched, "stage-4"),
+            ("Closed, no match", i => i.Status == InquiryStatus.Closed, "muted"),
+            ("Still open", AdminData.IsOpen, "stage-1"),
         ];
         var used = rows.Where(r => r.inquiries.Count > 0).ToList();
         outcomes = new

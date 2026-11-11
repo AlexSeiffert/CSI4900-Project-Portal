@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using MudBlazor.Services;
 using ProjectPortal.Web;
 using ProjectPortal.Web.Api;
 using ProjectPortal.Web.Auth;
@@ -9,6 +10,7 @@ builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
+builder.Services.AddMudServices();
 builder.Services.AddScoped<AuthSession>();
 builder.Services.AddScoped<ApiClient>();
 

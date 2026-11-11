@@ -1,17 +1,14 @@
 @typeparam TItem
 @attribute [CascadingTypeParameter(nameof(TItem))]
+@inject IJSRuntime JS
+@implements IExportSource
+@implements IDisposable
 
-@* A table whose columns are declared as <DataColumn> children. Columns with a SortBy can be sorted
-   by clicking their heading: once for one direction, again for the other.
-
-   <DataTable Items="projects" SortedBy="Title">
-       <DataColumn Title="Title" SortBy="p => p.Title">@context.Title</DataColumn>
-   </DataTable> *@
 <CascadingValue Value="this" IsFixed="true">@ChildContent</CascadingValue>
 
 @if (!Items.Any())
 {
-    <p class="px-5 py-6 text-muted sm:px-6">@Empty</p>
+    <p class="px-5 py-6 text-text-secondary sm:px-6">@Empty</p>
 }
 else
 {
@@ -39,7 +36,7 @@ else
                 </tr>
             </thead>
             <tbody>
-                @foreach (var item in Sorted())
+                @foreach (var item in Ordered(Items))
                 {
                     <tr>
                         @foreach (var column in columns)
@@ -57,8 +54,28 @@ else
     [Parameter, EditorRequired] public IEnumerable<TItem> Items { get; set; } = [];
     [Parameter] public RenderFragment? ChildContent { get; set; }
     [Parameter] public string Empty { get; set; } = "Nothing here yet.";
-    /// <summary>The title of the column to sort by at first.</summary>
     [Parameter] public string? SortedBy { get; set; }
+    [Parameter] public IEnumerable<TItem>? AllItems { get; set; }
+    [Parameter] public string ExportName { get; set; } = "table";
+    [Parameter] public bool Exportable { get; set; } = true;
+
+    [CascadingParameter] public ExportHost? Host { get; set; }
+
+    string IExportSource.Name => ExportName.Replace('-', ' ') is { Length: > 0 } n ? char.ToUpper(n[0]) + n[1..] : "Table";
+    int IExportSource.FilteredCount => Items.Count();
+    int? IExportSource.AllCount => AllItems?.Count();
+
+    protected override void OnInitialized()
+    {
+        if (Exportable)
+        {
+            Host?.Add(this);
+        }
+    }
+
+    protected override void OnParametersSet() => Host?.Refresh();
+
+    public void Dispose() => Host?.Remove(this);
 
     private readonly List<DataColumn<TItem>> columns = [];
     private DataColumn<TItem>? sortColumn;
@@ -81,17 +98,34 @@ else
         sortColumn = column;
     }
 
-    private IEnumerable<TItem> Sorted()
+    private IEnumerable<TItem> Ordered(IEnumerable<TItem> items)
     {
         if (sortColumn?.SortBy is not { } key)
         {
-            return Items;
+            return items;
         }
         var comparer = Comparer<object?>.Create(Compare);
-        return descending ? Items.OrderByDescending(key, comparer) : Items.OrderBy(key, comparer);
+        return descending ? items.OrderByDescending(key, comparer) : items.OrderBy(key, comparer);
     }
 
-    // Text sorts ignoring case; empty values always go last.
+    async Task IExportSource.ExportAsync(string format, string scope)
+    {
+        var exportColumns = columns.Where(c => c.ExportValue is not null).ToList();
+        var source = scope == "all" && AllItems is not null ? AllItems : Items;
+        var rows = Ordered(source).Select(item => exportColumns.Select(c => ExportCell(c.ExportValue!(item))).ToArray()).ToArray();
+        await JS.InvokeVoidAsync("tableExport.download", format, ExportName, exportColumns.Select(c => c.Title).ToArray(), rows);
+    }
+
+    private static object ExportCell(object? value) => value switch
+    {
+        null => "",
+        bool b => b ? "Yes" : "No",
+        Enum e => e.ToString(),
+        DateTime d => d.ToString("yyyy-MM-dd HH:mm"),
+        DateTimeOffset d => d.ToString("yyyy-MM-dd HH:mm"),
+        _ => value,
+    };
+
     private static int Compare(object? a, object? b) => (a, b) switch
     {
         (null, null) => 0,

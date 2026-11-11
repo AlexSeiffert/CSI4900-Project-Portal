@@ -1,9 +1,6 @@
-@* One bar split into the shares of a whole, with a one-line legend of counts underneath.
-   Segments wide enough carry their count; hovering one fades the others and shows its label.
-   Styles: .share-* in Styles/app.css. *@
 @if (total == 0)
 {
-    <p class="text-muted">@Empty</p>
+    <p class="text-text-secondary">@Empty</p>
 }
 else
 {
@@ -24,7 +21,7 @@ else
         {
             <li class="flex items-center gap-2" title="@Percent(segment.Count)">
                 <span class="size-2.5 shrink-0 rounded-full" style="background: @segment.Color"></span>
-                <span class="text-muted">@segment.Label</span>
+                <span class="text-text-secondary">@segment.Label</span>
                 <span class="font-semibold tabular-nums">@segment.Count</span>
             </li>
         }
@@ -32,7 +29,6 @@ else
 }
 
 @code {
-    /// <summary>A share of the bar. LightText for dark colours, so the count stays readable.</summary>
     public sealed record Segment(string Label, int Count, string Color, bool LightText = false);
 
     [Parameter, EditorRequired] public IReadOnlyList<Segment> Segments { get; set; } = [];

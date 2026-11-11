@@ -1,6 +1,10 @@
 @inherits LayoutComponentBase
 
+<MudThemeProvider Theme="Theming.AppTheme.Brand" IsDarkMode="true" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
 <div class="flex min-h-screen flex-col">
     <main class="flex flex-1 flex-col">@Body</main>
-    <SiteFooter />
 </div>

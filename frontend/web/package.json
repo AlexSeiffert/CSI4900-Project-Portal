@@ -9,6 +9,7 @@
   "type": "commonjs",
   "devDependencies": {
     "@tailwindcss/cli": "^4.3.3",
+    "lightningcss": "^1.32.0",
     "tailwindcss": "^4.3.3"
   },
   "private": true

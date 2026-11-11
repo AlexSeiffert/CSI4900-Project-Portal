@@ -3,13 +3,9 @@ using ProjectPortal.Web.Components;
 
 namespace ProjectPortal.Web.Admin;
 
-/// <summary>
-/// Everything the admin pages show, loaded once, plus the lookups and counts the insights are built
-/// from. Inquiries only store their current status, so "reached Viewed" means "is Viewed or later".
-/// </summary>
 public sealed class AdminData
 {
-    public static readonly TimeSpan ReplyOverdue = TimeSpan.FromDays(7);
+    public static readonly TimeSpan StaleAfter = TimeSpan.FromDays(7);
 
     private readonly Dictionary<Guid, string> names;
     private readonly Dictionary<Guid, Project> projectsById;
@@ -20,8 +16,6 @@ public sealed class AdminData
     private readonly ILookup<Guid?, Inquiry> byProject;
     private readonly ILookup<Guid, Project> projectsBySupervisor;
 
-    /// <param name="projectTopics">Each project's tags (the list endpoint leaves them out).</param>
-    /// <param name="saveCounts">How many students saved each project.</param>
     internal AdminData(List<Student> students, List<Supervisor> supervisors, List<Project> projects, List<Inquiry> inquiries,
         List<Topic> topics, Dictionary<Guid, List<Topic>> projectTopics, Dictionary<Guid, int> saveCounts)
     {
@@ -60,7 +54,6 @@ public sealed class AdminData
         var saveCounts = api.GetAsync<Dictionary<Guid, int>>("saved-projects/counts");
         var topics = await api.GetAsync<List<Topic>>("topics");
 
-        // One call per tag gives every project's tags without fetching each project.
         var tagged = await Task.WhenAll(topics.Select(async topic => (topic, projects: await api.GetAsync<List<Project>>($"projects/topics/{topic.Id}"))));
         var projectTopics = tagged
             .SelectMany(t => t.projects.Select(p => (p.Id, t.topic)))
@@ -81,14 +74,9 @@ public sealed class AdminData
 
     public IReadOnlyList<Topic> TopicsOf(Guid projectId) => projectTopics.GetValueOrDefault(projectId) ?? [];
 
-    /// <summary>
-    /// The update body that leaves the project as it is; change what you need with `with`. Updates replace
-    /// every field, so a one-field change (status, supervisor) starts from this.
-    /// </summary>
     public UpdateProject UpdateFor(Project project) =>
         new(project.Title, project.Description, project.ExternalUrl, project.Status, [.. TopicsOf(project.Id).Select(t => t.Id)]);
 
-    /// <summary>How many students have saved the project.</summary>
     public int SavesOf(Guid projectId) => saveCounts.GetValueOrDefault(projectId);
 
     public IEnumerable<Inquiry> InquiriesFrom(Guid studentId) => byStudent[studentId];
@@ -99,27 +87,22 @@ public sealed class AdminData
 
     public IEnumerable<Project> ProjectsOf(Guid supervisorId) => projectsBySupervisor[supervisorId];
 
-    /// <summary>The furthest status any of the student's inquiries reached, or null if they haven't sent one.</summary>
-    public InquiryStatus? FurthestStage(Guid studentId) => byStudent[studentId].Max(i => (InquiryStatus?)i.Status);
+    public InquiryStatus? FurthestStage(Guid studentId) =>
+        byStudent[studentId].Select(i => (InquiryStatus?)i.Status).OrderByDescending(s => s is InquiryStatus.Matched ? 2 : s is InquiryStatus.Sent ? 1 : 0).FirstOrDefault();
 
-    /// <summary>When anything last happened on the student's inquiries, or null if they have none.</summary>
     public DateTime? LastActivity(Guid studentId) => byStudent[studentId].Max(i => (DateTime?)i.UpdatedAt);
 
-    /// <summary>Share of a supervisor's inquiries that got a reply, or null if they have none.</summary>
-    public double? ReplyRate(Guid supervisorId)
+    public double? MatchRate(Guid supervisorId)
     {
         var received = bySupervisor[supervisorId].ToList();
-        return received.Count == 0 ? null : (double)received.Count(i => i.Status >= InquiryStatus.Responded) / received.Count;
+        return received.Count == 0 ? null : (double)received.Count(i => i.Status == InquiryStatus.Matched) / received.Count;
     }
 
-    /// <summary>How many inquiries got at least as far as this status.</summary>
-    public int Reached(InquiryStatus status) => Inquiries.Count(i => i.Status >= status);
+    public static bool IsOpen(Inquiry inquiry) => inquiry.Status == InquiryStatus.Sent;
 
-    public static bool AwaitingReply(Inquiry inquiry) => inquiry.Status is InquiryStatus.Pending or InquiryStatus.Viewed;
+    public static bool IsStale(Inquiry inquiry) => IsOpen(inquiry) && Age(inquiry.CreatedAt) > StaleAfter;
 
-    public static bool IsOverdue(Inquiry inquiry) => AwaitingReply(inquiry) && Age(inquiry.CreatedAt) > ReplyOverdue;
-
-    public IEnumerable<Inquiry> Overdue => Inquiries.Where(IsOverdue);
+    public IEnumerable<Inquiry> Stale => Inquiries.Where(IsStale);
 
     public static TimeSpan Age(DateTime time) => DateTime.UtcNow - time.ToUniversalTime();
 }

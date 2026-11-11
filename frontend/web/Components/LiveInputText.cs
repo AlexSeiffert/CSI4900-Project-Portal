@@ -4,16 +4,10 @@ using Microsoft.AspNetCore.Components.Rendering;
 
 namespace ProjectPortal.Web.Components;
 
-/// <summary>
-/// An <see cref="InputText"/> that also reports every keystroke through <see cref="OnInput"/>.
-/// The bound value (and so validation) still updates on change, as with the stock component.
-/// </summary>
 public class LiveInputText : InputText
 {
     [Parameter] public EventCallback<string?> OnInput { get; set; }
 
-    // What the user has typed since the last change event. Rendered as the value so a re-render
-    // triggered by OnInput does not reset the text to the last committed value.
     private string? typed;
 
     protected override void BuildRenderTree(RenderTreeBuilder builder)

@@ -7,10 +7,8 @@ using ProjectPortal.Web.Auth;
 
 namespace ProjectPortal.Web.Api;
 
-/// <summary>Calls the backend's /api/v1 endpoints as the signed-in user.</summary>
 public sealed class ApiClient(HttpClient http, IConfiguration config, AuthSession auth)
 {
-    // Matches the API: camelCase properties and enums written as camelCase strings ("available").
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web)
     {
         Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) }
@@ -62,7 +60,6 @@ public sealed class ApiClient(HttpClient http, IConfiguration config, AuthSessio
         }
     }
 
-    // Errors come back as problem details: field errors for validation failures, otherwise a detail or title.
     private static async Task<string> ReadProblemAsync(HttpResponseMessage response)
     {
         try

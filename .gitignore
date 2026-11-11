@@ -26,5 +26,6 @@ supabase/.temp/
 # Frontend (Blazor + Tailwind): generated on build
 node_modules/
 frontend/web/wwwroot/css/app.css
+frontend/web/Styles/vendor/
 frontend/web/wwwroot/brand/
 frontend/web/wwwroot/appsettings.Development.json
