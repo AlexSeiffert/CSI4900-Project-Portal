@@ -30,7 +30,6 @@ From the repo root. The API is at **https://localhost:7049/swagger**.
 
 ```sh
 dotnet run --project backend/API --launch-profile https-supabase   # real Supabase database
-dotnet run --project backend/API                                   # fake in-memory database, no .env needed
 ```
 
 ## 3. Log in to Swagger
@@ -164,7 +163,7 @@ Every path starts with `/api/v1`.
 ## 5. Tests
 
 ```sh
-dotnet test ProjectPortal.slnx
+dotnet test uoProjects.slnx
 ```
 
 They use the fake database, need no `.env`, and run on every pull request. Database permission rules are tested in [db/tests](../db/tests).

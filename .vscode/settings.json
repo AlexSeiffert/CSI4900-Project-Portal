@@ -1,5 +1,5 @@
 {
-  "dotnet.defaultSolution": "ProjectPortal.slnx",
+  "dotnet.defaultSolution": "uoProjects.slnx",
   "dotnet.testWindow.enableNextTest": false,
   "dotnet.testWindow.disableAutoDiscovery": false,
   "dotnet.testWindow.disableBuildOnRefresh": false,

@@ -2,28 +2,20 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Project Portal API (Swagger)",
-      "type": "coreclr",
+      "name": "uoProjects Frontend",
+      "type": "node-terminal",
       "request": "launch",
-      "preLaunchTask": "build-api",
-      "program": "${workspaceFolder}/backend/API/bin/Debug/net10.0/API.dll",
-      "cwd": "${workspaceFolder}/backend/API",
-      "console": "internalConsole",
-      "stopAtEntry": false,
+      "command": "dotnet watch --project frontend/uoProjects --launch-profile http-watch",
+      "cwd": "${workspaceFolder}",
       "env": {
-        "ASPNETCORE_ENVIRONMENT": "Development",
-        "ASPNETCORE_URLS": "https://127.0.0.1:0;http://127.0.0.1:0"
-      },
-      "serverReadyAction": {
-        "action": "openExternally",
-        "pattern": "\\bNow listening on:\\s+(https://\\S+)",
-        "uriFormat": "%s/swagger"
+        "DOTNET_WATCH_RESTART_ON_RUDE_EDIT": "true"
       }
     },
     {
-      "name": "Project Portal API (Supabase)",
+      "name": "uoProjects API",
       "type": "coreclr",
       "request": "launch",
+      "envFile": "${workspaceFolder}/.env",
       "preLaunchTask": "build-api",
       "program": "${workspaceFolder}/backend/API/bin/Debug/net10.0/API.dll",
       "cwd": "${workspaceFolder}/backend/API",
