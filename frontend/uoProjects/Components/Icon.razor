@@ -1,0 +1,11 @@
+<MudIcon Icon="@Markup" Class="@($"shrink-0 {Class}")" Style="@Style" aria-hidden="@(Label is null ? "true" : null)" role="@(Label is null ? null : "img")" aria-label="@Label" />
+
+@code {
+    [Parameter, EditorRequired] public string Name { get; set; } = "";
+    [Parameter] public string Class { get; set; } = "size-4";
+    [Parameter] public string? Style { get; set; }
+    [Parameter] public double StrokeWidth { get; set; } = 2;
+    [Parameter] public string? Label { get; set; }
+
+    private string Markup => LucideIcons.Svg(Name, StrokeWidth);
+}

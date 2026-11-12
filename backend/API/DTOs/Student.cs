@@ -4,7 +4,6 @@ namespace API.DTOs;
 
 public class Student : UserDto
 {
-    public string? Program { get; set; }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public List<Topic>? TopicInterests { get; set; }

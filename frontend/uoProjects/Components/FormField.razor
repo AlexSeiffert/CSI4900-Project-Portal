@@ -1,0 +1,21 @@
+@if (Group)
+{
+    <div role="group" aria-label="@Label" class="@Class">
+        <span class="label">@Label</span>
+        <div class="mt-2">@ChildContent</div>
+    </div>
+}
+else
+{
+    <label class="block @Class">
+        <span class="label">@Label</span>
+        @ChildContent
+    </label>
+}
+
+@code {
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public bool Group { get; set; }
+    [Parameter] public string? Class { get; set; }
+}

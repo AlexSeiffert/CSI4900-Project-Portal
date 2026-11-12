@@ -1,0 +1,8 @@
+<MudSwitch T="bool" Value="On" ValueChanged="OnToggle" ReadOnly="Disabled" Color="Color.Success" Class="@($"app-switch {(Disabled ? "is-disabled" : "")}")" aria-label="@Label" aria-disabled="@(Disabled ? "true" : null)" />
+
+@code {
+    [Parameter, EditorRequired] public bool On { get; set; }
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+    [Parameter] public bool Disabled { get; set; }
+    [Parameter] public EventCallback<bool> OnToggle { get; set; }
+}

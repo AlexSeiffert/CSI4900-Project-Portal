@@ -1,0 +1,8 @@
+<span class="inline-flex items-center gap-1.5 whitespace-nowrap text-sm">
+    <span class="size-2 shrink-0 rounded-full" style="background: @Status.Color"></span>
+    @Status.Label
+</span>
+
+@code {
+    [Parameter, EditorRequired] public (string Label, string Color) Status { get; set; }
+}

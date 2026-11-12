@@ -1,0 +1,19 @@
+<div class="flex flex-wrap gap-2" role="group" aria-label="@Label">
+    @foreach (var option in Options)
+    {
+        <MudChip T="string" Class="chip" Variant="Variant.Outlined" Ripple="false" aria-pressed="@(option.Key == Selected ? "true" : "false")"
+                 OnClick="@(() => SelectedChanged.InvokeAsync(option.Key))">
+            @option.Label
+            <span class="tabular-nums opacity-60">@option.Count</span>
+        </MudChip>
+    }
+</div>
+
+@code {
+    public sealed record Option(string Key, string Label, int Count);
+
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+    [Parameter, EditorRequired] public IReadOnlyList<Option> Options { get; set; } = [];
+    [Parameter] public string Selected { get; set; } = "";
+    [Parameter] public EventCallback<string> SelectedChanged { get; set; }
+}

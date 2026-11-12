@@ -50,8 +50,6 @@ public class DtoMappingTests
     [Fact]
     public void ToDtoWithRelations_StopsAfterOneLevel()
     {
-        // The case from a real response: Entity Framework had linked the inquiry's supervisor to just the one
-        // loaded project, and the old mapper showed that as the supervisor's full project list.
         var student = new Student { UserId = Guid.NewGuid(), DisplayName = "Student" };
         var supervisor = new Supervisor { UserId = Guid.NewGuid(), DisplayName = "Supervisor" };
         var project = new Project { Id = Guid.NewGuid(), SupervisorId = supervisor.UserId, Supervisor = supervisor };
@@ -75,7 +73,6 @@ public class DtoMappingTests
         Assert.Null(result.Supervisor.Inquiries);
         Assert.Null(result.Project!.Supervisor);
         Assert.Null(result.Project.Inquiries);
-        // No loops left, so it serializes without a ReferenceHandler and without null placeholders.
         Assert.DoesNotContain("[null", JsonSerializer.Serialize(result));
     }
 
@@ -136,7 +133,7 @@ public class DtoMappingTests
             SupervisorId = Guid.NewGuid(),
             ProjectId = Guid.NewGuid(),
             Message = "Interested in this project",
-            Status = InquiryStatus.Responded,
+            Status = InquiryStatus.Matched,
             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc),
             UpdatedAt = new DateTime(2025, 2, 1, 0, 0, 0, DateTimeKind.Utc)
         };
@@ -148,7 +145,7 @@ public class DtoMappingTests
         Assert.Equal(model.SupervisorId, result.SupervisorId);
         Assert.Equal(model.ProjectId, result.ProjectId);
         Assert.Equal(model.Message, result.Message);
-        Assert.Equal(InquiryStatus.Responded, result.Status);
+        Assert.Equal(InquiryStatus.Matched, result.Status);
         Assert.Equal(model.CreatedAt, result.CreatedAt);
         Assert.Equal(model.UpdatedAt, result.UpdatedAt);
     }
@@ -184,7 +181,6 @@ public class DtoMappingTests
         {
             UserId = Guid.NewGuid(),
             DisplayName = "Student",
-            Program = "Computer Science",
             UpdatedAt = new DateTime(2025, 2, 1, 0, 0, 0, DateTimeKind.Utc),
             TopicInterests = [topic]
         };
@@ -193,7 +189,6 @@ public class DtoMappingTests
 
         Assert.Equal(model.UserId, result.UserId);
         Assert.Equal(model.DisplayName, result.DisplayName);
-        Assert.Equal(model.Program, result.Program);
         Assert.Equal(model.UpdatedAt, result.UpdatedAt);
         var mappedTopic = Assert.Single(result.TopicInterests!);
         Assert.Equal(topic.Id, mappedTopic.Id);

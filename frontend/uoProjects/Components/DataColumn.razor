@@ -1,0 +1,15 @@
+@typeparam TItem
+
+@code {
+    [CascadingParameter] public DataTable<TItem> Table { get; set; } = default!;
+    [Parameter, EditorRequired] public string Title { get; set; } = "";
+    [Parameter, EditorRequired] public RenderFragment<TItem> ChildContent { get; set; } = default!;
+    [Parameter] public Func<TItem, object?>? SortBy { get; set; }
+    [Parameter] public bool DescendingFirst { get; set; }
+    [Parameter] public string? Class { get; set; }
+    [Parameter] public Func<TItem, object?>? Export { get; set; }
+
+    internal Func<TItem, object?>? ExportValue => Export ?? SortBy;
+
+    protected override void OnInitialized() => Table.Add(this);
+}

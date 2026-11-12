@@ -1,0 +1,9 @@
+<div class="flex flex-wrap items-center justify-between gap-3">
+    <div class="flex flex-wrap items-center gap-2">@Start</div>
+    <div class="flex flex-wrap items-center gap-2">@End</div>
+</div>
+
+@code {
+    [Parameter] public RenderFragment? Start { get; set; }
+    [Parameter] public RenderFragment? End { get; set; }
+}

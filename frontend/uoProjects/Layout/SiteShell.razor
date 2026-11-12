@@ -1,0 +1,87 @@
+@inject AuthSession Auth
+@inject NavigationManager Nav
+
+@if (user is not null)
+{
+    <div class="grid grid-cols-[64px_minmax(0,1fr)] min-[700px]:grid-cols-[232px_minmax(0,1fr)]">
+        <aside class="sticky top-0 flex h-dvh flex-col overflow-y-auto border-r border-border bg-dark px-2 py-4 min-[700px]:px-6 min-[700px]:py-8">
+            <a href="@AuthSession.HomeFor(user.Role)" class="mx-auto mb-8 block w-12 shrink-0 min-[700px]:w-40" aria-label="uoProjects home">
+                <picture>
+                    <source media="(max-width: 699px)" srcset="brand/uoProjectsLogo-minimal.svg" />
+                    <img src="brand/uoProjectsLogo.svg" alt="uoProjects" class="h-auto w-full" />
+                </picture>
+            </a>
+            <nav aria-label="Main navigation" class="flex flex-col gap-2">
+                @foreach (var item in Items)
+                {
+                    <a href="@HrefFor(item.Key)" aria-current="@(item.Key == Current ? "page" : null)" title="@item.Label" class="side-link">
+                        <MudIcon Icon="@item.Icon" Style="font-size: 20px" aria-hidden="true" />
+                        <span class="sr-only min-[700px]:not-sr-only">@item.Label</span>
+                    </a>
+                }
+            </nav>
+            <div class="mt-auto flex flex-col gap-2 pt-6">
+                <nav aria-label="Account navigation">
+                    <a href="user" aria-current="@(Current == "user" ? "page" : null)" title="My Profile" class="side-link">
+                        <MudIcon Icon="@Icons.Material.Outlined.Person" Style="font-size: 20px" aria-hidden="true" />
+                        <span class="sr-only min-[700px]:not-sr-only">My Profile</span>
+                    </a>
+                </nav>
+                <p class="hidden break-words px-2 text-[11px] leading-snug text-text-faint min-[700px]:block" title="@user.Name">@user.Name</p>
+                <MudButton Variant="Variant.Outlined" DropShadow="false" DisableRipple="true" title="Sign out" OnClick="SignOutAsync"
+                           Class="btn btn-secondary btn-sm w-full max-[699px]:px-0">
+            <Icon Name="log-out" />
+            <span class="sr-only min-[700px]:not-sr-only">Sign out</span>
+        </MudButton>
+            </div>
+        </aside>
+
+        <div class="flex min-w-0 flex-col">
+            <main class="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 sm:py-12">
+                @ChildContent
+            </main>
+            <SiteFooter />
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public string Current { get; set; } = "";
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private SignedInUser? user;
+
+    private record NavItem(string Key, string Label, string Icon);
+
+    private static readonly NavItem[] Items =
+    [
+        new("home", "Home", Icons.Material.Outlined.Home),
+        new("projects", "Projects", Icons.Material.Outlined.Science),
+        new("supervisors", "Supervisors", Icons.Material.Outlined.Groups),
+    ];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var current = await Auth.GetUserAsync();
+        if (current is null)
+        {
+            Nav.NavigateTo("/login", replace: true);
+        }
+        else if (current.Role == "admin")
+        {
+            Nav.NavigateTo(AuthSession.HomeFor(current.Role), replace: true);
+        }
+        else
+        {
+            user = current;
+        }
+    }
+
+    private string HrefFor(string key) => key == "home" ? AuthSession.HomeFor(user!.Role) : key;
+
+    private async Task SignOutAsync()
+    {
+        await Auth.SignOutAsync();
+        Nav.NavigateTo("/login", replace: true);
+    }
+}

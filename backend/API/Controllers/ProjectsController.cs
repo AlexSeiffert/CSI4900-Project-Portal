@@ -53,8 +53,15 @@ public class ProjectsController(IProjectService service) : ControllerBase
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<Project>> CreateProject(CreateProject request, CancellationToken cancellationToken)
     {
-        // the project's owner is taken from the login token, not from anything the client types in
-        request.SupervisorId = User.GetRequiredUserId();
+        if (!User.IsAdmin())
+        {
+            request.SupervisorId = User.GetRequiredUserId();
+        }
+        else if (request.SupervisorId is null)
+        {
+            ModelState.AddModelError(nameof(request.SupervisorId), "Choose the supervisor this project is for.");
+            return ValidationProblem(ModelState);
+        }
         var result = await _service.CreateProject(request, cancellationToken);
         return CreatedAtAction(nameof(GetProjectById), new { projectId = result.Id }, result);
     }
@@ -65,6 +72,10 @@ public class ProjectsController(IProjectService service) : ControllerBase
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<Project>> UpdateProject(Guid projectId, UpdateProject request, CancellationToken cancellationToken)
     {
+        if (!User.IsAdmin())
+        {
+            request.SupervisorId = null;
+        }
         return await _service.UpdateProject(projectId, request, cancellationToken);
     }
 

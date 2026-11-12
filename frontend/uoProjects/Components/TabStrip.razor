@@ -1,0 +1,23 @@
+<MudTabs Elevation="0" Rounded="false" HideSlider="true" DisableSliderAnimation="true" MinimumTabWidth="0px" Class="app-tabs" aria-label="@Label"
+         ActivePanelIndex="ActiveIndex" ActivePanelIndexChanged="OnIndexChanged">
+    @foreach (var (key, label, icon) in Tabs)
+    {
+        <MudTabPanel Class="app-tab" ID="@key">
+            <TabContent>
+                <Icon Name="@icon" />
+                @label
+            </TabContent>
+        </MudTabPanel>
+    }
+</MudTabs>
+
+@code {
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+    [Parameter, EditorRequired] public IReadOnlyList<(string Key, string Label, string Icon)> Tabs { get; set; } = [];
+    [Parameter] public string Selected { get; set; } = "";
+    [Parameter] public EventCallback<string> SelectedChanged { get; set; }
+
+    private int ActiveIndex => Math.Max(0, Tabs.ToList().FindIndex(t => t.Key == Selected));
+
+    private Task OnIndexChanged(int index) => SelectedChanged.InvokeAsync(Tabs[index].Key);
+}

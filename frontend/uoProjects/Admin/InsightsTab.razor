@@ -1,0 +1,88 @@
+@using System.Web
+@inject NavigationManager Nav
+
+<section aria-labelledby="progress-heading">
+    <div class="flex flex-wrap items-end justify-between gap-x-10 gap-y-2">
+        <div>
+            <h2 id="progress-heading" class="max-w-[22ch] text-balance text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">
+                <span class="tabular-nums">@matched</span> of <span class="tabular-nums">@Data.Students.Count</span> students have a match
+            </h2>
+        </div>
+        <p class="text-6xl font-semibold leading-none tracking-tighter tabular-nums sm:text-7xl" aria-hidden="true">
+            @InsightMath.Percent(matched, Data.Students.Count)<span class="text-3xl text-text-secondary sm:text-4xl">%</span>
+        </p>
+    </div>
+    <div class="mt-7">
+        <ShareBar Segments="studentStages" Large Empty="No students yet." />
+    </div>
+</section>
+
+<div class="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <StatCard Label="No inquiry" Value="@notStarted.ToString()" Unit="@($"of {Data.Students.Count} students")"
+              Note="Haven't messaged a supervisor" LinkText="See students" Href="@($"{BasePath}/students?filter=not-started")" />
+    <StatCard Label="Still open" Value="@stale.ToString()" Unit="inquiries"
+              Note="@($"Sent {AdminData.StaleAfter.Days}+ days ago, no outcome")" LinkText="See supervisors" Href="@($"{BasePath}/supervisors?filter=stale")" />
+    <StatCard Label="Inquiry match rate" Value="@($"{InsightMath.Percent(matchedInquiries, Data.Inquiries.Count)}%")"
+              Note="Of inquiries sent" LinkText="See supervisors" Href="@($"{BasePath}/supervisors")" />
+    <StatCard Label="Open projects" Value="@open.ToString()"
+              Note="@($"{looking} students still need one")" LinkText="See projects" Href="@($"{BasePath}/projects?filter=Available")" />
+</div>
+
+<section class="mt-12" aria-label="Insights by area">
+    <TabStrip Label="Insights by area" Tabs="Areas" @bind-Selected="area" />
+    <div class="mt-6" role="tabpanel">
+        @switch (area)
+        {
+            case "projects": <ProjectInsights Data="Data" BasePath="@BasePath" /> break;
+            case "topics": <TopicInsights Data="Data" /> break;
+            case "supervisors": <SupervisorInsights Data="Data" /> break;
+            default: <InquiryInsights Data="Data" /> break;
+        }
+    </div>
+</section>
+
+@code {
+    private static readonly (string, string, string)[] Areas =
+    [
+        ("inquiries", "Inquiries", "send"),
+        ("projects", "Projects", "folder-open"),
+        ("topics", "Topics", "tags"),
+        ("supervisors", "Supervisors", "users"),
+    ];
+
+
+    [Parameter, EditorRequired] public AdminData Data { get; set; } = default!;
+    [Parameter, EditorRequired] public string BasePath { get; set; } = "";
+
+    private string area = "inquiries";
+    private int matched, notStarted, stale, matchedInquiries, open, looking;
+    private List<ShareBar.Segment> studentStages = [];
+
+    protected override void OnInitialized()
+    {
+        var from = HttpUtility.ParseQueryString(new Uri(Nav.Uri).Query)["area"];
+        if (Areas.Any(a => a.Item1 == from))
+        {
+            area = from!;
+        }
+    }
+
+    protected override void OnParametersSet()
+    {
+        var stages = Data.Students.Select(s => Data.FurthestStage(s.UserId)).ToList();
+        matched = stages.Count(s => s == InquiryStatus.Matched);
+        notStarted = stages.Count(s => s is null);
+        looking = Data.Students.Count - matched;
+        stale = Data.Stale.Count();
+        matchedInquiries = Data.Inquiries.Count(i => i.Status == InquiryStatus.Matched);
+        open = Data.Projects.Count(p => p.Status == ProjectStatus.Available);
+
+        studentStages =
+        [
+            new("No inquiries", notStarted, "var(--color-chart-neutral)"),
+            new("Sent", stages.Count(s => s == InquiryStatus.Sent), "var(--color-stage-1)"),
+            new("Closed, no match", stages.Count(s => s == InquiryStatus.Closed), "var(--color-muted)", LightText: true),
+            new("Matched", matched, "var(--color-stage-4)", LightText: true),
+        ];
+    }
+}

@@ -6,11 +6,9 @@ public class Student
 
     public string DisplayName { get; set; } = string.Empty;
 
-    public string? Program { get; set; }
 
     public DateTime UpdatedAt { get; set; }
 
-    // Relationships
     public ICollection<Topic> TopicInterests { get; set; } = new List<Topic>();
 
     public ICollection<Inquiry> Inquiries { get; set; } = new List<Inquiry>();

@@ -2,20 +2,19 @@
 
 A web-based platform for discovering and managing CSI4900 honours projects.
 
-The uoProjects aims to provide students with a centralized platform
-to discover honours projects and supervisors, while providing supervisors with
-tools to manage their projects and availability.
+uoProjects gives students one place to discover honours projects and supervisors,
+and gives supervisors tools to manage their projects and availability.
 
 ## Team
 
 ### Developers
 
-- Alexander Seiffert
-- Owen Ritchie
+- [Alexander Seiffert](https://github.com/AlexSeiffert)
+- [Owen Ritchie](https://owenritchie.ca/?utm_source=uoproject)
 
 ### Supervisor
 
-- Stephane Some
+- [Stéphane Somé](https://www.uottawa.ca/faculty-engineering/school-electrical-engineering-computer-science/directory/stephane-soteg-some)
 
 ## Project Goals
 
@@ -37,8 +36,16 @@ tools to manage their projects and availability.
 
 ## Project Status
 
-The backend API and database schema are under development. The frontend has a
-.NET 10 Blazor Web App scaffold with MudBlazor and Interactive Server rendering.
+The backend API and database schema are under development. The frontend is a
+.NET 10 Blazor WebAssembly app (MudBlazor and Tailwind) with the sign-in page, the admin
+dashboard, and student and supervisor home pages.
+
+| Part | Stack |
+| --- | --- |
+| Frontend | Blazor WebAssembly, MudBlazor, Tailwind CSS |
+| Backend | ASP.NET Core Web API (.NET 10), EF Core |
+| Database and auth | Supabase (PostgreSQL with row-level security) |
+| Infrastructure | Terraform |
 
 ## Repository Structure
 
@@ -48,7 +55,7 @@ The backend API and database schema are under development. The frontend has a
 │   ├── API/                 # ASP.NET Core Web API (.NET 10)
 │   └── tests/API.Tests/     # C# integration and mapping tests
 ├── frontend/
-│   └── uoProjects/   # Blazor Web App with MudBlazor (.NET 10)
+│   └── uoProjects/          # Blazor WebAssembly app with MudBlazor and Tailwind (.NET 10)
 ├── db/
 │   ├── migrations/          # Authoritative SQL schema migrations
 │   ├── seed/                # Database seed scripts
@@ -56,7 +63,7 @@ The backend API and database schema are under development. The frontend has a
 ├── infra/                   # Terraform infrastructure
 ├── .github/                 # CI workflows and PR template
 ├── .vscode/                 # Shared debug and build configuration
-└── uoProjects.slnx       # .NET solution
+└── uoProjects.slnx          # .NET solution
 ```
 
 Each application owns its code, tests, dependencies, and configuration. Database
@@ -65,17 +72,29 @@ Repository-wide editor settings and tool versions remain at the root.
 
 ## Local Development
 
-Open the repository root in VS Code. With the C# extension installed, select
-**uoProjects API (Supabase)** in Run and Debug and press **F5**. This builds the
-backend with Supabase configuration and opens Swagger on an automatically assigned
-port. Configure the root `.env` as described in the backend guide first.
+Open the repository root in VS Code, select **uoProjects (Full Stack)** in Run and Debug,
+and press **F5**. It starts the API, the frontend at `http://localhost:5270`, and the Tailwind
+watcher. Configure the root `.env` as described in the backend guide first.
 
-From the repository root, use the .NET 10 SDK to run, build, or test:
+Or from the repository root with the .NET 10 SDK:
 
 ```sh
+# API against live Supabase (https://localhost:7049)
 dotnet run --project backend/API --launch-profile https-supabase
-dotnet run --project frontend/uoProjects
+```
+
+```sh
+# Frontend with hot reload (http://localhost:5270)
+dotnet watch --project frontend/uoProjects --launch-profile http-watch
+```
+
+```sh
+# Compile everything without running it
 dotnet build uoProjects.slnx
+```
+
+```sh
+# Run the C# tests (in-memory, no network needed)
 dotnet test uoProjects.slnx
 ```
 

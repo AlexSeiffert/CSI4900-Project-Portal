@@ -1,0 +1,551 @@
+@layer theme, base, mud, components, utilities;
+@import "tailwindcss";
+@import "./vendor/MudBlazor.min.css" layer(mud);
+
+@theme {
+  --color-primary: #8f001a;
+  --color-primary-hover: #7b0016;
+  --color-background: #3a3a37;
+  --color-dark: #2d2d2c;
+  --color-surface: #42423f;
+  --color-surface-hover: #4b4b47;
+  --color-text: #f2f2f2;
+  --color-text-secondary: #ccc5c0;
+  --color-text-faint: #b8afa8;
+  --color-border: #62625d;
+  --color-focus: #e4b6bf;
+  --color-feedback-error: #ffaaaa;
+  --color-muted: #80746c;
+  --color-disabled: #c4c4c4;
+  --color-disabled-text: #757575;
+
+  --font-sans: "Work Sans", ui-sans-serif, system-ui, sans-serif;
+  --color-success: #0ca30c;
+  --color-success-text: #006300;
+  --color-error: #d03b3b;
+  --color-error-text: #b42318;
+
+}
+
+@theme static {
+  --color-stage-1: #4cc9f0;
+  --color-stage-4: #f72585;
+
+  --color-mono-1: #dde3ef;
+  --color-mono-2: #b3bfd6;
+  --color-mono-3: #8496b9;
+  --color-mono-4: #56689a;
+  --color-mono-5: #2f3d6b;
+
+  --color-chart-neutral: #b9b4af;
+}
+
+@layer base {
+  body {
+    @apply bg-background text-text antialiased;
+  }
+  html {
+    color-scheme: dark;
+  }
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-focus;
+  }
+  h1:focus {
+    @apply outline-none;
+  }
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border) transparent;
+  }
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background-color: var(--color-border);
+    border: 2px solid transparent;
+    background-clip: content-box;
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-text-faint);
+  }
+}
+
+@layer components {
+  :where(a:not([class*="mud-"])) {
+    color: inherit;
+  }
+  :where(button:not([class*="mud-"])) {
+    display: revert;
+    position: revert;
+    align-items: revert;
+    justify-content: revert;
+    vertical-align: revert;
+    user-select: revert;
+  }
+
+  .site-footer {
+    padding-block: 0.5rem;
+    color: var(--color-text-secondary);
+  }
+  .site-footer-links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0 1.25rem;
+    padding-inline: 1.5rem;
+  }
+  .site-footer-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    min-height: 28px;
+    padding-block: 0.25rem;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    white-space: nowrap;
+    transition: color 0.15s ease;
+  }
+  .site-footer-link:hover {
+    color: var(--color-text);
+    text-decoration: underline;
+    text-underline-offset: 0.25em;
+  }
+  .site-footer-icon {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+  }
+  @media (max-width: 700px) {
+    .site-footer-links {
+      gap: 0 1rem;
+    }
+    .site-footer-link {
+      min-height: 32px;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .site-footer-link {
+      transition: none;
+    }
+  }
+
+  .field {
+    @apply mt-1 block w-full border-b border-text-secondary px-1 py-3 sm:py-4 transition-colors duration-300 placeholder:text-text-faint hover:bg-surface-hover focus:bg-surface-hover focus:outline-none;
+  }
+  .field:focus-visible {
+    @apply border-focus shadow-[inset_0_-1px_0_var(--color-focus)];
+  }
+  .field.invalid {
+    @apply border-error shadow-[inset_0_-1px_0_var(--color-error)];
+  }
+  select.field {
+    @apply cursor-pointer pr-11;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ccc5c0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1rem;
+  }
+
+  .field-error {
+    @apply mt-1 block text-sm text-feedback-error;
+  }
+
+  .btn {
+    @apply inline-flex min-w-0 cursor-pointer items-center justify-center rounded-full bg-primary px-6 py-3 sm:py-3.5 text-base font-semibold tracking-normal normal-case text-white shadow-none transition-colors duration-300 hover:bg-primary-hover disabled:cursor-not-allowed disabled:bg-disabled disabled:text-disabled-text;
+  }
+  .btn {
+    line-height: 1.5;
+  }
+  .btn .mud-button-label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: inherit;
+  }
+
+  .btn-secondary {
+    @apply border border-border bg-transparent text-text hover:bg-surface-hover;
+  }
+  .btn-sm {
+    @apply h-9 gap-1.5 px-4 py-0 text-sm sm:py-0;
+  }
+
+  .label {
+    @apply text-xs font-bold uppercase tracking-[2.75px];
+  }
+
+  .alert {
+    @apply m-0 rounded-none border-l-4 border-error bg-error/10 px-3 py-2 text-sm font-normal tracking-normal text-feedback-error;
+  }
+  .alert .mud-alert-message {
+    padding: 0;
+  }
+
+  .card {
+    @apply rounded-xl border border-border bg-surface p-5 sm:p-6;
+  }
+
+  .data-table {
+    @apply w-full border-collapse text-sm tabular-nums;
+  }
+  .data-table th {
+    @apply whitespace-nowrap border-b border-border px-4 py-3 text-left align-bottom text-xs font-bold uppercase tracking-[1.5px] text-text-secondary;
+  }
+  .data-table td {
+    @apply whitespace-nowrap border-b border-border/60 px-4 py-3.5 text-left align-middle;
+  }
+  .data-table :is(th, td):first-child {
+    @apply pl-5 sm:pl-6;
+  }
+  .data-table :is(th, td):last-child {
+    @apply pr-5 sm:pr-6;
+  }
+  .data-table tbody tr:last-child td {
+    @apply border-b-0;
+  }
+  .data-table tbody tr {
+    @apply transition-colors hover:bg-surface-hover;
+  }
+  .th-sort {
+    @apply -mx-1 inline-flex cursor-pointer items-center gap-1 rounded px-1 uppercase tracking-[1.5px] transition-colors hover:text-text;
+  }
+  .th-sort[data-active] {
+    @apply text-text;
+  }
+
+  .chip {
+    @apply m-0 inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-full border border-border bg-surface px-3.5 text-sm font-semibold tracking-normal text-text transition-colors hover:bg-surface-hover;
+  }
+  .chip .mud-chip-content,
+  .topic-chip .mud-chip-content {
+    display: inline-flex;
+    align-items: center;
+    gap: inherit;
+    overflow: visible;
+  }
+  .app-tabs {
+    background: transparent;
+  }
+  .app-tabs .mud-tabs-tabbar {
+    min-height: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+  .app-tabs .mud-tabs-tabbar-inner,
+  .app-tabs .mud-tabs-tabbar-content {
+    min-height: 0;
+  }
+  .app-tabs .mud-tabs-tabbar-wrapper {
+    gap: 0.5rem;
+  }
+  .app-tabs .mud-tab {
+    @apply inline-flex min-h-0 min-w-0 cursor-pointer items-center gap-2 whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold normal-case tracking-normal text-text-secondary opacity-100 transition-colors hover:bg-surface-hover hover:text-text;
+    flex-direction: row;
+    line-height: 1.25rem;
+  }
+  .app-tabs .mud-tab.mud-tab-active {
+    @apply bg-primary text-white hover:bg-primary;
+  }
+  .app-tabs .mud-tabs-panels {
+    display: none;
+  }
+  .app-search {
+    margin: 0;
+  }
+  .app-search .mud-input-control-input-container {
+    width: 100%;
+  }
+  .app-search .mud-input {
+    @apply m-0 inline-flex h-9 w-full items-center gap-2 rounded-full border border-border bg-surface px-3.5 text-sm tracking-normal text-text transition-colors hover:border-text-faint focus-within:border-text;
+    line-height: 1.25rem;
+  }
+  .app-search .mud-input::before,
+  .app-search .mud-input::after {
+    content: none;
+  }
+  .app-search .mud-input-root {
+    @apply m-0 h-full min-w-0 flex-1 appearance-none bg-transparent p-0 text-sm tracking-normal outline-none placeholder:text-text-faint placeholder:opacity-100;
+    line-height: 1.25rem;
+  }
+  .app-search .mud-input-adornment {
+    @apply m-0 text-text-secondary;
+  }
+  .app-search .mud-input-adornment .mud-icon-root {
+    @apply size-4;
+  }
+  .app-select-wrap {
+    display: inline-grid;
+    grid-template-areas: "cell";
+    max-width: 100%;
+  }
+  .app-cell-select-wrap {
+    max-width: 15rem;
+  }
+  .app-select-wrap > * {
+    grid-area: cell;
+  }
+  .app-select-sizer {
+    @apply invisible flex h-0 items-center gap-2 overflow-hidden border border-transparent text-sm tracking-normal;
+    padding-right: calc(2rem + 1px);
+    line-height: 1.25rem;
+    padding-left: 0.875rem;
+    pointer-events: none;
+  }
+  .app-cell-select-wrap .app-select-sizer {
+    padding-left: 0.75rem;
+    padding-right: 2rem;
+  }
+  .app-select-sizer-options {
+    display: inline-grid;
+    @apply font-semibold;
+  }
+  .app-cell-select-wrap .app-select-sizer-options {
+    @apply font-medium;
+  }
+  .app-select-sizer-options > * {
+    grid-area: 1 / 1;
+    white-space: nowrap;
+  }
+  .app-cell-select .mud-input-adornment-end {
+    opacity: 1;
+  }
+  .app-select-wrap.is-disabled {
+    opacity: 0.6;
+    cursor: wait;
+  }
+  .app-select,
+  .app-cell-select {
+    margin: 0;
+    display: flex;
+  }
+  .app-select .mud-input-control-input-container,
+  .app-cell-select .mud-input-control-input-container {
+    flex: 1;
+  }
+  .app-select .mud-input,
+  .app-cell-select .mud-input {
+    width: 100%;
+  }
+  .app-select .mud-input,
+  .app-cell-select .mud-input {
+    @apply relative m-0 inline-flex items-center gap-2 rounded-full border border-border bg-surface text-sm tracking-normal text-text transition-colors hover:border-text-faint focus-within:border-text;
+    line-height: 1.25rem;
+  }
+  .app-select .mud-input {
+    @apply h-9 pl-3.5 pr-8;
+  }
+  .app-cell-select .mud-input {
+    @apply h-8 max-w-60 cursor-pointer pl-3 pr-8;
+  }
+  .app-select .mud-input::before {
+    content: var(--select-label);
+    @apply static inset-auto h-auto shrink-0 border-0 text-text-secondary;
+    transform: none;
+    transition: none;
+    position: static;
+  }
+  .app-cell-select .mud-input::before {
+    content: "";
+    @apply static inset-auto size-2 shrink-0 rounded-full border-0;
+    background: var(--cell-dot);
+    transform: none;
+    transition: none;
+    position: static;
+    display: var(--cell-dot-display, block);
+  }
+  .app-select .mud-input::after,
+  .app-cell-select .mud-input::after {
+    content: none;
+  }
+  .app-select .mud-input-root,
+  .app-cell-select .mud-input-root {
+    @apply m-0 h-auto min-w-0 flex-1 cursor-pointer truncate bg-transparent p-0 text-sm tracking-normal;
+    line-height: 1.25rem;
+  }
+  .app-select .mud-input-root {
+    @apply font-semibold;
+  }
+  .app-cell-select .mud-input-root {
+    @apply font-medium;
+  }
+  .app-select .mud-input-adornment-end,
+  .app-cell-select .mud-input-adornment-end {
+    @apply pointer-events-none absolute m-0 text-text-secondary;
+  }
+  .app-select .mud-input-adornment-end {
+    @apply right-3;
+  }
+  .app-cell-select .mud-input-adornment-end {
+    @apply right-2.5;
+  }
+  .app-select .mud-input-adornment-end .mud-icon-root,
+  .app-cell-select .mud-input-adornment-end .mud-icon-root {
+    @apply size-4;
+  }
+  .mud-popover {
+    --mud-palette-primary: var(--color-focus);
+    --mud-palette-primary-rgb: 228, 182, 191;
+  }
+  .mud-popover .mud-paper {
+    @apply rounded-xl border border-border bg-surface p-1 text-text shadow-lg;
+  }
+  .mud-popover .mud-list {
+    @apply bg-transparent py-0;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border) transparent;
+    overscroll-behavior: contain;
+  }
+  .mud-popover .mud-list-item {
+    @apply rounded-lg text-sm text-text;
+    min-height: 2.25rem;
+    padding-inline: 0.625rem;
+  }
+  .mud-popover .mud-list-item:hover,
+  .mud-popover .mud-list-item.mud-list-item-clickable:hover {
+    @apply bg-surface-hover;
+  }
+  .mud-popover .mud-list-item.mud-selected-item,
+  .mud-popover .mud-list-item.mud-selected-item:hover {
+    @apply font-semibold text-focus;
+    background-color: color-mix(in srgb, var(--color-focus) 12%, transparent);
+  }
+  .app-switch {
+    display: inline-flex;
+    height: 1.5rem;
+    min-height: 0;
+    margin: 0;
+    line-height: 0;
+    vertical-align: baseline;
+    position: relative;
+    top: 0.5px;
+  }
+  .app-switch .mud-input-control-input-container {
+    display: inline-flex;
+    height: 1.5rem;
+  }
+  .app-switch .mud-switch {
+    margin: 0;
+  }
+  .app-switch .mud-switch-span {
+    width: 2.5rem;
+    height: 1.5rem;
+    padding: 0;
+    overflow: visible;
+  }
+  .app-switch .mud-switch-track {
+    opacity: 1;
+    border-radius: 9999px;
+    background-color: var(--color-border);
+    transition: background-color 0.2s;
+  }
+  .app-switch .mud-switch-base {
+    padding: 2px;
+    background-color: transparent;
+  }
+  .app-switch .mud-switch-base:hover {
+    background-color: transparent;
+  }
+  .app-switch .mud-switch-base.mud-checked {
+    transform: translateX(16px);
+  }
+  .app-switch .mud-switch-base.mud-checked + .mud-switch-track {
+    opacity: 1;
+    background-color: var(--color-success);
+  }
+  .app-switch .mud-switch-thumb-medium {
+    width: 1.25rem;
+    height: 1.25rem;
+    background-color: #fff;
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  }
+  .app-switch.is-disabled {
+    opacity: 0.6;
+    cursor: wait;
+  }
+  .app-switch.is-disabled .mud-switch {
+    cursor: wait;
+  }
+  .chip.is-disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+  .topic-chip {
+    @apply m-0 inline-flex h-auto items-center gap-1.5 whitespace-nowrap rounded-full border-0 bg-surface-hover px-2.5 py-1 text-xs font-semibold tracking-normal text-text;
+  }
+  .chip[aria-pressed="true"] {
+    @apply border-text bg-text text-dark hover:bg-text;
+  }
+
+  .control {
+    @apply inline-flex h-9 items-center gap-2 rounded-full border border-border bg-surface px-3.5 text-sm text-text transition-colors hover:border-text-faint focus-within:border-text;
+  }
+  .control :is(input, select) {
+    @apply h-full min-w-0 flex-1 appearance-none bg-transparent outline-none placeholder:text-text-faint;
+  }
+  .cell-select {
+    @apply relative inline-flex h-8 max-w-60 cursor-pointer items-center gap-2 rounded-full border border-border bg-surface pl-3 pr-8 text-sm transition-colors hover:border-text-faint focus-within:border-text has-[select:disabled]:cursor-wait has-[select:disabled]:opacity-60;
+  }
+  .cell-select select {
+    @apply min-w-0 flex-1 cursor-pointer appearance-none truncate bg-transparent font-medium outline-none disabled:cursor-wait;
+  }
+
+  .back-link {
+    @apply inline-flex items-center gap-1 text-sm font-semibold text-text-secondary transition-colors hover:text-focus;
+  }
+
+  .share-bar {
+    animation: share-reveal 0.9s cubic-bezier(0.25, 1, 0.5, 1) both;
+  }
+  .share-seg {
+    @apply transition-opacity duration-200 first:rounded-l-lg last:rounded-r-lg;
+  }
+  .share-bar:hover .share-seg:not(:hover) {
+    @apply opacity-40;
+  }
+  .share-tip {
+    @apply pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 -translate-x-1/2 translate-y-1 whitespace-nowrap rounded-lg border border-border bg-dark px-2.5 py-1.5 text-xs font-semibold text-text opacity-0 shadow-lg transition duration-200;
+  }
+  .share-seg:hover .share-tip {
+    @apply translate-y-0 opacity-100;
+  }
+
+  .logo-mark {
+    @apply aspect-square bg-text;
+    mask: url("../brand/uottawa.png") center / contain no-repeat;
+  }
+}
+
+@keyframes share-reveal {
+  from {
+    clip-path: inset(-4rem 100% -1rem -1rem);
+  }
+  to {
+    clip-path: inset(-4rem -1rem -1rem -1rem);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .share-bar {
+    animation: none;
+  }
+}
+
+.side-link {
+  @apply -mx-2 flex min-h-11 items-center justify-center gap-2 px-2 text-sm font-semibold text-text-secondary transition-colors duration-150 hover:bg-surface-hover hover:text-text min-[700px]:-mx-6 min-[700px]:justify-start min-[700px]:px-9;
+}
+.side-link[aria-current="page"] {
+  @apply bg-primary text-white hover:bg-primary-hover;
+}
+
+#blazor-error-ui {
+  @apply fixed inset-x-0 bottom-0 z-50 hidden bg-dark px-4 py-3 text-sm text-white;
+}
+#blazor-error-ui .dismiss {
+  @apply absolute right-3 top-3 cursor-pointer;
+}

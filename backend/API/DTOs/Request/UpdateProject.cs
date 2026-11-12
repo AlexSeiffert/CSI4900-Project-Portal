@@ -15,4 +15,5 @@ public class UpdateProject
     public ProjectStatus Status { get; set; } = ProjectStatus.Available;
     [Required]
     public List<Guid> TopicIds { get; set; } = [];
+    public Guid? SupervisorId { get; set; }
 }

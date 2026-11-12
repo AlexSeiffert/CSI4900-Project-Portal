@@ -6,8 +6,6 @@ using API.Services.Interfaces;
 
 namespace API.Services;
 
-// Repository errors are not caught here: ApiExceptionHandler turns RepositoryException into the right status.
-// Request bodies are validated by [ApiController] before they reach a service.
 public class ProjectService(IProjectRepository repository) : IProjectService
 {
     private readonly IProjectRepository _repository = repository;
@@ -48,7 +46,7 @@ public class ProjectService(IProjectRepository repository) : IProjectService
         var project = new API.Models.Project
         {
             Id = Guid.NewGuid(),
-            SupervisorId = request.SupervisorId,
+            SupervisorId = request.SupervisorId ?? throw new InvalidOperationException("The controller sets SupervisorId before creating a project."),
             Title = request.Title.Trim(),
             Description = request.Description.Trim(),
             ExternalUrl = request.ExternalUrl,
@@ -65,6 +63,10 @@ public class ProjectService(IProjectRepository repository) : IProjectService
         project.Description = request.Description.Trim();
         project.ExternalUrl = request.ExternalUrl;
         project.Status = request.Status;
+        if (request.SupervisorId is { } supervisorId)
+        {
+            project.SupervisorId = supervisorId;
+        }
         return (await _repository.UpdateProject(project, request.TopicIds, cancellationToken)).ToDtoWithRelations();
     }
 

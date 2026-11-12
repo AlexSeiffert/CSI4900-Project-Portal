@@ -22,3 +22,10 @@ TestResults/
 
 # Supabase
 supabase/.temp/
+
+# Frontend (Blazor + Tailwind): generated on build
+node_modules/
+frontend/uoProjects/wwwroot/css/app.css
+frontend/uoProjects/Styles/vendor/
+frontend/uoProjects/wwwroot/brand/
+frontend/uoProjects/wwwroot/appsettings.Development.json

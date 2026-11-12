@@ -79,7 +79,7 @@ To call an endpoint, click it, click **Try it out**, fill in the fields and clic
 | Marcus | `PUT /supervisors/<Marcus's id>` with your profile fields | **200** |
 | Alex | `GET /students`, `GET /students/<Alex's id>` | just yourself |
 | Alex | `GET /inquiries`, `GET /inquiries/<one of Alex's inquiry ids>` | your inquiries only |
-| Alex | `POST /inquiries` (body below) | **201**, status `pending` |
+| Alex | `POST /inquiries` (body below) | **201**, status `sent` |
 | Alex | `PUT /students/<Alex's id>/saved-projects/<any project id>` | **204**, then it shows in `GET .../saved-projects` |
 | Sam | `GET /students`, `GET /inquiries` | everything |
 

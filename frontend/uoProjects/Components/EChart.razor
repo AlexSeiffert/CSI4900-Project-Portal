@@ -1,0 +1,36 @@
+@implements IAsyncDisposable
+@inject IJSRuntime JS
+
+<div @ref="host" class="w-full @Class" style="height: @(Height)px" role="img" aria-label="@Label"></div>
+
+@code {
+    [Parameter, EditorRequired] public string Kind { get; set; } = "";
+    [Parameter, EditorRequired] public object Data { get; set; } = default!;
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+    [Parameter] public int Height { get; set; } = 300;
+    [Parameter] public string? Class { get; set; }
+
+    private ElementReference host;
+    private IJSObjectReference? module;
+    private object? drawn;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (ReferenceEquals(drawn, Data))
+        {
+            return;
+        }
+        drawn = Data;
+        module ??= await JS.InvokeAsync<IJSObjectReference>("import", "./js/charts.js");
+        await module.InvokeVoidAsync(Kind, host, Data);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (module is not null)
+        {
+            await module.InvokeVoidAsync("dispose", host);
+            await module.DisposeAsync();
+        }
+    }
+}

@@ -1,0 +1,31 @@
+@inject AuthSession Auth
+@inject NavigationManager Nav
+
+@if (user is not null)
+{
+    @ChildContent(user)
+}
+
+@code {
+    [Parameter, EditorRequired] public string Role { get; set; } = "";
+    [Parameter, EditorRequired] public RenderFragment<SignedInUser> ChildContent { get; set; } = default!;
+
+    private SignedInUser? user;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var current = await Auth.GetUserAsync();
+        if (current is null)
+        {
+            Nav.NavigateTo("/login", replace: true);
+        }
+        else if (current.Role != Role)
+        {
+            Nav.NavigateTo(AuthSession.HomeFor(current.Role), replace: true);
+        }
+        else
+        {
+            user = current;
+        }
+    }
+}

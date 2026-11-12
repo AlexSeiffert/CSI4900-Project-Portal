@@ -1,0 +1,46 @@
+<DataTable Items="Inquiries" ExportName="@ExportName" SortedBy="Sent" Empty="@Empty">
+    @if (ShowStudent)
+    {
+        <DataColumn Title="Student" SortBy="i => Data.NameOf(i.StudentId)">
+            <a class="font-semibold hover:text-focus hover:underline" href="@($"{BasePath}/students/{context.StudentId}")">@Data.NameOf(context.StudentId)</a>
+        </DataColumn>
+    }
+    @if (ShowSupervisor)
+    {
+        <DataColumn Title="Supervisor" SortBy="i => Data.NameOf(i.SupervisorId)">
+            <a class="hover:text-focus hover:underline" href="@($"{BasePath}/supervisors/{context.SupervisorId}")">@Data.NameOf(context.SupervisorId)</a>
+        </DataColumn>
+    }
+    @if (ShowProject)
+    {
+        <DataColumn Title="Project" SortBy="i => Data.Project(i.ProjectId)?.Title" Export="i => ProjectName(i)" Class="max-w-72 truncate">
+            @if (Data.Project(context.ProjectId) is { } project)
+            {
+                <a class="hover:text-focus hover:underline" href="@($"{BasePath}/projects/{project.Id}")" title="@project.Title">@project.Title</a>
+            }
+            else
+            {
+                <span class="text-text-secondary">General inquiry</span>
+            }
+        </DataColumn>
+    }
+    <DataColumn Title="Status" SortBy="i => i.Status" Export="i => Display.Inquiry(i.Status).Label">
+        <StatusPill Status="@Display.Inquiry(context.Status)" />
+    </DataColumn>
+    <DataColumn Title="Sent" SortBy="i => i.CreatedAt" DescendingFirst>
+        <span class="text-text-secondary">@Display.Ago(context.CreatedAt)</span>
+    </DataColumn>
+</DataTable>
+
+@code {
+    [Parameter, EditorRequired] public IEnumerable<Inquiry> Inquiries { get; set; } = [];
+    [Parameter, EditorRequired] public AdminData Data { get; set; } = default!;
+    [Parameter, EditorRequired] public string BasePath { get; set; } = "";
+    [Parameter] public bool ShowStudent { get; set; } = true;
+    [Parameter] public bool ShowSupervisor { get; set; } = true;
+    [Parameter] public bool ShowProject { get; set; } = true;
+    private string ProjectName(Inquiry i) => Data.Project(i.ProjectId)?.Title ?? "General inquiry";
+
+    [Parameter] public string ExportName { get; set; } = "inquiries";
+    [Parameter] public string Empty { get; set; } = "No inquiries yet.";
+}

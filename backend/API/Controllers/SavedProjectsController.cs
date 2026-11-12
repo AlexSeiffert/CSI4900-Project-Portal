@@ -18,6 +18,13 @@ public class SavedProjectsController(ISavedProjectService service) : ControllerB
         return Ok(projects);
     }
 
+    [HttpGet("/api/v1/saved-projects/counts")]
+    [ProducesResponseType<Dictionary<Guid, int>>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<Dictionary<Guid, int>>> GetSaveCounts(CancellationToken cancellationToken)
+    {
+        return Ok(await _service.GetSaveCounts(cancellationToken));
+    }
+
     [HttpPut("{projectId:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> SaveProject(Guid studentId, Guid projectId, CancellationToken cancellationToken)

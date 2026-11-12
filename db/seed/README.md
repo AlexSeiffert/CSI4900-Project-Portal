@@ -4,6 +4,8 @@
 
 Sets up the database: for each file in `db/migrations/` it checks whether what that migration creates already exists, and applies the file if not, so it's safe to run again. Run `mise x -- node db/seed/database.mjs` (needs `psql`; it uses `DATABASE_URL` if set, otherwise reads the connection string from Terraform).
 
+`lib.mjs` holds what the scripts share: the Supabase Admin API connection and psql.
+
 ## users.mjs
 
 `users.mjs` creates, modifies and removes users on the live Supabase project for seeding admins and for making test users of any role. Only users: an admin can manage everything else through the app and RLS.
