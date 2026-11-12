@@ -1,0 +1,16 @@
+{
+  "name": "uoprojects",
+  "version": "1.0.0",
+  "description": "Tailwind build for the Blazor UI",
+  "scripts": {
+    "css:build": "tailwindcss -i Styles/app.css -o wwwroot/css/app.css --minify",
+    "css:watch": "tailwindcss -i Styles/app.css -o wwwroot/css/app.css --watch"
+  },
+  "type": "commonjs",
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.3.3",
+    "lightningcss": "^1.32.0",
+    "tailwindcss": "^4.3.3"
+  },
+  "private": true
+}

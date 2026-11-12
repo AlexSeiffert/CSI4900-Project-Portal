@@ -15,8 +15,6 @@ const CHECKS = {
   '0010_inquiry_attachments.sql': "select to_regclass('public.inquiry_attachments') is not null",
   '0011_saved_projects.sql': "select to_regclass('public.student_saved_projects') is not null",
   '0012_topic_tags.sql': "select exists (select 1 from public.topics where name = 'Games & Graphics')",
-  '0013_inquiry_status_sent_matched_closed.sql': "select exists (select 1 from pg_enum e join pg_type t on t.oid = e.enumtypid where t.typname = 'inquiry_status' and e.enumlabel = 'sent')",
-  '0014_drop_student_program.sql': "select not exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'student_profiles' and column_name = 'program')",
 };
 
 const run = connectPsql();

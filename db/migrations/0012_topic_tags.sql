@@ -1,3 +1,25 @@
+-- 0012: the fixed list of topic tags
+--
+-- Ten broad tags that between them describe almost any project. What each one covers is shown
+-- in the app (frontend/uoProjects/Components/TopicPalette.cs), along with its colour.
+--
+-- | tag                 | covers                                                                     |
+-- | ------------------- | -------------------------------------------------------------------------- |
+-- | AI/ML               | machine learning, deep learning, NLP, computer vision, LLMs, RL, data mining |
+-- | Software Engineering| software design, testing and verification, DevOps, languages, compilers, tools |
+-- | Web & Mobile        | web apps, mobile apps, full-stack systems, APIs, cross-platform            |
+-- | Security & Privacy  | cybersecurity, cryptography, network security, privacy, blockchain         |
+-- | Data & Databases    | databases, big data, data engineering, analytics, visualization, IR        |
+-- | Systems & Networks  | OS, distributed and cloud, networking, embedded, IoT, HPC                  |
+-- | HCI & Design        | UX, accessibility, usability studies, human-centred design, VR/AR          |
+-- | Games & Graphics    | game development, graphics, simulation, animation, multimedia              |
+-- | Theory & Algorithms | algorithms, complexity, formal methods, computational math, quantum, bioinformatics |
+-- | Other               | education tech, robotics, ethics and society, anything else                |
+--
+-- Topics created before this migration are folded into the matching tag (links are kept and
+-- duplicates dropped); anything without a match goes to Other.
+
+
 do $$
 declare
   tags constant text[] := array[

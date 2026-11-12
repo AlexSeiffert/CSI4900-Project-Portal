@@ -12,7 +12,22 @@
       }
     },
     {
+      "name": "uoProjects CSS",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "npm run css:watch",
+      "cwd": "${workspaceFolder}/frontend/uoProjects"
+    },
+    {
       "name": "uoProjects API",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "dotnet run --project backend/API --launch-profile https-supabase",
+      "cwd": "${workspaceFolder}",
+      "envFile": "${workspaceFolder}/.env"
+    },
+    {
+      "name": "uoProjects API (Debugger)",
       "type": "coreclr",
       "request": "launch",
       "envFile": "${workspaceFolder}/.env",
@@ -22,14 +37,18 @@
       "launchSettingsProfile": "https-supabase",
       "console": "internalConsole",
       "stopAtEntry": false,
-      "env": {
-        "ASPNETCORE_URLS": "https://127.0.0.1:0;http://127.0.0.1:0"
-      },
       "serverReadyAction": {
         "action": "openExternally",
         "pattern": "\\bNow listening on:\\s+(https://\\S+)",
         "uriFormat": "%s/swagger"
       }
+    }
+  ],
+  "compounds": [
+    {
+      "name": "uoProjects (Full Stack)",
+      "configurations": ["uoProjects API", "uoProjects Frontend", "uoProjects CSS"],
+      "stopAll": true
     }
   ]
 }

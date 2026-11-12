@@ -1,7 +1,7 @@
 # Brand guide
 
 
-Everything here is defined in [`web/Styles/app.css`](web/Styles/app.css).
+Everything here is defined in [`uoProjects/Styles/app.css`](uoProjects/Styles/app.css).
 
 ## Colours
 
@@ -32,7 +32,6 @@ The site is **dark mode only**. Surfaces and text use the first group; garnet is
 
 Garnet is too dark to read as text on the dark background, so links and focus use `focus` instead.
 
-The original light-theme colours are still defined for neutral fills (`muted` `#80746c`, `faint` `#908681`, `light` `#f2f2f2`, `hover` `#dfdfdf`, `divider` `#c8c9c7`) but are not used for surfaces or text.
 
 ### Status colours
 
@@ -42,7 +41,7 @@ Only use these to show status.
 | --- | --- | --- | --- |
 | ![](docs/swatches/success.svg) | `success` | `#0ca30c` | Good: valid, accepting, all clear |
 | ![](docs/swatches/success-text.svg) | `success-text` | `#006300` | |
-| ![](docs/swatches/error.svg) | `error` | `#d03b3b` | Needs attention: errors, invalid fields, pending work |
+| ![](docs/swatches/error.svg) | `error` | `#d03b3b` | Needs attention: errors and invalid fields |
 | ![](docs/swatches/error-text.svg) | `error-text` | `#b42318` | |
 | ![](docs/swatches/feedback-error.svg) | `feedback-error` | `#ffaaaa` | Error text and messages on the dark background |
 | ![](docs/swatches/muted.svg) | `muted` | `#80746c` | Neutral: paused, nothing pending |
@@ -54,8 +53,6 @@ Only use these to show how far a student or inquiry has got.
 | | Name | Hex | Means |
 | --- | --- | --- | --- |
 | ![](docs/swatches/stage-1.svg) | `stage-1` | `#4cc9f0` | Sent (no outcome yet) |
-| ![](docs/swatches/stage-2.svg) | `stage-2` | `#4361ee` | Not used now: inquiries go by email, so "viewed" can't be tracked |
-| ![](docs/swatches/stage-3.svg) | `stage-3` | `#7b2cbf` | Not used now: "responded" can't be tracked either |
 | ![](docs/swatches/stage-4.svg) | `stage-4` | `#f72585` | Matched |
 | ![](docs/swatches/muted.svg) | `muted` | `#80746c` | Closed, no match |
 | ![](docs/swatches/chart-neutral.svg) | `chart-neutral` | `#b9b4af` | No inquiries, stopped, archived |
@@ -91,7 +88,7 @@ All ten topic tags are grey, told apart by a [Lucide](https://lucide.dev) icon. 
 
 ## Fonts
 
-**Work Sans** for everything, loaded from Google Fonts in [`web/wwwroot/index.html`](web/wwwroot/index.html).
+**Work Sans** for everything, loaded from Google Fonts in [`uoProjects/wwwroot/index.html`](uoProjects/wwwroot/index.html).
 
 | Text | Size | Weight | Colour |
 | --- | --- | --- | --- |
@@ -113,7 +110,7 @@ Three versions of the uoProjects logo live in [`public/`](public/) (copied to `w
 
 ## MudBlazor
 
-[MudBlazor](https://mudblazor.com) is set up (`AddMudServices`, the providers in `MainLayout`, and the dark theme in [`web/Theming/AppTheme.cs`](web/Theming/AppTheme.cs), which uses the colours above). **Use a MudBlazor component whenever it can do the job**, and give it our classes so it looks the same.
+[MudBlazor](https://mudblazor.com) is set up (`AddMudServices`, the providers in `MainLayout`, and the dark theme in [`uoProjects/Theming/AppTheme.cs`](uoProjects/Theming/AppTheme.cs), which uses the colours above). **Use a MudBlazor component whenever it can do the job**, and give it our classes so it looks the same.
 
 | Component | Built on |
 | --- | --- |
@@ -130,7 +127,7 @@ Three versions of the uoProjects logo live in [`public/`](public/) (copied to `w
 
 Not built on MudBlazor, because it has nothing that matches: the data table (our columns, sorting and export), the charts, the share bar and its hover label, the ring meter, and the underline text fields in forms.
 
-MudBlazor's stylesheet is bundled into `app.css` below Tailwind (`@layer mud`) by `web/Styles/prepare-mud.mjs`, which drops its helper classes (`px-2`, `d-flex` and so on) because they clash with Tailwind's. Don't link `MudBlazor.min.css` separately: it would override Tailwind and change how everything looks.
+MudBlazor's stylesheet is bundled into `app.css` below Tailwind (`@layer mud`) by `Styles/prepare-mud.mjs`, which drops its helper classes (`px-2`, `d-flex` and so on) because they clash with Tailwind's. Don't link `MudBlazor.min.css` separately: it would override Tailwind and change how everything looks.
 
 ## Layout
 
@@ -171,7 +168,7 @@ Add `disabled` to grey a button out. For an arrow that slides on hover, add `gro
 | `field-error` | Error under a field |
 | `alert` | Error box for the whole form |
 
-## Layout
+## Layout classes
 
 | Class | What it is |
 | --- | --- |
