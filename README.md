@@ -37,8 +37,7 @@ tools to manage their projects and availability.
 
 ## Project Status
 
-The backend API and database schema are under development. The frontend has a
-.NET 10 Blazor Web App scaffold with MudBlazor and Interactive Server rendering.
+The .NET 10 Blazor WebAssembly frontend uses MudBlazor and calls the backend API directly. It supports Supabase sign-in and an admin dashboard for insights, projects, and profiles.
 
 ## Repository Structure
 
