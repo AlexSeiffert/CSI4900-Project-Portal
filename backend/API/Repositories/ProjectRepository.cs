@@ -1,3 +1,4 @@
+using API.DTOs.Request;
 using API.Exceptions;
 using API.Models;
 using API.Models.Data;
@@ -10,6 +11,102 @@ public class ProjectRepository(ApplicationDbContext db) : IProjectRepository
 {
     private readonly ApplicationDbContext _db = db;
 
+    public async Task<API.DTOs.ProjectPage> GetPage(ProjectPageQuery request, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            if (!_db.Database.IsRelational())
+            {
+                return await ReadPage(request, cancellationToken);
+            }
+
+            await _db.Database.OpenConnectionAsync(cancellationToken);
+            try
+            {
+                return await ReadPage(request, cancellationToken);
+            }
+            finally
+            {
+                await _db.Database.CloseConnectionAsync();
+            }
+        }
+        catch (Exception exception) when (exception is not RepositoryException and not OperationCanceledException)
+        {
+            throw new RepositoryException(nameof(GetPage), exception);
+        }
+    }
+
+    private async Task<API.DTOs.ProjectPage> ReadPage(ProjectPageQuery request, CancellationToken cancellationToken)
+    {
+        var projects = _db.Projects.AsNoTracking();
+        var statusCounts = await projects.GroupBy(project => project.Status)
+            .Select(group => new { Status = group.Key, Count = group.Count() })
+            .ToDictionaryAsync(group => group.Status, group => group.Count, cancellationToken);
+
+        if (request.Status is { } status)
+        {
+            projects = projects.Where(project => project.Status == status);
+        }
+        if (request.TopicId is { } topicId)
+        {
+            projects = projects.Where(project => project.Topics.Any(topic => topic.Id == topicId));
+        }
+        var search = request.Search?.Trim().ToLowerInvariant();
+        if (!string.IsNullOrEmpty(search))
+        {
+            projects = projects.Where(project => project.Title.ToLower().Contains(search) ||
+                project.Supervisor.DisplayName.ToLower().Contains(search));
+        }
+
+        var total = request.TopicId.HasValue || !string.IsNullOrEmpty(search)
+            ? await projects.CountAsync(cancellationToken)
+            : request.Status is { } selectedStatus
+                ? statusCounts.GetValueOrDefault(selectedStatus)
+                : statusCounts.Values.Sum();
+        var saves = _db.Set<Dictionary<string, object>>("student_saved_projects");
+        var rows = projects.Select(project => new
+        {
+            Project = project,
+            Supervisor = project.Supervisor.DisplayName,
+            Inquiries = project.Inquiries.Count,
+            Saves = saves.Count(saved => EF.Property<Guid>(saved, "project_id") == project.Id)
+        });
+
+        var ordered = request.Sort switch
+        {
+            ProjectSort.Supervisor => Order(rows, row => row.Supervisor.ToLower(), request.Descending),
+            ProjectSort.Status => Order(rows, row => row.Project.Status, request.Descending),
+            ProjectSort.Inquiries => Order(rows, row => row.Inquiries, request.Descending),
+            ProjectSort.Saves => Order(rows, row => row.Saves, request.Descending),
+            ProjectSort.Updated => Order(rows, row => row.Project.UpdatedAt, request.Descending),
+            _ => Order(rows, row => row.Project.Title.ToLower(), request.Descending)
+        };
+
+        var items = await ordered.ThenBy(row => row.Project.Id)
+            .Skip((request.Page - 1) * request.PageSize).Take(request.PageSize)
+            .Select(row => new API.DTOs.ProjectPageRow(new API.DTOs.Project
+            {
+                Id = row.Project.Id,
+                SupervisorId = row.Project.SupervisorId,
+                Title = row.Project.Title,
+                Description = row.Project.Description,
+                ExternalUrl = row.Project.ExternalUrl,
+                Status = row.Project.Status,
+                CreatedAt = row.Project.CreatedAt,
+                UpdatedAt = row.Project.UpdatedAt,
+                Topics = row.Project.Topics.Select(topic => new API.DTOs.Topic { Id = topic.Id, Name = topic.Name }).ToList()
+            }, row.Supervisor, row.Inquiries, row.Saves))
+            .ToListAsync(cancellationToken);
+
+        return new API.DTOs.ProjectPage(items, total, statusCounts);
+    }
+
+    private static IOrderedQueryable<T> Order<T, TKey>(IQueryable<T> query,
+        System.Linq.Expressions.Expression<Func<T, TKey>> key, bool descending)
+    {
+        return descending ? query.OrderByDescending(key) : query.OrderBy(key);
+    }
+
     public async Task<List<Project>> GetProjects(CancellationToken cancellationToken = default)
     {
         try
@@ -19,6 +116,18 @@ public class ProjectRepository(ApplicationDbContext db) : IProjectRepository
         catch (Exception exception) when (exception is not RepositoryException)
         {
             throw new RepositoryException(nameof(GetProjects), exception);
+        }
+    }
+
+    public async Task<List<Project>> GetProjectsWithTopics(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            return await ProjectQuery().Include(project => project.Topics).ToListAsync(cancellationToken);
+        }
+        catch (Exception exception) when (exception is not RepositoryException and not OperationCanceledException)
+        {
+            throw new RepositoryException(nameof(GetProjectsWithTopics), exception);
         }
     }
 
@@ -93,6 +202,7 @@ public class ProjectRepository(ApplicationDbContext db) : IProjectRepository
             await _db.ReplaceTopics(project.Topics, topicIds, nameof(UpdateProject), cancellationToken);
             // Returns Forbidden if the database blocks this user from editing the project.
             await _db.SaveChangesOrForbiddenAsync(nameof(UpdateProject), cancellationToken);
+            await _db.Entry(project).Reference(x => x.Supervisor).LoadAsync(cancellationToken);
             return project;
         }
         catch (Exception exception) when (exception is not RepositoryException)

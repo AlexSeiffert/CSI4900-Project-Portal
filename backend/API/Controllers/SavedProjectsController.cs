@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using API.DTOs;
 using API.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -16,6 +17,14 @@ public class SavedProjectsController(ISavedProjectService service) : ControllerB
     {
         var projects = await _service.GetSavedProjects(studentId, cancellationToken);
         return Ok(projects);
+    }
+
+    [Authorize(Policy = "Admin")]
+    [HttpGet("/api/v1/saved-projects/counts")]
+    [ProducesResponseType<Dictionary<Guid, int>>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<Dictionary<Guid, int>>> GetSaveCounts(CancellationToken cancellationToken)
+    {
+        return Ok(await _service.GetSaveCounts(cancellationToken));
     }
 
     [HttpPut("{projectId:guid}")]

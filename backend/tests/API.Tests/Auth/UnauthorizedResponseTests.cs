@@ -32,6 +32,37 @@ public class UnauthorizedResponseTests : IClassFixture<WebApplicationFactory<Pro
         await AssertProblem(await _client.SendAsync(request));
     }
 
+    [Theory]
+    [InlineData("student", HttpStatusCode.Forbidden)]
+    [InlineData("admin", HttpStatusCode.OK)]
+    public async Task SaveCounts_RequiresAdminRole(string role, HttpStatusCode expected)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get, "/api/v1/saved-projects/counts");
+        request.Headers.Add("X-Dev-User-Id", Guid.NewGuid().ToString());
+        request.Headers.Add("X-Dev-User-Role", role);
+
+        using var response = await _client.SendAsync(request);
+
+        Assert.Equal(expected, response.StatusCode);
+    }
+
+    [Theory]
+    [InlineData("student", "", HttpStatusCode.Forbidden)]
+    [InlineData("admin", "?page=0", HttpStatusCode.BadRequest)]
+    [InlineData("admin", "?pageSize=101", HttpStatusCode.BadRequest)]
+    [InlineData("admin", "?sort=999", HttpStatusCode.BadRequest)]
+    [InlineData("admin", "", HttpStatusCode.OK)]
+    public async Task ProjectPage_ChecksRoleAndQuery(string role, string query, HttpStatusCode expected)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get, "/api/v1/projects/page" + query);
+        request.Headers.Add("X-Dev-User-Id", Guid.NewGuid().ToString());
+        request.Headers.Add("X-Dev-User-Role", role);
+
+        using var response = await _client.SendAsync(request);
+
+        Assert.Equal(expected, response.StatusCode);
+    }
+
     private static async Task AssertProblem(HttpResponseMessage response)
     {
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);

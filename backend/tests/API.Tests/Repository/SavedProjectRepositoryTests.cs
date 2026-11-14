@@ -10,6 +10,20 @@ namespace API.Tests.Repository;
 public class SavedProjectRepositoryTests
 {
     [Fact]
+    public async Task GetSaveCounts_GroupsSavesByProject()
+    {
+        await using var context = await RepositoryTestContext.CreateAsync();
+        var repository = new SavedProjectRepository(context.Db);
+        await repository.SaveProject(context.Student.UserId, context.Project.Id);
+        await repository.SaveProject(context.OtherStudent.UserId, context.Project.Id);
+
+        var count = Assert.Single(await repository.GetSaveCounts());
+
+        Assert.Equal(context.Project.Id, count.Key);
+        Assert.Equal(2, count.Value);
+    }
+
+    [Fact]
     public async Task GetSavedProjects_IsolatesStudentsAndOrdersTitles()
     {
         await using var context = await RepositoryTestContext.CreateAsync();

@@ -11,7 +11,25 @@ public class ProjectServiceTests
 {
     private readonly Mock<IProjectRepository> _repository = new();
 
-    private ProjectService CreateService() => new(_repository.Object);
+    private ProjectService CreateService()
+    {
+        return new(_repository.Object);
+    }
+
+    [Fact]
+    public async Task GetProjectsWithTopics_IncludesOnlyTopicRelations()
+    {
+        var topic = new Topic { Id = Guid.NewGuid(), Name = "Databases" };
+        _repository.Setup(repository => repository.GetProjectsWithTopics(CancellationToken.None))
+            .ReturnsAsync(new List<Project> { new() { Topics = [topic] }, new() });
+
+        var projects = (await CreateService().GetProjectsWithTopics()).ToList();
+
+        Assert.Equal(topic.Id, Assert.Single(projects[0].Topics!).Id);
+        Assert.Empty(projects[1].Topics!);
+        Assert.Null(projects[0].Supervisor);
+        Assert.Null(projects[0].Inquiries);
+    }
 
     [Fact]
     public async Task GetProjects_ReturnsMatchingProjectDtos()

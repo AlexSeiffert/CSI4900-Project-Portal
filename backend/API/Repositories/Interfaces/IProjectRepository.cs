@@ -4,7 +4,9 @@ namespace API.Repositories.Interfaces;
 
 public interface IProjectRepository
 {
+    Task<API.DTOs.ProjectPage> GetPage(API.DTOs.Request.ProjectPageQuery query, CancellationToken cancellationToken = default);
     Task<List<Project>> GetProjects(CancellationToken cancellationToken = default);
+    Task<List<Project>> GetProjectsWithTopics(CancellationToken cancellationToken = default);
     Task<List<Project>> GetProjectsBySupervisorId(Guid supervisorId, CancellationToken cancellationToken = default);
     Task<List<Project>> GetProjectsByTopicId(Guid topicId, CancellationToken cancellationToken = default);
     Task<List<Project>> GetProjectsByStatus(API.Models.ProjectStatus status, CancellationToken cancellationToken = default);

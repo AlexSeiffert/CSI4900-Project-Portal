@@ -9,6 +9,50 @@ namespace API.Tests.Repository;
 
 public class ProjectRepositoryTests
 {
+    [Theory]
+    [InlineData(null, 2)]
+    [InlineData(ProjectStatus.Available, 1)]
+    [InlineData(ProjectStatus.Unavailable, 0)]
+    public async Task GetPage_UsesOverallCountsForUnfilteredAndStatusOnlyTotals(ProjectStatus? status, int expected)
+    {
+        await using var context = await RepositoryTestContext.CreateAsync();
+        var repository = new ProjectRepository(context.Db);
+
+        var page = await repository.GetPage(new() { PageSize = 1, Status = status, Search = " " });
+
+        Assert.Equal(expected, page.Total);
+        Assert.Equal(Math.Min(expected, 1), page.Items.Count);
+        Assert.Equal(2, page.StatusCounts.Values.Sum());
+    }
+
+    [Fact]
+    public async Task GetPage_FiltersAndSortsBeforePaging()
+    {
+        await using var context = await RepositoryTestContext.CreateAsync();
+        await new SavedProjectRepository(context.Db).SaveProject(context.Student.UserId, context.Project.Id);
+        var repository = new ProjectRepository(context.Db);
+        var query = new API.DTOs.Request.ProjectPageQuery { PageSize = 1, Sort = API.DTOs.Request.ProjectSort.Saves, Descending = true };
+
+        var first = await repository.GetPage(query);
+        query.Page = 2;
+        var second = await repository.GetPage(query);
+        query.Page = 1;
+        query.Search = "ALEX";
+        query.TopicId = context.OtherTopic.Id;
+        query.Status = API.Models.ProjectStatus.Archived;
+        var filtered = await repository.GetPage(query);
+
+        var row = Assert.Single(first.Items);
+        Assert.Equal(context.Project.Id, row.Project.Id);
+        Assert.Equal(context.Topic.Id, Assert.Single(row.Project.Topics!).Id);
+        Assert.Equal(1, row.InquiryCount);
+        Assert.Equal(1, row.SaveCount);
+        Assert.Equal(context.OtherProject.Id, Assert.Single(second.Items).Project.Id);
+        Assert.Equal(context.OtherProject.Id, Assert.Single(filtered.Items).Project.Id);
+        Assert.Equal(1, filtered.Total);
+        Assert.Equal(2, filtered.StatusCounts.Values.Sum());
+    }
+
     [Fact]
     public async Task GetProjects_ReturnsNewestFirstWithoutNavigationsOrTracking()
     {
