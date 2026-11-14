@@ -1,0 +1,81 @@
+@namespace uoProjects.Admin
+@using System.Web
+
+@if (!IsNew && project is null)
+{
+    <BackLink Href="@($"{BasePath}/projects")" Label="All projects" />
+    @if (!loaded)
+    {
+        <LoadingState Layout="LoadingState.SkeletonLayout.Detail" Message="Loading details…" />
+    }
+    else if (Data.Project(Id) is not null)
+    {
+        <ErrorState Message="Could not load the project." OnRetry="LoadAsync" />
+    }
+    else
+    {
+        <p role="status">This project no longer exists.</p>
+    }
+}
+else
+{
+    <RecordHeader Title="@(IsNew ? "New project" : project!.Title)" BackHref="@($"{BasePath}/projects")" BackLabel="All projects">
+        @if (!IsNew)
+        {
+            <StatusPill Status="@Display.Project(project!.Status)" />
+            <a class="hover:text-focus hover:underline" href="@($"{BasePath}/supervisors/{project.SupervisorId}")">@Data.NameOf(project.SupervisorId)</a>
+            <span class="inline-flex items-center gap-1.5"><Icon Name="send" />@Data.InquiriesFor(project.Id).Count() inquiries</span>
+            <span class="inline-flex items-center gap-1.5"><Icon Name="bookmark" />@Data.SavesOf(project.Id) saves</span>
+            <span>Updated @Display.Ago(project.UpdatedAt).ToLowerInvariant()</span>
+        }
+    </RecordHeader>
+
+    <div class="mt-8 grid grid-cols-[minmax(0,1fr)] items-start gap-4 @(IsNew ? "w-full" : "lg:grid-cols-[3fr_2fr]")">
+        <form class="card min-w-0 space-y-5" @onsubmit="SaveAsync" @onsubmit:preventDefault>
+            <FormField Label="Supervisor" Group>
+                <SelectBox Label="Supervisor" HideLabel Placeholder="Choose a supervisor" @bind-Value="form.SupervisorId" Disabled="@(busy || !Actions.CanSave)"
+                           Options="Data.Supervisors.Select(s => (s.UserId.ToString(), s.DisplayName))" />
+            </FormField>
+            <FormField Label="Title">
+                <input class="field" @bind="form.Title" @bind:event="oninput" required />
+            </FormField>
+            <FormField Label="Description">
+                <textarea class="field min-h-36 resize-y" @bind="form.Description" @bind:event="oninput" required></textarea>
+            </FormField>
+            <FormField Label="Link">
+                <input class="field" type="url" @bind="form.Url" @bind:event="oninput" placeholder="https://" />
+            </FormField>
+            <FormField Label="Status" Group>
+                <SelectBox Label="Status" HideLabel Value="@form.Status.ToString()" ValueChanged="SetStatus"
+                           Disabled="@(busy || !Actions.CanSave)" Options="ProjectsTab.StatusOptions" />
+            </FormField>
+            <FormField Label="Topics" Group>
+                <TopicPicker Topics="Data.Topics" Selected="form.Topics" Disabled="!Actions.CanSave" OnChange="() => saved = false" />
+            </FormField>
+            <SaveBar Label="@(IsNew ? "Create project" : "Save changes")" Busy="busy" Saved="saved" Error="@error">
+                @if (!IsNew && Actions.CanSave)
+                {
+                    <span class="ml-auto flex flex-wrap items-center gap-2">
+                        @if (confirmingDelete)
+                        {
+                            <span class="text-sm text-text-secondary">Delete for good? Its inquiries stay, unlinked.</span>
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" DropShadow="false" Ripple="false" Class="btn btn-sm bg-error hover:bg-error-text" OnClick="DeleteAsync">Delete</MudButton>
+                            <MudButton Variant="Variant.Outlined" DropShadow="false" Ripple="false" Class="btn btn-secondary btn-sm" OnClick="@(() => { confirmingDelete = false; })">Cancel</MudButton>
+                        }
+                        else
+                        {
+                            <MudButton Variant="Variant.Outlined" DropShadow="false" Ripple="false" Class="btn btn-secondary btn-sm" OnClick="@(() => { confirmingDelete = true; })">Delete project</MudButton>
+                        }
+                    </span>
+                }
+            </SaveBar>
+        </form>
+
+        @if (!IsNew)
+        {
+            <Panel Title="Inquiries about this project" Flush>
+                <InquiryTable Inquiries="Data.InquiriesFor(project!.Id)" Data="Data" BasePath="@BasePath" ShowSupervisor="false" ShowProject="false" />
+            </Panel>
+        }
+    </div>
+}

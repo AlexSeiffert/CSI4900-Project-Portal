@@ -1,0 +1,22 @@
+@namespace uoProjects.Admin
+@using System.Web
+
+<Toolbar>
+    <Start><FilterChips Label="Filter by progress" Options="filters" @bind-Selected="filter" /></Start>
+    <End><SearchBox @bind-Query="query" Placeholder="Search students" /></End>
+</Toolbar>
+
+<Panel Flush Class="mt-4">
+    <DataTable Items="shown" PageSize="25" PageResetKey="@((query, filter))" AllItems="Data.Students" ExportName="students" SortedBy="Name" Empty="No students match.">
+        <DataColumn Title="Name" SortBy="s => s.DisplayName">
+            <a class="font-semibold hover:text-focus hover:underline" href="@($"{BasePath}/students/{context.UserId}")">@context.DisplayName</a>
+        </DataColumn>
+        <DataColumn Title="Progress" SortBy="s => (int?)Data.FurthestStage(s.UserId) ?? -1" Export="s => Display.Stage(Data.FurthestStage(s.UserId)).Label" DescendingFirst>
+            <StatusPill Status="@Display.Stage(Data.FurthestStage(context.UserId))" />
+        </DataColumn>
+        <DataColumn Title="Inquiries" SortBy="s => Data.InquiriesFrom(s.UserId).Count()" DescendingFirst>@Data.InquiriesFrom(context.UserId).Count()</DataColumn>
+        <DataColumn Title="Last activity" SortBy="s => Data.LastActivity(s.UserId)" DescendingFirst>
+            <span class="text-text-secondary">@(Data.LastActivity(context.UserId) is { } at ? Display.Ago(at) : "None")</span>
+        </DataColumn>
+    </DataTable>
+</Panel>

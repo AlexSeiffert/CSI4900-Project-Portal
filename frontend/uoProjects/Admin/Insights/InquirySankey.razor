@@ -1,0 +1,12 @@
+@namespace uoProjects.Admin
+@if (Total == 0)
+{
+    <p class="text-text-secondary">No inquiries yet.</p>
+}
+else
+{
+    <div class="-mx-1 overflow-x-auto px-1">
+        <EChart Kind="sankey" Data="data" Height="320" Class="min-w-[620px]"
+                Label="@($"Of {Total} inquiries, {Matched} matched, {Closed} closed without a match and {Open} are still open.")" />
+    </div>
+}

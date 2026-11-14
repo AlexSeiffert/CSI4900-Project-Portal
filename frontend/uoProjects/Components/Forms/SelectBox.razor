@@ -1,0 +1,46 @@
+@namespace uoProjects.Components
+<span class="app-select-wrap">
+    <span class="app-select-sizer" aria-hidden="true">
+        @if (!HideLabel)
+        {
+            <span>@Label</span>
+        }
+        <span class="app-select-sizer-options">
+            @foreach (var option in Options)
+            {
+                <span>@option.Label</span>
+            }
+        </span>
+    </span>
+    <MudSelect T="string" Value="@Value" ValueChanged="ValueChanged" Disabled="Disabled" Placeholder="@Placeholder" Variant="Variant.Text" Underline="false" Margin="Margin.None"
+               Adornment="Adornment.End" Style="@(HideLabel ? "--select-label: none" : $"--select-label: '{Label}'")" OpenIcon="@LucideIcons.Svg("chevron-down")" CloseIcon="@LucideIcons.Svg("chevron-down")"
+               AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft" Dense="true" @ref="select" OpenChanged="OpenChanged" Class="app-select" aria-label="@Label">
+        @foreach (var option in Options)
+        {
+            <MudSelectItem T="string" Value="@option.Value">@option.Label</MudSelectItem>
+        }
+    </MudSelect>
+</span>
+
+@code {
+    private MudSelect<string> select = default!;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && OpenOnRender)
+        {
+            await select.FocusAsync();
+            await select.OpenMenu();
+        }
+    }
+
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+    [Parameter] public string? Placeholder { get; set; }
+    [Parameter] public bool HideLabel { get; set; }
+    [Parameter] public bool OpenOnRender { get; set; }
+    [Parameter] public EventCallback<bool> OpenChanged { get; set; }
+    [Parameter] public bool Disabled { get; set; }
+    [Parameter] public string Value { get; set; } = "";
+    [Parameter] public EventCallback<string> ValueChanged { get; set; }
+    [Parameter, EditorRequired] public IEnumerable<(string Value, string Label)> Options { get; set; } = [];
+}

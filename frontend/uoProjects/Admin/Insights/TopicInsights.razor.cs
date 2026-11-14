@@ -1,0 +1,52 @@
+using Microsoft.AspNetCore.Components;
+using uoProjects.Admin;
+using uoProjects.Models;
+
+namespace uoProjects.Admin.Insights;
+
+public partial class TopicInsights
+{
+    [Parameter, EditorRequired] public AdminData Data { get; set; } = default!;
+
+    private object demand = new();
+    private object outcomes = new();
+
+    protected override void OnParametersSet()
+    {
+        var rows = Data.Topics.Select(topic =>
+        {
+            var projects = Data.Projects.Where(p => Data.TopicsOf(p.Id).Any(t => t.Id == topic.Id)).ToList();
+            var inquiries = projects.SelectMany(p => Data.InquiriesFor(p.Id)).ToList();
+            return (topic.Name, inquiries);
+        }).ToList();
+
+        var ranked = rows.OrderByDescending(r => r.inquiries.Count).ToList();
+        var most = ranked.Max(r => r.inquiries.Count);
+        demand = new
+        {
+            categories = ranked.Select(r => r.Name),
+            horizontal = true,
+            series = new[]
+            {
+                new { name = "Inquiries", color = "mono-4", data = ranked.Select(r => (object)new { value = r.inquiries.Count, color = InsightMath.Shade(r.inquiries.Count, most) }) },
+            },
+        };
+
+        (string Name, Func<Inquiry, bool> Has, string Color)[] ends =
+        [
+            ("Matched", i => i.Status == InquiryStatus.Matched, "stage-4"),
+            ("Closed, no match", i => i.Status == InquiryStatus.Closed, "muted"),
+            ("Still open", AdminData.IsOpen, "stage-1"),
+        ];
+        var used = rows.Where(r => r.inquiries.Count > 0).ToList();
+        outcomes = new
+        {
+            labelRoom = 110,
+            leftLabels = true,
+            nodes = used.Select(r => (object)new { name = r.Name, value = r.inquiries.Count, depth = 0, color = "chart-neutral" })
+                .Concat(ends.Select(e => new { name = e.Name, value = used.Sum(r => r.inquiries.Count(e.Has)), depth = 1, color = e.Color })),
+            links = used.SelectMany(r => ends.Select(e => new { source = r.Name, target = e.Name, value = r.inquiries.Count(e.Has), color = "target" }))
+                .Where(l => l.value > 0),
+        };
+    }
+}

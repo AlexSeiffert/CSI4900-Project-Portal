@@ -1,0 +1,10 @@
+@namespace uoProjects.Components
+<MudTextField T="string" Value="@Query" ValueChanged="QueryChanged" Immediate="true" Variant="Variant.Text" Underline="false"
+              Margin="Margin.None" InputType="InputType.Search" Placeholder="@Placeholder" Adornment="Adornment.Start"
+              AdornmentIcon="@LucideIcons.Svg("search")" Class="app-search w-full sm:w-64" aria-label="@Placeholder" />
+
+@code {
+    [Parameter] public string Query { get; set; } = "";
+    [Parameter] public EventCallback<string> QueryChanged { get; set; }
+    [Parameter] public string Placeholder { get; set; } = "Search";
+}

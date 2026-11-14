@@ -1,0 +1,26 @@
+@namespace uoProjects.Components
+<MudPaper Elevation="0" Class="@($"card {(Flush ? "px-0 py-0 sm:px-0 sm:py-0" : "")} {Class}")" role="region" aria-label="@Title">
+    @if (Title is not null)
+    {
+        <header class="flex flex-wrap items-start justify-between gap-x-4 gap-y-2 @(Flush ? "px-5 pb-2 pt-5 sm:px-6 sm:pt-6" : "mb-4")">
+            <div>
+                <h2 class="text-lg font-semibold">@Title</h2>
+                @if (Description is not null)
+                {
+                    <p class="text-sm text-text-secondary">@Description</p>
+                }
+            </div>
+            @Actions
+        </header>
+    }
+    @ChildContent
+</MudPaper>
+
+@code {
+    [Parameter] public string? Title { get; set; }
+    [Parameter] public string? Description { get; set; }
+    [Parameter] public RenderFragment? Actions { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public bool Flush { get; set; }
+    [Parameter] public string? Class { get; set; }
+}

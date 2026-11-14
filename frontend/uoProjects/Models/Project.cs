@@ -1,9 +1,6 @@
 namespace uoProjects.Models;
 
-public class Project
-{
-    public Guid Id { get; set; }
-    public string Title { get; set; } = string.Empty;
-    public string Description { get; set; } = string.Empty;
-    public string Status { get; set; } = string.Empty;
-}
+public sealed record Project(
+    Guid Id = default, Guid SupervisorId = default, string Title = "", string Description = "",
+    string? ExternalUrl = null, ProjectStatus Status = ProjectStatus.Available,
+    DateTime CreatedAt = default, DateTime UpdatedAt = default, List<Topic>? Topics = null);

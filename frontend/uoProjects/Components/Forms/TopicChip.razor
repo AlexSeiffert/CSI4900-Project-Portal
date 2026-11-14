@@ -1,0 +1,9 @@
+@namespace uoProjects.Components
+<MudChip T="string" Class="topic-chip" Variant="Variant.Filled" Size="Size.Small" title="@TopicPalette.Describe(Name)">
+    <Icon Name="@TopicPalette.IconFor(Name)" Class="size-3.5 text-text-secondary" StrokeWidth="2.25" />
+    @Name
+</MudChip>
+
+@code {
+    [Parameter, EditorRequired] public string Name { get; set; } = "";
+}

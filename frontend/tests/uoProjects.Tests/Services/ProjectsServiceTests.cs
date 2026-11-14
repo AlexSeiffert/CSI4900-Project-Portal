@@ -12,9 +12,18 @@ public class ProjectsServiceTests : ServiceTestBase
     public ProjectsServiceTests() => service = new ProjectsService(Http, Notifications);
 
     [Fact]
+    public async Task DeleteAsync_WhenApiReturnsNoContent_Succeeds()
+    {
+        RespondWith(HttpStatusCode.NoContent);
+
+        Assert.True(await service.DeleteAsync(Guid.NewGuid()));
+        Snackbar.VerifyNoOtherCalls();
+    }
+
+    [Fact]
     public async Task GetProjectsAsync_WhenFetchWorks_ReturnsProjects()
     {
-        RespondWith(new[] { new Project { Title = "Test project" } });
+        RespondWith(new[] { new { title = "Test project", status = "available" } });
 
         var projects = await service.GetProjectsAsync();
 

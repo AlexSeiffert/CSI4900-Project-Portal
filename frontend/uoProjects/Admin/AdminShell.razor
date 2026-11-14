@@ -1,0 +1,77 @@
+<div class="grid grid-cols-[64px_minmax(0,1fr)] min-[700px]:grid-cols-[232px_minmax(0,1fr)]">
+<aside class="sticky top-0 flex h-dvh flex-col overflow-y-auto border-r border-border bg-dark px-2 py-4 min-[700px]:px-6 min-[700px]:py-8">
+    <a href="@BasePath" class="mx-auto mb-8 block w-12 shrink-0 min-[700px]:w-40">
+        <picture>
+            <source media="(max-width: 699px)" srcset="brand/uoProjectsLogo-minimal.svg" />
+            <img src="brand/uoProjectsLogo.svg" alt="uoProjects" class="h-auto w-full" />
+        </picture>
+    </a>
+    <nav aria-label="Admin sections" class="flex flex-col gap-2">
+        @foreach (var (key, label) in Tabs)
+        {
+            var active = key == Current;
+            <a href="@HrefFor(key)" aria-current="@(active ? "page" : null)" title="@label" class="side-link">
+                <Icon Name="@IconFor(key)" Class="size-5" />
+                <span class="sr-only min-[700px]:not-sr-only">@label</span>
+            </a>
+        }
+    </nav>
+    <div class="mt-auto flex flex-col gap-2 pt-6">
+        <p class="hidden break-words px-2 text-[11px] leading-snug text-text-faint min-[700px]:block" title="@UserName">@UserName</p>
+        <MudButton Variant="Variant.Outlined" DropShadow="false" Ripple="false" title="Sign out" OnClick="@OnSignOut"
+                           Class="btn btn-secondary btn-sm w-full max-[699px]:px-0">
+            <Icon Name="log-out" />
+            <span class="sr-only min-[700px]:not-sr-only">Sign out</span>
+        </MudButton>
+    </div>
+</aside>
+
+<div class="flex min-w-0 flex-col">
+<CascadingValue Value="exports" IsFixed="true">
+<div class="relative mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 sm:py-12">
+    <div class="absolute right-4 top-[2.125rem] z-10 sm:right-6 sm:top-[3.375rem]"><ExportMenu Host="exports" /></div>
+
+    @if (ItemId is null)
+    {
+        <h1 class="mb-8 text-4xl font-bold leading-[1.1] tracking-tighter sm:mb-10 sm:text-5xl">@TitleOf(Current)</h1>
+    }
+
+    @if (Current == "projects" && ItemId is null)
+    {
+        <ProjectsTab Data="@(Actions.CanSave ? null : Data)" BasePath="@BasePath" OnChanged="OnProjectsChanged" />
+    }
+    else if (Error is not null)
+    {
+        <ErrorState Message="@Error" OnRetry="OnRetry" />
+    }
+    else if (Data is null)
+    {
+        <LoadingState Layout="@(ItemId is not null ? LoadingState.SkeletonLayout.Detail
+            : Current == "insights" ? LoadingState.SkeletonLayout.Dashboard : LoadingState.SkeletonLayout.Table)" />
+    }
+    else
+    {
+        <CascadingValue Value="Actions" IsFixed="true">
+            @if (ItemId is not null && RecordId is null && !(Current == "projects" && ItemId == "new"))
+            {
+                <p role="status">This record could not be found.</p>
+            }
+            else
+            {
+                @switch (Current)
+                {
+                    case "students" when RecordId is { } id: <StudentDetail @key="id" Data="Data" BasePath="@BasePath" Id="id" /> break;
+                    case "students": <StudentsTab Data="Data" BasePath="@BasePath" /> break;
+                    case "supervisors" when RecordId is { } id: <SupervisorDetail @key="id" Data="Data" BasePath="@BasePath" Id="id" /> break;
+                    case "supervisors": <SupervisorsTab Data="Data" BasePath="@BasePath" /> break;
+                    case "projects" when ItemId is not null: <ProjectDetail @key="ItemId" Data="Data" BasePath="@BasePath" Id="RecordId" /> break;
+                    default: <InsightsTab Data="Data" BasePath="@BasePath" /> break;
+                }
+            }
+        </CascadingValue>
+    }
+</div>
+</CascadingValue>
+<SiteFooter />
+</div>
+</div>

@@ -1,0 +1,9 @@
+<div class="grid gap-4 lg:grid-cols-2">
+    <Panel Title="Inquiries per supervisor" Description="@($"The {Top} supervisors with the most inquiries, split by status.")">
+        <EChart Kind="bars" Data="load" Height="ChartHeight" Label="Inquiries per supervisor, split by status." />
+    </Panel>
+
+    <Panel Title="Match rate across supervisors" Description="@rateNote">
+        <EChart Kind="bars" Data="rates" Height="ChartHeight" Label="Number of supervisors in each match-rate range." />
+    </Panel>
+</div>

@@ -1,0 +1,8 @@
+<Panel Title="Where inquiries end up" Description="Every inquiry sent, and how many matched, closed without a match, or are still open.">
+    <InquirySankey Total="@Data.Inquiries.Count" Matched="@Data.Inquiries.Count(i => i.Status == InquiryStatus.Matched)"
+                   Closed="@Data.Inquiries.Count(i => i.Status == InquiryStatus.Closed)" Open="@Data.Inquiries.Count(AdminData.IsOpen)" />
+</Panel>
+
+<Panel Title="Inquiries sent per week" Description="@($"The last {Weeks} weeks. Colours show each inquiry's status today.")" Class="mt-4">
+    <EChart Kind="bars" Data="weekly" Height="280" Label="Inquiries sent per week, split by current status." />
+</Panel>

@@ -1,0 +1,77 @@
+@namespace uoProjects.Admin
+@if (supervisor is null)
+{
+    <BackLink Href="@($"{BasePath}/supervisors")" Label="All supervisors" />
+    @if (!loaded)
+    {
+        <LoadingState Layout="LoadingState.SkeletonLayout.Detail" Message="Loading details…" />
+    }
+    else if (Data.Supervisor(Id) is not null)
+    {
+        <ErrorState Message="Could not load the supervisor." OnRetry="LoadAsync" />
+    }
+    else
+    {
+        <p role="status">This supervisor no longer exists.</p>
+    }
+}
+else
+{
+    var inquiries = Data.InquiriesTo(supervisor.UserId).ToList();
+    <RecordHeader Title="@supervisor.DisplayName" BackHref="@($"{BasePath}/supervisors")" BackLabel="All supervisors">
+        <StatusPill Status="@(supervisor.AcceptingInquiries ? ("Accepting inquiries", "var(--color-success)") : ("Paused", "var(--color-muted)"))" />
+        <a class="hover:text-focus hover:underline" href="mailto:@supervisor.ContactEmail">@supervisor.ContactEmail</a>
+        <span class="inline-flex items-center gap-1.5"><Icon Name="inbox" />@inquiries.Count inquiries</span>
+        @if (Data.MatchRate(supervisor.UserId) is { } rate)
+        {
+            <RingMeter Value="rate" Title="Share of their inquiries that ended in a match" />
+        }
+    </RecordHeader>
+
+    <div class="mt-8 grid items-start gap-4 lg:grid-cols-[2fr_3fr]">
+        <form class="card space-y-5" @onsubmit="SaveAsync" @onsubmit:preventDefault>
+            <h2 class="text-lg font-semibold">Profile</h2>
+            <FormField Label="Name">
+                <input class="field" @bind="form.Name" @bind:event="oninput" required />
+            </FormField>
+            <FormField Label="Contact email">
+                <input class="field" type="email" @bind="form.Email" @bind:event="oninput" required />
+            </FormField>
+            <FormField Label="Website">
+                <input class="field" type="url" @bind="form.Url" @bind:event="oninput" placeholder="https://" />
+            </FormField>
+            <FormField Label="About">
+                <textarea class="field min-h-28 resize-y" @bind="form.About" @bind:event="oninput"></textarea>
+            </FormField>
+            <div class="flex items-center justify-between gap-4">
+                <span class="label">Accepting inquiries</span>
+                <Switch On="form.Accepting" Label="Accepting inquiries" OnToggle="on => { form.Accepting = on; saved = false; }" />
+            </div>
+            <FormField Label="Research topics" Group>
+                <TopicPicker Topics="Data.Topics" Selected="form.Topics" Label="Research topics" Disabled="!Actions.CanSave" OnChange="() => saved = false" />
+            </FormField>
+            <SaveBar Busy="busy" Saved="saved" Error="@error" />
+        </form>
+
+        <div class="grid gap-4">
+            <Panel Title="Projects" Flush>
+                <Actions>
+                    <MudButton Href="@($"{BasePath}/projects/new?supervisor={supervisor.UserId}")" Variant="Variant.Outlined" DropShadow="false" Ripple="false" Class="btn btn-secondary btn-sm"><Icon Name="plus" />Add a project</MudButton>
+                </Actions>
+                <ChildContent>
+                    <DataTable Items="Data.ProjectsOf(supervisor.UserId)" PageSize="10" ExportName="projects" SortedBy="Status" Empty="No projects yet.">
+                        <DataColumn Title="Project" SortBy="p => p.Title" Class="max-w-72 truncate">
+                            <a class="hover:text-focus hover:underline" href="@($"{BasePath}/projects/{context.Id}")" title="@context.Title">@context.Title</a>
+                        </DataColumn>
+                        <DataColumn Title="Status" SortBy="p => p.Status" Export="p => Display.Project(p.Status).Label"><StatusPill Status="@Display.Project(context.Status)" /></DataColumn>
+                        <DataColumn Title="Inquiries" SortBy="p => Data.InquiriesFor(p.Id).Count()" DescendingFirst>@Data.InquiriesFor(context.Id).Count()</DataColumn>
+                        <DataColumn Title="Saves" SortBy="p => Data.SavesOf(p.Id)" DescendingFirst>@Data.SavesOf(context.Id)</DataColumn>
+                    </DataTable>
+                </ChildContent>
+            </Panel>
+            <Panel Title="Inquiries received" Flush>
+                <InquiryTable Inquiries="inquiries" Data="Data" BasePath="@BasePath" ShowSupervisor="false" />
+            </Panel>
+        </div>
+    </div>
+}

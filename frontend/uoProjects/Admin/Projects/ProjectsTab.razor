@@ -1,0 +1,120 @@
+@namespace uoProjects.Admin
+<Toolbar>
+    <Start><FilterChips Label="Filter by status" Options="filters" Selected="@filter" SelectedChanged="SetStatusFilterAsync" /></Start>
+    <End>
+        <SelectBox Label="Topic" Value="@topic" ValueChanged="SetTopicAsync" Options="TopicOptions" Disabled="@(topics is null)" />
+        <SearchBox Query="@query" QueryChanged="SearchAsync" Placeholder="Search projects" />
+        <MudButton Href="@($"{BasePath}/projects/new")" Variant="Variant.Filled" Color="Color.Primary" DropShadow="false" Ripple="false" Class="btn btn-sm"><Icon Name="plus" />New project</MudButton>
+    </End>
+</Toolbar>
+
+@if (optionsFailed)
+{
+    <ErrorState Message="Some project filter or editor options could not load." OnRetry="RetryOptionsAsync" />
+}
+
+@if (error is not null)
+{
+    <MudAlert Severity="Severity.Error" Variant="Variant.Text" NoIcon="true" Class="alert mt-4">@error</MudAlert>
+}
+
+@if (loadFailed)
+{
+    <ErrorState Message="Could not load projects." OnRetry="RetryAsync" />
+}
+else if (loading && displayedRequest is null)
+{
+    <LoadingState Message="Loading projects…" />
+}
+
+@if (loading && displayedRequest is not null)
+{
+    <p class="mt-3 text-text-secondary" role="status">Updating projects…</p>
+}
+
+<div hidden="@(displayedRequest is null)" aria-busy="@(loading ? "true" : "false")">
+    <Panel Flush Class="mt-4">
+        <DataTable Items="rows" ExportDisabled="TableUnavailable" FilteredTotal="total" AllTotal="allTotal" LoadExportRows="ExportRowsAsync" SortChanged="SetSortAsync" ExportName="projects" SortedBy="Project" Empty="No projects match.">
+            <DataColumn Title="Project" SortBy="p => p.Project.Title" Class="min-w-72 max-w-104 whitespace-normal">
+                <a class="font-semibold hover:text-focus hover:underline" href="@($"{BasePath}/projects/{context.Project.Id}")">@context.Project.Title</a>
+                @if (context.Project.Topics is { Count: > 0 } tags)
+                {
+                    <span class="mt-2 flex flex-wrap gap-1.5">
+                        @foreach (var tag in tags)
+                        {
+                            <TopicChip Name="@tag.Name" />
+                        }
+                    </span>
+                }
+            </DataColumn>
+            <DataColumn Title="Supervisor" SortBy="p => p.SupervisorName">
+                @if (Data is null && supervisors is not null)
+                {
+                    <div class="project-cell-slot">
+                        <button type="button" class="project-cell-editor" aria-label="@($"Edit supervisor of {context.Project.Title}")"
+                                disabled="@(TableUnavailable || editor == (context.Project.Id, false))"
+                                style="@(editor == (context.Project.Id, false) ? "visibility: hidden" : null)" @onclick="() => editor = (context.Project.Id, false)">
+                            @context.SupervisorName
+                            <Icon Name="chevron-down" Class="size-3.5" />
+                        </button>
+                        @if (editor == (context.Project.Id, false))
+                        {
+                            <div class="project-cell-select">
+                                <SelectBox Label="@($"Supervisor of {context.Project.Title}")" Value="@context.Project.SupervisorId.ToString()"
+                                           ValueChanged="value => MoveAsync(context, value)" Options="SupervisorOptions" HideLabel
+                                           OpenOnRender OpenChanged="CloseEditor" />
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    @context.SupervisorName
+                }
+            </DataColumn>
+            <DataColumn Title="Status" SortBy="p => p.Project.Status" Export="p => Display.Project(p.Project.Status).Label">
+                @if (Data is null)
+                {
+                    <div class="project-cell-slot">
+                        <button type="button" class="project-cell-editor" aria-label="@($"Edit status of {context.Project.Title}")"
+                                disabled="@(TableUnavailable || editor == (context.Project.Id, true))"
+                                style="@(editor == (context.Project.Id, true) ? "visibility: hidden" : null)" @onclick="() => editor = (context.Project.Id, true)">
+                            <StatusPill Status="@Display.Project(context.Project.Status)" />
+                            <Icon Name="chevron-down" Class="size-3.5" />
+                        </button>
+                        @if (editor == (context.Project.Id, true))
+                        {
+                            <div class="project-cell-select">
+                                <SelectBox Label="@($"Status of {context.Project.Title}")" Value="@context.Project.Status.ToString()"
+                                           ValueChanged="value => SetStatusAsync(context, value)" Options="StatusOptions" HideLabel
+                                           OpenOnRender OpenChanged="CloseEditor" />
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <StatusPill Status="@Display.Project(context.Project.Status)" />
+                }
+            </DataColumn>
+            <DataColumn Title="Inquiries" SortBy="p => p.InquiryCount" DescendingFirst>
+                @context.InquiryCount
+            </DataColumn>
+            <DataColumn Title="Saves" SortBy="p => p.SaveCount" DescendingFirst>
+                @context.SaveCount
+            </DataColumn>
+            <DataColumn Title="Updated" SortBy="p => p.Project.UpdatedAt" DescendingFirst>
+                <span class="text-text-secondary">@Display.Ago(context.Project.UpdatedAt)</span>
+            </DataColumn>
+        </DataTable>
+    </Panel>
+
+    @if (total > 0)
+    {
+        <nav class="mt-4 flex items-center justify-end gap-3" aria-label="Project pages">
+            <span role="status">@FirstRow–@LastRow of @total</span>
+            <MudButton Disabled="@(TableUnavailable || request.Page == 1)" OnClick="PreviousAsync">Previous</MudButton>
+            <MudButton Disabled="@(TableUnavailable || LastRow >= total)" OnClick="NextAsync">Next</MudButton>
+        </nav>
+    }
+</div>

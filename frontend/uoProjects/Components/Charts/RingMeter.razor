@@ -1,0 +1,21 @@
+@namespace uoProjects.Components
+@using System.Globalization
+
+<span class="inline-flex items-center gap-2 tabular-nums" title="@Title">
+    <svg class="size-6 -rotate-90" viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="12" cy="12" r="9" fill="none" stroke-width="3.5" class="stroke-border" />
+        <circle cx="12" cy="12" r="9" fill="none" stroke-width="3.5" stroke-linecap="round" stroke="@Color"
+                stroke-dasharray="@DashArray" pathLength="100" />
+    </svg>
+    @Percent%
+</span>
+
+@code {
+    [Parameter, EditorRequired] public double Value { get; set; }
+    [Parameter] public string Color { get; set; } = "var(--color-mono-4)";
+    [Parameter] public string? Title { get; set; }
+
+    private int Percent => (int)Math.Round(Value * 100);
+
+    private string DashArray => $"{Math.Max(Value * 100 - 0.01, 0).ToString("0.##", CultureInfo.InvariantCulture)} 100";
+}

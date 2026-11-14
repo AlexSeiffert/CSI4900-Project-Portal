@@ -1,0 +1,32 @@
+.project-cell-editor {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    border-radius: 0.25rem;
+    padding: 0.25rem;
+    text-transform: none;
+}
+
+.project-cell-editor:hover:not(:disabled) {
+    color: var(--color-focus);
+}
+
+.project-cell-slot {
+    position: relative;
+}
+
+.project-cell-select {
+    position: absolute;
+    inset-inline: 0;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.project-cell-select ::deep .app-select-wrap {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.project-cell-select ::deep .app-select-sizer {
+    display: none;
+}

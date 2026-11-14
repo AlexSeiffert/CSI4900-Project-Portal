@@ -1,6 +1,4 @@
 using System.Net;
-using System.Text.Json;
-using Microsoft.AspNetCore.Mvc;
 
 namespace uoProjects.Exceptions;
 
@@ -9,13 +7,11 @@ public class ServiceException(string operation, string message, Exception? inner
 {
     public string Operation { get; } = operation;
     public HttpStatusCode? StatusCode { get; init; }
-    public ValidationProblemDetails? Problem { get; init; }
+    public ApiProblem? Problem { get; init; }
 
-    public string? TraceId => Problem?.Extensions.TryGetValue("traceId", out var value) == true
-        ? value is JsonElement { ValueKind: JsonValueKind.String } element ? element.GetString() : value as string
-        : null;
+    public string? TraceId => Problem?.TraceId;
 
-    public static ServiceException FromResponse(string operation, HttpStatusCode status, ValidationProblemDetails? problem)
+    public static ServiceException FromResponse(string operation, HttpStatusCode status, ApiProblem? problem)
     {
         var message = (int)status switch
         {
@@ -40,4 +36,11 @@ public class ServiceException(string operation, string message, Exception? inner
 
         return new ServiceException(operation, message) { StatusCode = status, Problem = problem };
     }
+}
+
+public sealed class ApiProblem
+{
+    public string? Detail { get; init; }
+    public string? TraceId { get; init; }
+    public Dictionary<string, string[]> Errors { get; init; } = [];
 }

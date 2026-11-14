@@ -22,24 +22,37 @@ public abstract class ServiceTestBase : IDisposable
     }
 
     protected void RespondWith<T>(T data)
-        => respond = () => new HttpResponseMessage(HttpStatusCode.OK) { Content = JsonContent.Create(data) };
+    {
+        respond = () => new HttpResponseMessage(HttpStatusCode.OK) { Content = JsonContent.Create(data) };
+    }
 
     protected void RespondWith(HttpStatusCode status)
-        => respond = () => new HttpResponseMessage(status);
+    {
+        respond = () => new HttpResponseMessage(status);
+    }
 
     protected void ThrowOnRequest(Exception exception)
-        => respond = () => throw exception;
+    {
+        respond = () => throw exception;
+    }
 
     protected void VerifyErrorNotification(string message)
-        => Snackbar.Verify(service => service.Add(
-            It.Is<string>(text => text.Contains(message)), Severity.Error,
-            It.IsAny<Action<SnackbarOptions>>(), It.IsAny<string>()), Times.Once);
+    {
+        Snackbar.Verify(service => service.Add(
+                It.Is<string>(text => text.Contains(message)), Severity.Error,
+                It.IsAny<Action<SnackbarOptions>>(), It.IsAny<string>()), Times.Once);
+    }
 
-    public void Dispose() => Http.Dispose();
+    public void Dispose()
+    {
+        Http.Dispose();
+    }
 
     private sealed class StubHandler(Func<HttpResponseMessage> respond) : HttpMessageHandler
     {
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
-            => Task.FromResult(respond());
+        {
+            return Task.FromResult(respond());
+        }
     }
 }

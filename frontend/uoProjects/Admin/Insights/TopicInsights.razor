@@ -1,0 +1,16 @@
+<div class="grid gap-4 lg:grid-cols-2">
+    <Panel Title="Inquiries by topic" Description="How many inquiries students sent about projects in each topic.">
+        <EChart Kind="bars" Data="demand" Height="@(Data.Topics.Count * 30 + 20)" Label="Number of inquiries about each topic." />
+    </Panel>
+
+    <Panel Title="Inquiry status by topic" Description="Inquiries about each topic, split into matched, closed without a match and still open.">
+        @if (Data.Inquiries.Count == 0)
+        {
+            <p class="text-text-secondary">No inquiries yet.</p>
+        }
+        else
+        {
+            <EChart Kind="sankey" Data="outcomes" Height="@(Data.Topics.Count * 30 + 20)" Label="Inquiries by topic, flowing to matched, closed or still open." />
+        }
+    </Panel>
+</div>

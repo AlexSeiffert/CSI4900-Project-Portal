@@ -1,0 +1,36 @@
+@namespace uoProjects.Components
+
+@if (Host.Sources.Count > 0)
+{
+    var source = Current!;
+    <div class="relative">
+        <MudButton Variant="Variant.Outlined" DropShadow="false" Ripple="false" Class="btn btn-secondary btn-sm" aria-haspopup="true" aria-expanded="@(open ? "true" : "false")"
+                   Disabled="@(Host.Sources.All(s => s.Disabled))" OnClick="@(() => { open = !open; })">
+            <Icon Name="download" />Export
+        </MudButton>
+        @if (open)
+        {
+            <div class="fixed inset-0 z-10" @onclick="() => open = false" aria-hidden="true"></div>
+            <div role="group" aria-label="Export" @onkeydown="OnKey"
+                 class="absolute right-0 top-full z-20 mt-1 flex w-72 flex-col gap-3 rounded-xl border border-border bg-surface p-4 shadow-lg">
+                @if (Host.Sources.Count > 1)
+                {
+                    <SelectBox Label="Table" Value="@sourceIndex.ToString()" ValueChanged="v => sourceIndex = int.Parse(v)"
+                               Options="Host.Sources.Select((x, i) => (i.ToString(), x.Name))" />
+                }
+                <SelectBox Label="Format" @bind-Value="format" Options="FormatOptions" />
+                @if (source.AllCount is { } all)
+                {
+                    <SelectBox Label="Rows" @bind-Value="scope" Options="RowOptions(source, all)" />
+                }
+                @if (error is not null)
+                {
+                    <p role="alert" class="text-sm text-feedback-error">@error</p>
+                }
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" DropShadow="false" Ripple="false" Class="btn btn-sm" Disabled="@(busy || source.Disabled)" OnClick="DownloadAsync">
+                    <Icon Name="download" />@(busy ? "Preparing…" : "Download")
+                </MudButton>
+            </div>
+        }
+    </div>
+}
