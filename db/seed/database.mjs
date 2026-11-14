@@ -22,6 +22,9 @@ const CHECKS = {
   '0009_inquiries.sql': "select to_regclass('public.inquiries') is not null",
   '0010_inquiry_attachments.sql': "select to_regclass('public.inquiry_attachments') is not null",
   '0011_saved_projects.sql': "select to_regclass('public.student_saved_projects') is not null",
+  '0012_inquiry_outcomes.sql': "select exists (select 1 from pg_enum e join pg_type t on t.oid = e.enumtypid join pg_namespace n on n.oid = t.typnamespace where n.nspname = 'public' and t.typname = 'inquiry_status' and e.enumlabel = 'matched')",
+  '0013_default_topic_tags.sql': "select count(*) = 10 from public.topics where lower(name) in ('ai/ml', 'software engineering', 'web & mobile', 'security & privacy', 'data & databases', 'systems & networks', 'hci & design', 'games & graphics', 'theory & algorithms', 'other')",
+  '0014_restore_student_program.sql': "select exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'student_profiles' and column_name = 'program')",
 };
 
 function fail(message) {

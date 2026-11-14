@@ -12,10 +12,21 @@ public class ProjectService(IProjectRepository repository) : IProjectService
 {
     private readonly IProjectRepository _repository = repository;
 
+    public Task<API.DTOs.ProjectPage> GetPage(ProjectPageQuery query, CancellationToken cancellationToken = default)
+    {
+        return _repository.GetPage(query, cancellationToken);
+    }
+
     public async Task<IEnumerable<DTOs.Project>> GetProjects(CancellationToken cancellationToken = default)
     {
         var projects = await _repository.GetProjects(cancellationToken);
         return projects.Select(project => project.ToDto()).ToList();
+    }
+
+    public async Task<IEnumerable<DTOs.Project>> GetProjectsWithTopics(CancellationToken cancellationToken = default)
+    {
+        var projects = await _repository.GetProjectsWithTopics(cancellationToken);
+        return projects.Select(project => project.ToDtoWithTopics()).ToList();
     }
 
     public async Task<IEnumerable<DTOs.Project>> GetProjectsBySupervisorId(Guid supervisorId, CancellationToken cancellationToken = default)
@@ -48,7 +59,7 @@ public class ProjectService(IProjectRepository repository) : IProjectService
         var project = new API.Models.Project
         {
             Id = Guid.NewGuid(),
-            SupervisorId = request.SupervisorId,
+            SupervisorId = request.SupervisorId ?? throw new InvalidOperationException("A project requires a supervisor."),
             Title = request.Title.Trim(),
             Description = request.Description.Trim(),
             ExternalUrl = request.ExternalUrl,
@@ -65,6 +76,10 @@ public class ProjectService(IProjectRepository repository) : IProjectService
         project.Description = request.Description.Trim();
         project.ExternalUrl = request.ExternalUrl;
         project.Status = request.Status;
+        if (request.SupervisorId is { } supervisorId)
+        {
+            project.SupervisorId = supervisorId;
+        }
         return (await _repository.UpdateProject(project, request.TopicIds, cancellationToken)).ToDtoWithRelations();
     }
 

@@ -1,0 +1,12 @@
+@namespace uoProjects.Components
+<header class="max-w-[780px]">
+    <p class="mb-5 text-xs font-bold uppercase tracking-[0.12em] text-text-secondary">@Eyebrow</p>
+    <h1 class="text-4xl font-bold leading-[1.12] tracking-[-0.045em] sm:text-5xl">@Title</h1>
+    <p class="mt-6 max-w-[630px] leading-[1.75] text-text-secondary">@Description</p>
+</header>
+
+@code {
+    [Parameter] public string Eyebrow { get; set; } = "CSI4900 · Honours projects";
+    [Parameter, EditorRequired] public string Title { get; set; } = "";
+    [Parameter, EditorRequired] public string Description { get; set; } = "";
+}

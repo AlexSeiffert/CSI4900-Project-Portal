@@ -56,6 +56,7 @@ builder.Services.AddOpenApi(options => options.AddDocumentTransformer((document,
 builder.Services.AddHttpContextAccessor();
 // Every endpoint requires a logged-in user.
 builder.Services.AddAuthorizationBuilder()
+    .AddPolicy("Admin", policy => policy.RequireAuthenticatedUser().RequireClaim(ClaimsPrincipalExtensions.UserRoleClaim, "admin"))
     .SetFallbackPolicy(new Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
 
 // When a user logs in, Supabase gives them a token. The API checks that token on every request.
@@ -101,6 +102,10 @@ builder.Services.AddProblemDetails(options => options.CustomizeProblemDetails = 
 });
 
 builder.Services.AddExceptionHandler<ApiExceptionHandler>();
+
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+builder.Services.AddCors(options => options.AddDefaultPolicy(policy =>
+    policy.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod()));
 
 var provider = builder.Configuration["Database:Provider"] ?? "Postgres";
 var inMemory = provider.Equals("InMemory", StringComparison.OrdinalIgnoreCase);
@@ -156,6 +161,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 // Turns empty error responses (such as 401 and 403 from the auth layer) into the same problem-details JSON as other errors.
 app.UseStatusCodePages();
+app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

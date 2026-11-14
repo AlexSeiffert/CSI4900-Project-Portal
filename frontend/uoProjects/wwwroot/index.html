@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>uoProjects</title>
+    <base href="/" />
+    <link rel="icon" type="image/svg+xml" href="brand/uoProjectsLogo-minimal.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
+    <link rel="preload" id="webassembly" />
+    <meta name="theme-color" content="#2d2d2c" />
+    <link rel="stylesheet" href="css/portal.css" />
+    <link rel="stylesheet" href="uoProjects.styles.css" />
+    <script type="importmap"></script>
+</head>
+
+<body>
+    <div id="app">
+        <div class="grid min-h-dvh place-items-center bg-background px-6" role="status">
+            <span class="sr-only">Loading uoProjects…</span>
+            <div class="w-full max-w-lg space-y-8" aria-hidden="true">
+                <img src="brand/uoProjectsLogo.svg" alt="" class="mx-auto h-auto w-40" />
+                <div class="space-y-5 rounded-xl border border-border bg-surface p-6 motion-safe:animate-pulse">
+                    <div class="h-5 w-2/5 rounded bg-border"></div>
+                    <div class="h-4 w-full rounded bg-surface-hover"></div>
+                    <div class="h-4 w-4/5 rounded bg-surface-hover"></div>
+                    <div class="h-4 w-2/3 rounded bg-surface-hover"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="blazor-error-ui">
+        An unhandled error has occurred.
+        <a href="." class="reload underline">Reload</a>
+        <span class="dismiss">🗙</span>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.6.0/echarts.min.js"></script>
+    <script src="js/export.js"></script>
+    <script src="_content/MudBlazor/MudBlazor.min.js"></script>
+    <script src="_framework/blazor.webassembly#[.{fingerprint}].js"></script>
+</body>
+
+</html>

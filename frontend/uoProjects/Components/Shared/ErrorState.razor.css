@@ -1,0 +1,13 @@
+.error-state {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.25rem;
+}
+
+.error-state p {
+    margin: 0;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+}

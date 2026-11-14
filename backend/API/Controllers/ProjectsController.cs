@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using API.Auth;
 using API.DTOs;
 using API.Services.Interfaces;
@@ -11,14 +12,24 @@ namespace API.Controllers;
 
 [ApiController]
 [Route("api/v1/projects")]
-public class ProjectsController(IProjectService service) : ControllerBase
+public class ProjectsController(IProjectService service, ISupervisorService supervisors) : ControllerBase
 {
     private readonly IProjectService _service = service;
 
-    [HttpGet]
-    public async Task<ActionResult<IEnumerable<Project>>> GetProjects(CancellationToken cancellationToken)
+    [Authorize(Policy = "Admin")]
+    [HttpGet("page")]
+    public async Task<ActionResult<ProjectPage>> GetPage([FromQuery] ProjectPageQuery query, CancellationToken cancellationToken)
     {
-        return Ok(await _service.GetProjects(cancellationToken));
+        return await _service.GetPage(query, cancellationToken);
+    }
+
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<Project>>> GetProjects(CancellationToken cancellationToken, [FromQuery] bool includeTopics = false)
+    {
+        var projects = includeTopics
+            ? await _service.GetProjectsWithTopics(cancellationToken)
+            : await _service.GetProjects(cancellationToken);
+        return Ok(projects);
     }
 
     [HttpGet("supervisors/{supervisorId:guid}")]
@@ -53,8 +64,14 @@ public class ProjectsController(IProjectService service) : ControllerBase
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<Project>> CreateProject(CreateProject request, CancellationToken cancellationToken)
     {
-        // the project's owner is taken from the login token, not from anything the client types in
-        request.SupervisorId = User.GetRequiredUserId();
+        if (!User.IsAdmin())
+        {
+            request.SupervisorId = User.GetRequiredUserId();
+        }
+        else if (!await ValidateSupervisorAsync(request.SupervisorId, cancellationToken))
+        {
+            return ValidationProblem(ModelState);
+        }
         var result = await _service.CreateProject(request, cancellationToken);
         return CreatedAtAction(nameof(GetProjectById), new { projectId = result.Id }, result);
     }
@@ -65,6 +82,15 @@ public class ProjectsController(IProjectService service) : ControllerBase
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<Project>> UpdateProject(Guid projectId, UpdateProject request, CancellationToken cancellationToken)
     {
+        if (!User.IsAdmin())
+        {
+            request.SupervisorId = null;
+        }
+        else if (request.SupervisorId.HasValue && !await ValidateSupervisorAsync(request.SupervisorId, cancellationToken))
+        {
+            return ValidationProblem(ModelState);
+        }
+
         return await _service.UpdateProject(projectId, request, cancellationToken);
     }
 
@@ -75,5 +101,23 @@ public class ProjectsController(IProjectService service) : ControllerBase
     {
         await _service.DeleteProject(projectId, cancellationToken);
         return NoContent();
+    }
+
+    private async Task<bool> ValidateSupervisorAsync(Guid? id, CancellationToken cancellationToken)
+    {
+        if (id is { } supervisorId && supervisorId != Guid.Empty)
+        {
+            try
+            {
+                await supervisors.GetSupervisorById(supervisorId, cancellationToken);
+                return true;
+            }
+            catch (API.Exceptions.ServiceException exception) when (exception.Type == API.Exceptions.ErrorType.NotFound)
+            {
+            }
+        }
+
+        ModelState.AddModelError(nameof(API.DTOs.Request.UpdateProject.SupervisorId), "Choose an existing supervisor for the project.");
+        return false;
     }
 }

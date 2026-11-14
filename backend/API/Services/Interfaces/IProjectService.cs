@@ -4,7 +4,9 @@ namespace API.Services.Interfaces;
 
 public interface IProjectService
 {
+    Task<API.DTOs.ProjectPage> GetPage(API.DTOs.Request.ProjectPageQuery query, CancellationToken cancellationToken = default);
     Task<IEnumerable<DTOs.Project>> GetProjects(CancellationToken cancellationToken = default);
+    Task<IEnumerable<DTOs.Project>> GetProjectsWithTopics(CancellationToken cancellationToken = default);
     Task<IEnumerable<DTOs.Project>> GetProjectsBySupervisorId(Guid supervisorId, CancellationToken cancellationToken = default);
     Task<IEnumerable<DTOs.Project>> GetProjectsByTopicId(Guid topicId, CancellationToken cancellationToken = default);
     Task<IEnumerable<DTOs.Project>> GetProjectsByStatus(Models.ProjectStatus status, CancellationToken cancellationToken = default);

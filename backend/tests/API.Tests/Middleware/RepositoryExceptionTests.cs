@@ -7,7 +7,10 @@ namespace API.Tests.Middleware;
 // Tests that database errors are turned into the right error type (and the right HTTP status).
 public class RepositoryExceptionTests
 {
-    private static PostgresException Postgres(string sqlState) => new("failed", "ERROR", "ERROR", sqlState);
+    private static PostgresException Postgres(string sqlState)
+    {
+        return new("failed", "ERROR", "ERROR", sqlState);
+    }
 
     [Theory]
     [InlineData(PostgresErrorCodes.UniqueViolation, ErrorType.Conflict)]

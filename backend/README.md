@@ -190,3 +190,13 @@ They use the fake database, need no `.env`, and run on every pull request. Datab
   id is passed to Postgres, whose row level security rules in [db/migrations](../db/migrations) decide what each user
   can see and change. Roles live in `public.users.role`.
 - The schema is owned by the SQL in [db/migrations](../db/migrations), not Entity Framework migrations.
+
+## Browser client
+
+The Blazor WebAssembly app sends Supabase bearer tokens to the API. Set `Cors__AllowedOrigins__0` (and subsequent indexed entries if needed) to the exact deployed frontend origins. The development configuration allows port 5270 on localhost and 127.0.0.1.
+
+Apply `db/migrations/0012_inquiry_outcomes.sql` before deploying the corresponding API and frontend. Existing pending, viewed, and responded inquiries become sent. Closed inquiries retain their status. Migration `0013_default_topic_tags.sql` supplies the admin topic picker with the feature branch’s standard tags and preserves existing topics and links.
+
+The admin project UI can assign or change a project’s supervisor through the existing project write endpoints. The admin dashboard uses `GET /api/v1/saved-projects/counts` for aggregate saves by project.
+
+The admin Projects table uses `GET /api/v1/projects/page`. It accepts `page`, `pageSize` (1–100), `search`, `topicId`, `status`, `sort`, and `descending`. It returns project rows with topic tags, supervisor names, inquiry and save counts, a filtered total, and overall status counts.

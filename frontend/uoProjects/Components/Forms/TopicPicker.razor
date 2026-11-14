@@ -1,0 +1,33 @@
+@namespace uoProjects.Components
+<div class="flex flex-wrap gap-2" role="group" aria-label="@Label">
+    @foreach (var topic in Topics)
+    {
+        <MudChip T="string" Class="@($"chip {(Disabled ? "is-disabled" : "")}")" Variant="Variant.Outlined" Ripple="false"
+                 aria-pressed="@(Selected.Contains(topic.Id) ? "true" : "false")" aria-disabled="@(Disabled ? "true" : null)" title="@TopicPalette.Describe(topic.Name)"
+                 OnClick="@(() => Toggle(topic.Id))">
+            <Icon Name="@TopicPalette.IconFor(topic.Name)" />
+            @topic.Name
+        </MudChip>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<Topic> Topics { get; set; } = [];
+    [Parameter, EditorRequired] public HashSet<Guid> Selected { get; set; } = [];
+    [Parameter] public string Label { get; set; } = "Topics";
+    [Parameter] public bool Disabled { get; set; }
+    [Parameter] public EventCallback OnChange { get; set; }
+
+    private async Task Toggle(Guid id)
+    {
+        if (Disabled)
+        {
+            return;
+        }
+        if (!Selected.Remove(id))
+        {
+            Selected.Add(id);
+        }
+        await OnChange.InvokeAsync();
+    }
+}

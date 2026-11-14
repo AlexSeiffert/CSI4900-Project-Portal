@@ -10,7 +10,10 @@ public class SavedProjectServiceTests
 {
     private readonly Mock<ISavedProjectRepository> _repository = new();
 
-    private SavedProjectService CreateService() => new(_repository.Object);
+    private SavedProjectService CreateService()
+    {
+        return new(_repository.Object);
+    }
 
     [Fact]
     public async Task GetSavedProjects_ReturnsMappedProjects()

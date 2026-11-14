@@ -12,10 +12,40 @@ namespace API.Tests.Controller;
 public class ProjectsControllerTests
 {
     private readonly Mock<IProjectService> _service = new();
+    private readonly Mock<ISupervisorService> _supervisors = new();
 
     private ProjectsController CreateController()
     {
-        return new(_service.Object);
+        return new(_service.Object, _supervisors.Object);
+    }
+
+    [Fact]
+    public async Task CreateProject_AsAdmin_UsesSelectedSupervisor()
+    {
+        var supervisorId = Guid.NewGuid();
+        _supervisors.Setup(service => service.GetSupervisorById(supervisorId, CancellationToken.None))
+            .ReturnsAsync(new Supervisor { UserId = supervisorId });
+        var project = new Project { Id = Guid.NewGuid(), SupervisorId = supervisorId };
+        _service.Setup(service => service.CreateProject(
+                It.Is<CreateProject>(request => request.SupervisorId == supervisorId), CancellationToken.None))
+            .ReturnsAsync(project);
+        var controller = CreateController().SignedInAs(Guid.NewGuid(), "admin");
+
+        var result = await controller.CreateProject(new CreateProject { SupervisorId = supervisorId }, CancellationToken.None);
+
+        Assert.Same(project, Assert.IsType<CreatedAtActionResult>(result.Result).Value);
+    }
+
+    [Fact]
+    public async Task CreateProject_AsAdminWithoutSupervisor_ReturnsValidationProblem()
+    {
+        var controller = CreateController().SignedInAs(Guid.NewGuid(), "admin");
+
+        var result = await controller.CreateProject(new CreateProject(), CancellationToken.None);
+
+        var problem = Assert.IsType<ValidationProblemDetails>(Assert.IsAssignableFrom<ObjectResult>(result.Result).Value);
+        Assert.Contains("SupervisorId", problem.Errors.Keys);
+        _service.VerifyNoOtherCalls();
     }
 
     [Fact]

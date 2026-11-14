@@ -1,0 +1,35 @@
+<div class="grid gap-4 lg:grid-cols-[3fr_2fr]">
+    <Panel Title="Most popular projects" Description="@($"The {Top} projects with the most inquiries, and how many students saved each. Click one to open it.")">
+        @if (Data.Inquiries.Count == 0)
+        {
+            <p class="text-text-secondary">No inquiries yet.</p>
+        }
+        else
+        {
+            <EChart Kind="bars" Data="popular" Height="@(Top * 30 + 50)" Label="Projects with the most inquiries, with their saves." />
+        }
+    </Panel>
+
+    <Panel Title="Projects by status" Description="Open projects take inquiries; unavailable and archived ones don't.">
+        @if (Data.Projects.Count == 0)
+        {
+            <p class="text-text-secondary">No projects yet.</p>
+        }
+        else
+        {
+            <EChart Kind="donut" Data="ring" Height="230"
+                    Label="@string.Join(", ", statuses.Select(s => $"{s.Label}: {s.Count}"))" />
+            <ul class="mt-5 divide-y divide-border text-sm">
+                @foreach (var status in statuses)
+                {
+                    <li class="flex items-center gap-3 py-2.5">
+                        <span class="size-2.5 shrink-0 rounded-full" style="background: @status.Color"></span>
+                        <span class="text-text-secondary">@status.Label</span>
+                        <span class="ml-auto font-semibold tabular-nums">@status.Count</span>
+                        <span class="w-10 text-right tabular-nums text-text-secondary">@InsightMath.Percent(status.Count, Data.Projects.Count)%</span>
+                    </li>
+                }
+            </ul>
+        }
+    </Panel>
+</div>

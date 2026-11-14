@@ -1,0 +1,40 @@
+@namespace uoProjects.Admin
+@using System.Web
+
+<Toolbar>
+    <Start><FilterChips Label="Filter supervisors" Options="filters" @bind-Selected="filter" /></Start>
+    <End><SearchBox @bind-Query="query" Placeholder="Search supervisors" /></End>
+</Toolbar>
+
+@if (error is not null)
+{
+    <MudAlert Severity="Severity.Error" Variant="Variant.Text" NoIcon="true" Class="alert mt-4">@error</MudAlert>
+}
+
+<Panel Flush Class="mt-4">
+    <DataTable Items="shown" PageSize="25" PageResetKey="@((query, filter))" AllItems="Data.Supervisors" ExportName="supervisors" SortedBy="Name" Empty="No supervisors match.">
+        <DataColumn Title="Name" SortBy="s => s.DisplayName">
+            <a class="font-semibold hover:text-focus hover:underline" href="@($"{BasePath}/supervisors/{context.UserId}")">@context.DisplayName</a>
+            <span class="block text-xs text-text-secondary">@context.ContactEmail</span>
+        </DataColumn>
+        <DataColumn Title="Projects" SortBy="s => OpenProjects(s)" DescendingFirst>@OpenProjects(context)</DataColumn>
+        <DataColumn Title="Inquiries" SortBy="s => Data.InquiriesTo(s.UserId).Count()" DescendingFirst>@Data.InquiriesTo(context.UserId).Count()</DataColumn>
+        <DataColumn Title="Open 7+ days" SortBy="s => Stale(s)" DescendingFirst>
+            <span class="tabular-nums @(Stale(context) > 0 ? "font-semibold text-feedback-error" : "text-text-secondary")" title="@($"Inquiries sent {AdminData.StaleAfter.Days}+ days ago with no outcome yet")">@Stale(context)</span>
+        </DataColumn>
+        <DataColumn Title="Match rate" SortBy="s => Data.MatchRate(s.UserId)" Export="s => MatchRateText(s)" DescendingFirst>
+            @if (Data.MatchRate(context.UserId) is { } rate)
+            {
+                <RingMeter Value="rate" Title="Share of their inquiries that ended in a match" />
+            }
+            else
+            {
+                <span class="text-text-secondary">No inquiries</span>
+            }
+        </DataColumn>
+        <DataColumn Title="Accepting" SortBy="s => s.AcceptingInquiries" DescendingFirst>
+            <Switch On="context.AcceptingInquiries" Label="@($"{context.DisplayName} is accepting inquiries")"
+                    Disabled="@(busy == context.UserId || !Actions.CanSave)" OnToggle="on => SetAcceptingAsync(context, on)" />
+        </DataColumn>
+    </DataTable>
+</Panel>

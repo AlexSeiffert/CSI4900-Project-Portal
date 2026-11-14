@@ -1,0 +1,25 @@
+<footer class="site-footer">
+    <nav aria-label="Helpful links" class="site-footer-links">
+        @foreach (var (label, href) in Links)
+        {
+            <MudLink Href="@href" Target="_blank" rel="noopener noreferrer"
+                     Color="Color.Inherit" Underline="Underline.None" Class="site-footer-link">
+                @label
+                <MudIcon Icon="@Icons.Material.Outlined.OpenInNew" Class="site-footer-icon" aria-hidden="true" />
+                <span class="sr-only">(opens in a new tab)</span>
+            </MudLink>
+        }
+    </nav>
+</footer>
+
+@code {
+    private static readonly (string Label, string Href)[] Links =
+    [
+        ("uoZone", "https://uozone2.uottawa.ca/"),
+        ("Brightspace", "https://uottawa.brightspace.com/"),
+        ("Outlook", "https://outlook.office.com/mail/"),
+        ("Engineering", "https://www.uottawa.ca/faculty-engineering/"),
+        ("School of EECS", "https://www.uottawa.ca/faculty-engineering/school-electrical-engineering-computer-science"),
+        ("IT support", "https://www.uottawa.ca/about-us/information-technology"),
+    ];
+}

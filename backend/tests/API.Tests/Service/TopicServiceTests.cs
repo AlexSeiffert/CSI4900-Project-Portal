@@ -10,7 +10,10 @@ public class TopicServiceTests
 {
     private readonly Mock<ITopicRepository> _repository = new();
 
-    private TopicService CreateService() => new(_repository.Object);
+    private TopicService CreateService()
+    {
+        return new(_repository.Object);
+    }
 
     [Fact]
     public async Task GetTopics_ReturnsMappedTopics()

@@ -1,0 +1,11 @@
+@namespace uoProjects.Pages
+@page "/admin-home"
+@page "/admin-home/{Tab}"
+@page "/admin-home/{Tab}/{ItemId}"
+
+<PageTitle>@AdminShell.TitleOf(current) · Admin · uoProjects</PageTitle>
+
+<RoleGate Role="admin" Context="user">
+    <AdminShell Current="@current" BasePath="/admin-home" ItemId="@ItemId" UserName="@user.Name" Data="data" Error="@error"
+                Actions="actions" OnRetry="ReloadAsync" OnProjectsChanged="InvalidateDashboard" OnSignOut="SignOutAsync" />
+</RoleGate>

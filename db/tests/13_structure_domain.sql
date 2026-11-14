@@ -65,7 +65,7 @@ select fk_ok('public', 'student_saved_projects', 'project_id', 'public', 'projec
 
 -- types, indexes, functions and triggers
 select enum_has_labels('public', 'project_status', array['available', 'unavailable', 'archived'], 'project_status has exactly its three values');
-select enum_has_labels('public', 'inquiry_status', array['pending', 'viewed', 'responded', 'closed'], 'inquiry_status has exactly its four values');
+select enum_has_labels('public', 'inquiry_status', array['sent', 'matched', 'closed'], 'inquiry_status has exactly its three values');
 select index_is_unique('public', 'topics', 'topics_name_lower_key', 'topic names are unique ignoring case');
 select is_definer('public', 'get_or_create_topic', 'get_or_create_topic() is SECURITY DEFINER');
 select function_privs_are('public', 'get_or_create_topic', array['text'], 'authenticated', array['EXECUTE'], 'signed-in users can call get_or_create_topic()');

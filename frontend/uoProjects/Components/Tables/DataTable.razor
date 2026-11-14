@@ -1,0 +1,58 @@
+@namespace uoProjects.Components
+@typeparam TItem
+@attribute [CascadingTypeParameter(nameof(TItem))]
+
+<CascadingValue Value="this" IsFixed="true">@ChildContent</CascadingValue>
+
+@if (!Items.Any())
+{
+    <EmptyState Title="@Empty" />
+}
+else
+{
+    <div class="overflow-x-auto">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    @foreach (var column in columns)
+                    {
+                        var active = column == sortColumn;
+                        <th scope="col" class="@column.Class" aria-sort="@(active ? (descending ? "descending" : "ascending") : null)">
+                            @if (column.SortBy is null)
+                            {
+                                @column.Title
+                            }
+                            else
+                            {
+                                <button type="button" class="th-sort" data-active="@(active ? "" : null)" @onclick="() => SortOn(column)">
+                                    @column.Title
+                                    <Icon Name="@(active ? (descending ? "chevron-down" : "chevron-up") : "chevrons-up-down")" Class="size-3.5" StrokeWidth="2.5" />
+                                </button>
+                            }
+                        </th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in VisibleItems())
+                {
+                    <tr>
+                        @foreach (var column in columns)
+                        {
+                            <td class="@column.Class">@column.ChildContent(item)</td>
+                        }
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@if (PageCount > 1)
+{
+    <nav class="flex flex-wrap items-center justify-end gap-2 px-4 py-2" aria-label="@($"{ExportName} pages")">
+        <span role="status">@(pageIndex * PageSize + 1)–@Math.Min((pageIndex + 1) * PageSize, ItemCount) of @ItemCount</span>
+        <MudButton Disabled="@(pageIndex == 0)" OnClick="() => pageIndex--">Previous</MudButton>
+        <MudButton Disabled="@(pageIndex + 1 >= PageCount)" OnClick="() => pageIndex++">Next</MudButton>
+    </nav>
+}

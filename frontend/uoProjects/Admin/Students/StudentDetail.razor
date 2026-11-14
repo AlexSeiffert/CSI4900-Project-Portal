@@ -1,0 +1,69 @@
+@namespace uoProjects.Admin
+@if (student is null)
+{
+    <BackLink Href="@($"{BasePath}/students")" Label="All students" />
+    @if (!loaded)
+    {
+        <LoadingState Layout="LoadingState.SkeletonLayout.Detail" Message="Loading details…" />
+    }
+    else if (Data.Student(Id) is not null)
+    {
+        <ErrorState Message="Could not load the student." OnRetry="LoadAsync" />
+    }
+    else
+    {
+        <p role="status">This student no longer exists.</p>
+    }
+}
+else
+{
+    var inquiries = Data.InquiriesFrom(student.UserId).ToList();
+    <RecordHeader Title="@student.DisplayName" BackHref="@($"{BasePath}/students")" BackLabel="All students">
+        <StatusPill Status="@Display.Stage(Data.FurthestStage(student.UserId))" />
+        <span class="inline-flex items-center gap-1.5"><Icon Name="send" />@inquiries.Count @(inquiries.Count == 1 ? "inquiry" : "inquiries")</span>
+        <span class="inline-flex items-center gap-1.5"><Icon Name="bookmark" />@(savedProjects is null ? "Saves unavailable" : $"{savedProjects.Count} saved")</span>
+    </RecordHeader>
+
+    <div class="mt-8 grid items-start gap-4 lg:grid-cols-[2fr_3fr]">
+        <form class="card space-y-5" @onsubmit="SaveAsync" @onsubmit:preventDefault>
+            <h2 class="text-lg font-semibold">Profile</h2>
+            <FormField Label="Name">
+                <input class="field" @bind="displayName" required />
+            </FormField>
+            <FormField Label="Interested in" Group>
+                <TopicPicker Topics="Data.Topics" Selected="topics" Label="Interested in" Disabled="!Actions.CanSave" OnChange="() => saved = false" />
+            </FormField>
+            <SaveBar Busy="busy" Saved="saved" Error="@error" />
+        </form>
+
+        <div class="grid gap-4">
+            <Panel Title="Inquiries" Flush>
+                <InquiryTable Inquiries="inquiries" Data="Data" BasePath="@BasePath" ShowStudent="false" Empty="Hasn't sent an inquiry yet." />
+            </Panel>
+            <Panel Title="Saved projects" Flush>
+                @if (savedProjects is null)
+                {
+                    <ErrorState Message="Could not load saved projects." />
+                }
+                else
+                {
+                <DataTable Items="savedProjects" PageSize="10" ExportName="saved-projects" SortedBy="Project" Empty="@(Actions.CanSave ? "Nothing saved." : "Not available in the preview.")">
+                    <DataColumn Title="Project" SortBy="p => p.Title" Class="max-w-80 truncate">
+                        <a class="hover:text-focus hover:underline" href="@($"{BasePath}/projects/{context.Id}")" title="@context.Title">@context.Title</a>
+                    </DataColumn>
+                    <DataColumn Title="Inquired" SortBy="p => inquiries.Any(i => i.ProjectId == p.Id)">
+                        @if (inquiries.Any(i => i.ProjectId == context.Id))
+                        {
+                            <span class="inline-flex items-center gap-1.5"><Icon Name="check" Class="size-4 text-text-secondary" />Yes</span>
+                        }
+                        else
+                        {
+                            <span class="text-text-secondary">Not yet</span>
+                        }
+                    </DataColumn>
+                </DataTable>
+                }
+            </Panel>
+        </div>
+    </div>
+}

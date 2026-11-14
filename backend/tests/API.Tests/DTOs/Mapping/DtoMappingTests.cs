@@ -136,7 +136,7 @@ public class DtoMappingTests
             SupervisorId = Guid.NewGuid(),
             ProjectId = Guid.NewGuid(),
             Message = "Interested in this project",
-            Status = InquiryStatus.Responded,
+            Status = InquiryStatus.Matched,
             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc),
             UpdatedAt = new DateTime(2025, 2, 1, 0, 0, 0, DateTimeKind.Utc)
         };
@@ -148,7 +148,7 @@ public class DtoMappingTests
         Assert.Equal(model.SupervisorId, result.SupervisorId);
         Assert.Equal(model.ProjectId, result.ProjectId);
         Assert.Equal(model.Message, result.Message);
-        Assert.Equal(InquiryStatus.Responded, result.Status);
+        Assert.Equal(InquiryStatus.Matched, result.Status);
         Assert.Equal(model.CreatedAt, result.CreatedAt);
         Assert.Equal(model.UpdatedAt, result.UpdatedAt);
     }

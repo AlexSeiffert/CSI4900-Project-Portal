@@ -12,7 +12,7 @@ public class Inquiry
 
     public string? Message { get; set; }
 
-    public InquiryStatus Status { get; set; } = InquiryStatus.Pending;
+    public InquiryStatus Status { get; set; } = InquiryStatus.Sent;
 
     public DateTime CreatedAt { get; set; }
 

@@ -1,0 +1,16 @@
+@namespace uoProjects.Pages
+@page "/admin-preview"
+@page "/admin-preview/{Tab}"
+@page "/admin-preview/{Tab}/{ItemId}"
+@using Microsoft.AspNetCore.Components.WebAssembly.Hosting
+
+@if (Env.IsDevelopment())
+{
+    <PageTitle>@AdminShell.TitleOf(current) · Admin preview · uoProjects</PageTitle>
+    <AdminShell Current="@current" BasePath="/admin-preview" ItemId="@ItemId" UserName="Sample data" Data="data"
+                Actions="actions" OnSignOut="@(() => Nav.NavigateTo("/login"))" />
+}
+else
+{
+    <NotFound />
+}
