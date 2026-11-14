@@ -16,7 +16,10 @@ public class ApiExceptionHandlerTests
     private readonly Mock<IProblemDetailsService> _problems = new();
     private readonly Mock<ILogger<ApiExceptionHandler>> _logger = new();
 
-    private ApiExceptionHandler CreateHandler() => new(_problems.Object, _logger.Object);
+    private ApiExceptionHandler CreateHandler()
+    {
+        return new(_problems.Object, _logger.Object);
+    }
 
     public static IEnumerable<object[]> DirectFailures()
     {

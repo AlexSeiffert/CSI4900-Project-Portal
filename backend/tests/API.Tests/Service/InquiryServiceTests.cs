@@ -11,7 +11,10 @@ public class InquiryServiceTests
 {
     private readonly Mock<IInquiryRepository> _repository = new();
 
-    private InquiryService CreateService() => new(_repository.Object);
+    private InquiryService CreateService()
+    {
+        return new(_repository.Object);
+    }
 
     [Fact]
     public async Task GetInquiries_ReturnsMatchingInquiryDtos()

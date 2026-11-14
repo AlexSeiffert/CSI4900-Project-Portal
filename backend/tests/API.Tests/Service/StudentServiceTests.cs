@@ -11,7 +11,10 @@ public class StudentServiceTests
 {
     private readonly Mock<IStudentRepository> _repository = new();
 
-    private StudentService CreateService() => new(_repository.Object);
+    private StudentService CreateService()
+    {
+        return new(_repository.Object);
+    }
 
     [Fact]
     public async Task GetStudents_MapsProfilesAndTopics()

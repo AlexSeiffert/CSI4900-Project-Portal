@@ -11,7 +11,10 @@ public class SupervisorServiceTests
 {
     private readonly Mock<ISupervisorRepository> _repository = new();
 
-    private SupervisorService CreateService() => new(_repository.Object);
+    private SupervisorService CreateService()
+    {
+        return new(_repository.Object);
+    }
 
     [Fact]
     public async Task GetSupervisors_MapsProfilesAndTopics()
