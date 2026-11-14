@@ -156,5 +156,3 @@ public sealed class AuthSession(HttpClient http, IConfiguration config, IJSRunti
         return JsonSerializer.Deserialize<JsonElement>(Encoding.UTF8.GetString(Convert.FromBase64String(payload)));
     }
 }
-
-public sealed record SignedInUser(Guid Id, string Email, string Role, string Name, string AccessToken, DateTimeOffset ExpiresAt);

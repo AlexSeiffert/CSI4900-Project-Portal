@@ -3,8 +3,6 @@ using API.Models;
 
 namespace API.DTOs.Request;
 
-public enum ProjectSort { Project, Supervisor, Status, Inquiries, Saves, Updated }
-
 public sealed class ProjectPageQuery
 {
     [Range(1, int.MaxValue / 100)]

@@ -37,10 +37,3 @@ public class ServiceException(string operation, string message, Exception? inner
         return new ServiceException(operation, message) { StatusCode = status, Problem = problem };
     }
 }
-
-public sealed class ApiProblem
-{
-    public string? Detail { get; init; }
-    public string? TraceId { get; init; }
-    public Dictionary<string, string[]> Errors { get; init; } = [];
-}
