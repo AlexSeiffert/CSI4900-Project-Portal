@@ -49,7 +49,6 @@ internal static class DtoMapping
         {
             UserId = x.UserId,
             DisplayName = x.DisplayName,
-            Program = x.Program,
             UpdatedAt = x.UpdatedAt
         };
     }

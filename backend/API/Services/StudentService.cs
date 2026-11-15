@@ -28,7 +28,6 @@ public class StudentService(IStudentRepository repository) : IStudentService
         var profile = await _repository.GetStudentById(userId, cancellationToken)
             ?? throw ServiceException.NotFound(nameof(UpdateStudent), $"Student '{userId}' was not found.");
         profile.DisplayName = request.DisplayName;
-        profile.Program = request.Program;
         return (await _repository.UpdateStudent(profile, request.TopicIds, cancellationToken)).ToDtoWithRelations();
     }
 }

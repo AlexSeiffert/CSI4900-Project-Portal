@@ -184,7 +184,6 @@ public class DtoMappingTests
         {
             UserId = Guid.NewGuid(),
             DisplayName = "Student",
-            Program = "Computer Science",
             UpdatedAt = new DateTime(2025, 2, 1, 0, 0, 0, DateTimeKind.Utc),
             TopicInterests = [topic]
         };
@@ -193,7 +192,6 @@ public class DtoMappingTests
 
         Assert.Equal(model.UserId, result.UserId);
         Assert.Equal(model.DisplayName, result.DisplayName);
-        Assert.Equal(model.Program, result.Program);
         Assert.Equal(model.UpdatedAt, result.UpdatedAt);
         var mappedTopic = Assert.Single(result.TopicInterests!);
         Assert.Equal(topic.Id, mappedTopic.Id);

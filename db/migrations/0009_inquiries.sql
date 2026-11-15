@@ -8,7 +8,7 @@
 -- | student_id    | uuid           | FK -> student_profiles(user_id)                        |
 -- | supervisor_id | uuid           | FK -> supervisor_profiles(user_id)                     |
 -- | project_id    | uuid           | optional (null = a general inquiry); FK -> projects     |
--- | status        | inquiry_status | pending / viewed / responded / closed                  |
+-- | status        | inquiry_status | sent / matched / closed                                |
 -- | message       | text           | optional                                               |
 -- | created_at    | timestamptz    |                                                        |
 -- | updated_at    | timestamptz    | kept current by set_updated_at()                       |
@@ -16,17 +16,17 @@
 -- If the project is later deleted, the inquiry stays and project_id becomes null.
 --
 -- Only the student and the supervisor involved can see an inquiry. A student creates one
--- (always starting as pending, and only for a project that belongs to that supervisor).
+-- (always starting as sent, and only for a project that belongs to that supervisor).
 -- After that only the status can change, and either party can change it.
 
-create type public.inquiry_status as enum ('pending', 'viewed', 'responded', 'closed');
+create type public.inquiry_status as enum ('sent', 'matched', 'closed');
 
 create table public.inquiries (
   id uuid primary key default gen_random_uuid(),
   student_id uuid not null references public.student_profiles (user_id) on delete cascade,
   supervisor_id uuid not null references public.supervisor_profiles (user_id) on delete cascade,
   project_id uuid references public.projects (id) on delete set null,
-  status public.inquiry_status not null default 'pending',
+  status public.inquiry_status not null default 'sent',
   message text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
@@ -80,7 +80,7 @@ create policy inquiries_insert_own
   to authenticated
   with check (
     student_id = auth.uid()
-    and status = 'pending'
+    and status = 'sent'
     and (
       inquiries.project_id is null
       or exists (
