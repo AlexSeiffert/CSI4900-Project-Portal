@@ -67,31 +67,31 @@ internal static class DevelopmentData
             new Student
             {
                 UserId = Guid.Parse("22222222-2222-2222-2222-222222222222"),
-                DisplayName = "Alex Morgan", Program = "Computer Science",
+                DisplayName = "Alex Morgan",
                 TopicInterests = [topics[0], topics[4]]
             },
             new Student
             {
                 UserId = Guid.Parse("22222222-2222-2222-2222-222222222223"),
-                DisplayName = "Maya Singh", Program = "Computer Science — Data Science",
+                DisplayName = "Maya Singh",
                 TopicInterests = [topics[1], topics[2]]
             },
             new Student
             {
                 UserId = Guid.Parse("22222222-2222-2222-2222-222222222224"),
-                DisplayName = "Liam Brooks", Program = "Software Engineering",
+                DisplayName = "Liam Brooks",
                 TopicInterests = [topics[3], topics[6]]
             },
             new Student
             {
                 UserId = Guid.Parse("22222222-2222-2222-2222-222222222225"),
                 DisplayName = "Sofia Garcia"
-                // Null program and empty interests, inquiries, and saved projects.
+                // Empty interests, inquiries, and saved projects.
             },
             new Student
             {
                 UserId = Guid.Parse("22222222-2222-2222-2222-222222222226"),
-                DisplayName = "Oliver Martin", Program = "Computer Science",
+                DisplayName = "Oliver Martin",
                 TopicInterests = [topics[5], topics[7]]
             }
         };

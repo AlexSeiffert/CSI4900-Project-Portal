@@ -16,7 +16,7 @@ set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000a1","r
 insert into public.inquiries (id, student_id, supervisor_id) values ('00000000-0000-0000-0000-0000000000e1', '00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000b1');
 insert into public.inquiries (id, student_id, supervisor_id, project_id) values ('00000000-0000-0000-0000-0000000000e2', '00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000b1', '00000000-0000-0000-0000-0000000000d1');
 select throws_ok($$ insert into public.inquiries (student_id, supervisor_id, project_id) values ('00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000b1', '00000000-0000-0000-0000-0000000000d2') $$, '42501', null, 'an inquiry about another supervisor''s project is rejected');
-select throws_ok($$ insert into public.inquiries (student_id, supervisor_id, status) values ('00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000b1', 'closed') $$, '42501', null, 'an inquiry cannot start as anything but sent');
+select throws_ok($$ insert into public.inquiries (student_id, supervisor_id, status) values ('00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000b1', 'matched') $$, '42501', null, 'an inquiry cannot start as anything but sent');
 select throws_ok($$ insert into public.inquiries (student_id, supervisor_id) values ('00000000-0000-0000-0000-0000000000a2', '00000000-0000-0000-0000-0000000000b1') $$, '42501', null, 'an inquiry on behalf of another student is rejected');
 select throws_ok($$ insert into public.inquiries (student_id, supervisor_id) values ('00000000-0000-0000-0000-0000000000a1', gen_random_uuid()) $$, '23503', null, 'an inquiry to a supervisor that does not exist is rejected');
 reset role;
@@ -76,19 +76,19 @@ reset role;
 update public.inquiries set updated_at = now() - interval '1 day' where id = '00000000-0000-0000-0000-0000000000e1';
 set local role authenticated;
 set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000b1","role":"authenticated"}';
-update public.inquiries set status = 'closed' where id = '00000000-0000-0000-0000-0000000000e1';
+update public.inquiries set status = 'matched' where id = '00000000-0000-0000-0000-0000000000e1';
 reset role;
 select is((select updated_at > now() - interval '1 hour' from public.inquiries where id = '00000000-0000-0000-0000-0000000000e1'), true, 'changing the status refreshes updated_at');
 set local role authenticated;
 set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000a2","role":"authenticated"}';
 update public.inquiries set status = 'sent' where id = '00000000-0000-0000-0000-0000000000e1';
 reset role;
-select is((select status::text from public.inquiries where id = '00000000-0000-0000-0000-0000000000e1'), 'closed', 'an uninvolved student cannot change an inquiry');
+select is((select status::text from public.inquiries where id = '00000000-0000-0000-0000-0000000000e1'), 'matched', 'an uninvolved student cannot change an inquiry');
 set local role authenticated;
 set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000b2","role":"authenticated"}';
 update public.inquiries set status = 'sent' where id = '00000000-0000-0000-0000-0000000000e1';
 reset role;
-select is((select status::text from public.inquiries where id = '00000000-0000-0000-0000-0000000000e1'), 'closed', 'an uninvolved supervisor cannot change an inquiry');
+select is((select status::text from public.inquiries where id = '00000000-0000-0000-0000-0000000000e1'), 'matched', 'an uninvolved supervisor cannot change an inquiry');
 
 -- deleting
 set local role authenticated;

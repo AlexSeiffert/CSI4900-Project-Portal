@@ -11,7 +11,7 @@ internal sealed class RepositoryTestContext : IAsyncDisposable
     public ApplicationDbContext Db => DbMock.Object;
     public Topic Topic { get; } = new() { Id = Guid.NewGuid(), Name = "Zoology" };
     public Topic OtherTopic { get; } = new() { Id = Guid.NewGuid(), Name = "Algorithms" };
-    public Student Student { get; } = new() { UserId = Guid.NewGuid(), DisplayName = "Zoe", Program = "CS" };
+    public Student Student { get; } = new() { UserId = Guid.NewGuid(), DisplayName = "Zoe" };
     public Student OtherStudent { get; } = new() { UserId = Guid.NewGuid(), DisplayName = "Alex" };
     public Supervisor Supervisor { get; } = new() { UserId = Guid.NewGuid(), DisplayName = "Zoe", ContactEmail = "zoe@example.test" };
     public Supervisor OtherSupervisor { get; } = new() { UserId = Guid.NewGuid(), DisplayName = "Alex", ContactEmail = "alex@example.test" };

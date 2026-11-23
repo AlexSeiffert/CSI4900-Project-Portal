@@ -6,7 +6,6 @@
 -- | ------------------- | ------------------- | ----------- | --------------------------------------- |
 -- | student_profiles    | user_id             | uuid        | PK, FK -> public.users(id)              |
 -- |                     | display_name        | text        | starts as the part of the email before @ |
--- |                     | program             | text        | optional                                |
 -- | supervisor_profiles | user_id             | uuid        | PK, FK -> public.users(id)              |
 -- |                     | display_name        | text        | starts as the part of the email before @ |
 -- |                     | contact_email       | text        | starts as the login email               |
@@ -36,7 +35,6 @@ $$;
 create table public.student_profiles (
   user_id uuid primary key references public.users (id) on delete cascade,
   display_name text not null,
-  program text,
   updated_at timestamptz not null default now()
 );
 

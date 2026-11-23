@@ -79,7 +79,7 @@ To call an endpoint, click it, click **Try it out**, fill in the fields and clic
 | Marcus | `PUT /supervisors/<Marcus's id>` with your profile fields | **200** |
 | Alex | `GET /students`, `GET /students/<Alex's id>` | just yourself |
 | Alex | `GET /inquiries`, `GET /inquiries/<one of Alex's inquiry ids>` | your inquiries only |
-| Alex | `POST /inquiries` (body below) | **201**, status `pending` |
+| Alex | `POST /inquiries` (body below) | **201**, status `sent` |
 | Alex | `PUT /students/<Alex's id>/saved-projects/<any project id>` | **204**, then it shows in `GET .../saved-projects` |
 | Sam | `GET /students`, `GET /inquiries` | everything |
 
@@ -194,8 +194,6 @@ They use the fake database, need no `.env`, and run on every pull request. Datab
 ## Browser client
 
 The Blazor WebAssembly app sends Supabase bearer tokens to the API. Set `Cors__AllowedOrigins__0` (and subsequent indexed entries if needed) to the exact deployed frontend origins. The development configuration allows port 5270 on localhost and 127.0.0.1.
-
-Apply `db/migrations/0012_inquiry_outcomes.sql` before deploying the corresponding API and frontend. Existing pending, viewed, and responded inquiries become sent. Closed inquiries retain their status. Migration `0013_default_topic_tags.sql` supplies the admin topic picker with the feature branch’s standard tags and preserves existing topics and links.
 
 The admin project UI can assign or change a project’s supervisor through the existing project write endpoints. The admin dashboard uses `GET /api/v1/saved-projects/counts` for aggregate saves by project.
 

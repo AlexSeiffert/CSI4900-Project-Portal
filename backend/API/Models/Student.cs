@@ -6,7 +6,6 @@ public class Student
 
     public string DisplayName { get; set; } = string.Empty;
 
-    public string? Program { get; set; }
 
     public DateTime UpdatedAt { get; set; }
 

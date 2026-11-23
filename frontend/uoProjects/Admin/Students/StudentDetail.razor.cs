@@ -54,7 +54,7 @@ public partial class StudentDetail
     {
         busy = true;
         saved = false;
-        var body = new UpdateStudent(displayName.Trim(), [.. topics], student!.Program);
+        var body = new UpdateStudent(displayName.Trim(), [.. topics]);
         error = await Actions.SaveAsync(() => Students.UpdateAsync(Id, body));
         saved = error is null;
         busy = false;

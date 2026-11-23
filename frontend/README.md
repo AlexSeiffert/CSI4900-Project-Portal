@@ -21,7 +21,7 @@ The admin Projects list loads 25 projects at a time. Search, filters, and sortin
 
 ## Local development
 
-Open the repository root in VS Code. In Run and Debug, select **uoProjects API** and press **F5** to start the API debugger and open Swagger. Then select **uoProjects Frontend** and press **F5** to start the WASM app at `http://localhost:5270`.
+Open the repository root in VS Code, select **uoProjects (Full Stack)** in Run and Debug, and press **F5**. It starts the API, the frontend at `http://localhost:5270`, and the Tailwind watcher. **uoProjects Frontend** and **uoProjects CSS** run those parts alone, and **uoProjects API (Debugger)** runs the API under the debugger and opens Swagger.
 
 From a terminal:
 

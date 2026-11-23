@@ -5,7 +5,7 @@ select plan(73);
 
 -- tables, columns and policies
 select has_table('public', 'student_profiles', 'public.student_profiles exists');
-select columns_are('public', 'student_profiles', array['user_id', 'display_name', 'program', 'updated_at'], 'public.student_profiles has exactly its expected columns');
+select columns_are('public', 'student_profiles', array['user_id', 'display_name', 'updated_at'], 'public.student_profiles has exactly its expected columns');
 select policies_are('public', 'student_profiles', array['student_profiles_admin_full_access', 'student_profiles_select_inquiring', 'student_profiles_select_own', 'student_profiles_update_own'], 'public.student_profiles has exactly its expected policies');
 select has_table('public', 'supervisor_profiles', 'public.supervisor_profiles exists');
 select columns_are('public', 'supervisor_profiles', array['user_id', 'display_name', 'contact_email', 'external_url', 'about_me', 'accepting_inquiries', 'updated_at'], 'public.supervisor_profiles has exactly its expected columns');
