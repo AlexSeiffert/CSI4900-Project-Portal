@@ -8,7 +8,9 @@ public static class Display
     {
         return status switch
         {
+            InquiryStatus.Draft => ("Draft", "var(--color-chart-neutral)"),
             InquiryStatus.Sent => ("Sent", "var(--color-stage-1)"),
+            InquiryStatus.Offered => ("Offered", "var(--color-stage-1)"),
             InquiryStatus.Matched => ("Matched", "var(--color-stage-4)"),
             _ => ("Closed, no match", "var(--color-muted)"),
         };
@@ -19,7 +21,9 @@ public static class Display
         return furthest switch
         {
             null => ("No inquiries", "var(--color-chart-neutral)"),
+            InquiryStatus.Draft => ("Draft", "var(--color-chart-neutral)"),
             InquiryStatus.Sent => ("Sent", "var(--color-stage-1)"),
+            InquiryStatus.Offered => ("Offered", "var(--color-stage-1)"),
             InquiryStatus.Matched => ("Matched", "var(--color-stage-4)"),
             _ => ("Closed, no match", "var(--color-muted)"),
         };

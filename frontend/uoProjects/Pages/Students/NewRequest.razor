@@ -1,0 +1,71 @@
+@namespace uoProjects.Pages
+@page "/student-home/requests/new"
+@inject ProjectsService Projects
+@inject InquiriesService Inquiries
+@inject NavigationManager Nav
+
+<PageTitle>New request · uoProjects</PageTitle>
+
+<RoleGate Role="student" Context="user">
+    <SiteShell Current="home">
+        <BackLink Href="student-home" Label="My requests" />
+        <PageHeader Title="New request" Description="Pick a project and write to its supervisor. You can add friends and files next." />
+        <form class="card mt-8 max-w-2xl space-y-5" @onsubmit="CreateAsync" @onsubmit:preventDefault>
+            <FormField Label="Project">
+                <select class="field" @bind="projectId" @bind:after="LoadSelectedAsync" required>
+                    <option value="">Choose a project</option>
+                    @foreach (var project in projects)
+                    {
+                        <option value="@project.Id">@project.Title</option>
+                    }
+                </select>
+            </FormField>
+            @if (selected?.Supervisor is { } supervisor)
+            {
+                <p class="text-sm text-text-secondary">To: @supervisor.DisplayName &lt;@supervisor.ContactEmail&gt;</p>
+            }
+            <FormField Label="Message">
+                <textarea class="field min-h-40" maxlength="@Inquiry.MessageMaxLength" @bind="message" @bind:event="oninput"></textarea>
+            </FormField>
+            <p class="text-xs text-text-faint">@message.Length / @Inquiry.MessageMaxLength characters</p>
+            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" DropShadow="false" Class="btn" Disabled="@(busy || projectId is null)">Create draft</MudButton>
+        </form>
+    </SiteShell>
+</RoleGate>
+
+@code {
+    [SupplyParameterFromQuery] public Guid? ProjectId { get; set; }
+
+    private List<Project> projects = [];
+    private Guid? projectId;
+    private Project? selected;
+    private string message = "";
+    private bool busy;
+
+    protected override async Task OnInitializedAsync()
+    {
+        projects = (await Projects.GetProjectsAsync() ?? []).Where(p => p.Status == ProjectStatus.Available).OrderBy(p => p.Title).ToList();
+        projectId = ProjectId;
+        await LoadSelectedAsync();
+    }
+
+    private async Task LoadSelectedAsync()
+    {
+        selected = projectId is { } id ? await Projects.GetProjectAsync(id) : null;
+    }
+
+    private async Task CreateAsync()
+    {
+        if (projectId is not { } id)
+        {
+            return;
+        }
+        busy = true;
+        var created = await Inquiries.CreateAsync(id, message);
+        busy = false;
+        if (created is not null)
+        {
+            Nav.NavigateTo($"student-home/requests/{created.Id}");
+        }
+    }
+}

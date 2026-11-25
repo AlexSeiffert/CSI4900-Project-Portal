@@ -1,0 +1,224 @@
+@namespace uoProjects.Inquiries
+@inject InquiriesService Inquiries
+@inject NotificationService Notifications
+@inject NavigationManager Nav
+@inject IDialogService Dialogs
+
+@if (inquiry is null)
+{
+    @if (loaded)
+    {
+        <ErrorState Message="This request doesn't exist or you're no longer on it." OnRetry="LoadAsync" />
+    }
+    else
+    {
+        <LoadingState Layout="LoadingState.SkeletonLayout.Detail" Message="Loading the request…" />
+    }
+}
+else
+{
+    <RecordHeader Title="@(inquiry.Project?.Title ?? "General inquiry")" BackHref="student-home" BackLabel="My requests">
+        <StatusPill Status="@Display.Inquiry(inquiry.Status)" />
+        @if (inquiry.Supervisor is { } supervisor)
+        {
+            <span>To @supervisor.DisplayName &lt;@supervisor.ContactEmail&gt;</span>
+        }
+    </RecordHeader>
+
+    <div class="mt-8 grid grid-cols-[minmax(0,1fr)] items-start gap-4 lg:grid-cols-[3fr_2fr]">
+        <div class="space-y-4">
+            <Panel Title="Message">
+                <p class="whitespace-pre-wrap text-text-secondary">@(inquiry.Message ?? "No message.")</p>
+            </Panel>
+
+            <Panel Title="Students" Description="@($"Up to {Inquiry.MaxMembers}, you included.")">
+                @if (CanEditMembers)
+                {
+                    <MemberList Members="Members" CreatorId="inquiry.StudentId" OnRemove="RemoveAsync" />
+                }
+                else
+                {
+                    <MemberList Members="Members" CreatorId="inquiry.StudentId" ShowResponses="@(inquiry.Status is InquiryStatus.Offered or InquiryStatus.Matched)" />
+                }
+                @if (CanEditMembers && Members.Count < Inquiry.MaxMembers)
+                {
+                    <form class="mt-4 flex flex-wrap items-end gap-3" @onsubmit="AddAsync" @onsubmit:preventDefault>
+                        <FormField Label="Friend's email" Class="min-w-60 flex-1">
+                            <input class="field" type="email" autocomplete="off" @bind="friendEmail" @bind:event="oninput" required />
+                        </FormField>
+                        <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Outlined" DropShadow="false" Class="btn btn-secondary btn-sm" Disabled="busy">Add</MudButton>
+                    </form>
+                }
+                @if (!IsCreator && inquiry.Status is InquiryStatus.Draft or InquiryStatus.Sent)
+                {
+                    <MudButton Variant="Variant.Outlined" DropShadow="false" Class="btn btn-secondary btn-sm mt-4" OnClick="LeaveAsync" Disabled="busy">Leave this request</MudButton>
+                }
+            </Panel>
+        </div>
+
+        <div class="space-y-4">
+            @if (inquiry.Status == InquiryStatus.Draft)
+            {
+                <Panel Title="Send" Description="Opens Outlook with the supervisor, your friends in CC, and a link to this request.">
+                    @if (asking)
+                    {
+                        <p class="mb-3 font-semibold">Did you send it?</p>
+                        <div class="flex gap-3">
+                            <MudButton Variant="Variant.Filled" DropShadow="false" Class="btn btn-sm" OnClick="MarkSentAsync" Disabled="busy">Yes, I sent it</MudButton>
+                            <MudButton Variant="Variant.Outlined" DropShadow="false" Class="btn btn-secondary btn-sm" OnClick="() => asking = false">No</MudButton>
+                        </div>
+                    }
+                    else
+                    {
+                        <a class="btn" href="@OutlookLink.Build(inquiry, User.Id, Nav.BaseUri)" target="_blank" rel="noopener" @onclick="() => asking = true">Send with Outlook</a>
+                    }
+                </Panel>
+            }
+            @if (inquiry.Status == InquiryStatus.Offered && Mine?.Response == InquiryResponse.Pending)
+            {
+                <Panel Title="You have an offer" Description="Accept to join the project. Declining removes you from this request.">
+                    <div class="flex gap-3">
+                        <MudButton Variant="Variant.Filled" DropShadow="false" Class="btn btn-sm" OnClick="AcceptAsync" Disabled="busy">Accept</MudButton>
+                        <MudButton Variant="Variant.Outlined" DropShadow="false" Class="btn btn-secondary btn-sm" OnClick="DeclineAsync" Disabled="busy">Decline</MudButton>
+                    </div>
+                </Panel>
+            }
+
+            <Panel Title="Files" Description="Each student adds their own résumé and transcript (PDF, 2 MB max).">
+                <AttachmentList InquiryId="inquiry.Id" Attachments="@(inquiry.Attachments ?? [])" Members="Members" />
+                @if (Mine is not null && inquiry.Status != InquiryStatus.Closed)
+                {
+                    <div class="mt-4 space-y-3">
+                        @foreach (var kind in Enum.GetValues<AttachmentKind>())
+                        {
+                            <FormField Label="@($"Upload your {(kind == AttachmentKind.Resume ? "résumé" : "transcript")}")">
+                                <InputFile class="mt-2 block text-sm" accept="application/pdf" disabled="@busy" OnChange="e => UploadAsync(kind, e)" />
+                            </FormField>
+                        }
+                    </div>
+                }
+            </Panel>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public Guid InquiryId { get; set; }
+    [Parameter, EditorRequired] public SignedInUser User { get; set; } = default!;
+
+    private Inquiry? inquiry;
+    private bool loaded;
+    private bool busy;
+    private bool asking;
+    private string friendEmail = "";
+
+    private IReadOnlyList<InquiryMember> Members => inquiry?.Members ?? [];
+    private InquiryMember? Mine => Members.FirstOrDefault(m => m.StudentId == User.Id);
+    private bool IsCreator => inquiry?.StudentId == User.Id;
+    private bool CanEditMembers => IsCreator && inquiry?.Status == InquiryStatus.Draft;
+
+    protected override Task OnParametersSetAsync() => LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        inquiry = await Inquiries.GetAsync(InquiryId);
+        loaded = true;
+    }
+
+    private async Task Run(Func<Task> action)
+    {
+        busy = true;
+        try
+        {
+            await action();
+        }
+        finally
+        {
+            busy = false;
+        }
+    }
+
+    private Task AddAsync() => Run(async () =>
+    {
+        if (await Inquiries.AddMemberAsync(InquiryId, friendEmail.Trim()) is { } updated)
+        {
+            inquiry = updated;
+            friendEmail = "";
+        }
+    });
+
+    private Task RemoveAsync(InquiryMember member) => Run(async () =>
+    {
+        if (await Inquiries.RemoveMemberAsync(InquiryId, member.StudentId))
+        {
+            await LoadAsync();
+        }
+    });
+
+    private Task LeaveAsync() => Run(async () =>
+    {
+        if (await Inquiries.RemoveMemberAsync(InquiryId, User.Id))
+        {
+            Nav.NavigateTo("student-home");
+        }
+    });
+
+    private Task MarkSentAsync() => Run(async () =>
+    {
+        if (await Inquiries.MarkSentAsync(InquiryId) is { } updated)
+        {
+            inquiry = updated;
+            asking = false;
+        }
+    });
+
+    private Task UploadAsync(AttachmentKind kind, InputFileChangeEventArgs e) => Run(async () =>
+    {
+        if (await Inquiries.UploadAsync(InquiryId, kind, e.File, Notifications) is not null)
+        {
+            await LoadAsync();
+        }
+    });
+
+    private async Task AcceptAsync()
+    {
+        var others = (await Inquiries.ListForStudentAsync(User.Id) ?? [])
+            .Where(i => i.Id != InquiryId && i.Status == InquiryStatus.Offered
+                && i.Members?.Any(m => m.StudentId == User.Id && m.Response == InquiryResponse.Pending) == true)
+            .ToList();
+        if (others.Count > 0)
+        {
+            var confirmed = await Dialogs.ShowMessageBoxAsync("Accept this offer?",
+                $"You have {others.Count} other open offer{(others.Count == 1 ? "" : "s")}. Accepting this one removes you from {(others.Count == 1 ? "it" : "them")}.",
+                yesText: "Accept", cancelText: "Cancel");
+            if (confirmed != true)
+            {
+                return;
+            }
+        }
+        await Run(async () =>
+        {
+            if (await Inquiries.RespondAsync(InquiryId, true) is not null)
+            {
+                await LoadAsync();
+            }
+        });
+    }
+
+    private async Task DeclineAsync()
+    {
+        var confirmed = await Dialogs.ShowMessageBoxAsync("Decline this offer?", "You'll be removed from this request.",
+            yesText: "Decline", cancelText: "Cancel");
+        if (confirmed != true)
+        {
+            return;
+        }
+        await Run(async () =>
+        {
+            if (await Inquiries.RespondAsync(InquiryId, false) is not null)
+            {
+                Nav.NavigateTo("student-home");
+            }
+        });
+    }
+}

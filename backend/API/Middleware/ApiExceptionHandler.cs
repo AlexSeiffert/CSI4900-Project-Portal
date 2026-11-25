@@ -93,6 +93,12 @@ public class ApiExceptionHandler(IProblemDetailsService problems, ILogger<ApiExc
                 Title = "The operation was cancelled",
                 Detail = "The request was cancelled before it could complete."
             },
+            ErrorType.Unavailable => new ProblemDetails
+            {
+                Status = StatusCodes.Status503ServiceUnavailable,
+                Title = "Service unavailable",
+                Detail = exception.Message
+            },
             ErrorType.Conflict => new ProblemDetails
             {
                 Status = StatusCodes.Status409Conflict,

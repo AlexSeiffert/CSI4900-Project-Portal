@@ -33,6 +33,9 @@ public class RepositoryException : Exception
             // Points at something that does not exist (for example an unknown supervisor id): 400.
             PostgresException { SqlState: PostgresErrorCodes.ForeignKeyViolation }
                 or DbUpdateException { InnerException: PostgresException { SqlState: PostgresErrorCodes.ForeignKeyViolation } } => ErrorType.Validation,
+            // A CHECK rule in the database refused the value (for example a fourth inquiry member): 400.
+            PostgresException { SqlState: PostgresErrorCodes.CheckViolation }
+                or DbUpdateException { InnerException: PostgresException { SqlState: PostgresErrorCodes.CheckViolation } } => ErrorType.Validation,
             // A permission rule in the database (row level security) blocked the action.
             PostgresException { SqlState: PostgresErrorCodes.InsufficientPrivilege }
                 or DbUpdateException { InnerException: PostgresException { SqlState: PostgresErrorCodes.InsufficientPrivilege } } => ErrorType.Forbidden,

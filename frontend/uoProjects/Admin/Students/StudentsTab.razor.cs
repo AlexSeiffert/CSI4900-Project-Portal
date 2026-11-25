@@ -20,7 +20,7 @@ public partial class StudentsTab
     {
         ["all"] = _ => true,
         ["not-started"] = s => s is null,
-        ["sent"] = s => s == InquiryStatus.Sent,
+        ["sent"] = s => s is InquiryStatus.Sent or InquiryStatus.Offered,
         ["matched"] = s => s == InquiryStatus.Matched,
         ["closed"] = s => s == InquiryStatus.Closed,
     };

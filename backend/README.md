@@ -21,7 +21,7 @@ Then create `.env` in the repo root (gitignored; ask a teammate for the values).
 | --- | --- |
 | `ConnectionStrings__DefaultConnection` | `Host=<pooler host>;Port=5432;Database=postgres;Username=postgres.<ref>;Password=<db password>;SSL Mode=Require` (port **5432**, not 6543) |
 | `Auth__Authority` | `https://<ref>.supabase.co/auth/v1` |
-| `SUPABASE_PUBLISHABLE_KEY` | `sb_publishable_...`, for getting login tokens |
+| `SUPABASE_PUBLISHABLE_KEY` | `sb_publishable_...`, for getting login tokens and for signing attachment upload and view links |
 | `TF_VAR_supabase_access_token`, `TF_VAR_db_password` | used by Terraform and the [db/seed](../db/seed) scripts |
 
 ## 2. Run
@@ -79,7 +79,11 @@ To call an endpoint, click it, click **Try it out**, fill in the fields and clic
 | Marcus | `PUT /supervisors/<Marcus's id>` with your profile fields | **200** |
 | Alex | `GET /students`, `GET /students/<Alex's id>` | just yourself |
 | Alex | `GET /inquiries`, `GET /inquiries/<one of Alex's inquiry ids>` | your inquiries only |
-| Alex | `POST /inquiries` (body below) | **201**, status `sent` |
+| Alex | `POST /inquiries` (body below) | **201**, status `draft`, Alex is the first member |
+| Alex | `POST /inquiries/<id>/members` with `{ "email": "maya.singh@test-student.dev" }` | **200**, Maya is a member |
+| Alex | `POST /inquiries/<id>/send` | **200**, status `sent` |
+| Elena | `POST /inquiries/<id>/offer` | **200**, status `offered` |
+| Alex, then Maya | `POST /inquiries/<id>/respond` with `{ "accept": true }` | **200**, `matched` once both have answered |
 | Alex | `PUT /students/<Alex's id>/saved-projects/<any project id>` | **204**, then it shows in `GET .../saved-projects` |
 | Sam | `GET /students`, `GET /inquiries` | everything |
 
@@ -91,10 +95,10 @@ For `POST /projects` (paste it over Swagger's example):
 { "title": "Test project", "description": "Testing", "externalUrl": null, "status": "available", "topicIds": [] }
 ```
 
-For `POST /inquiries`. The project must belong to the supervisor you're contacting:
+For `POST /inquiries`. The project's supervisor becomes the inquiry's supervisor; the message is at most 2000 characters:
 
 ```json
-{ "supervisorId": "<Elena's id>", "projectId": "<one of Elena's project ids>", "message": "Hi!" }
+{ "projectId": "<one of Elena's project ids>", "message": "Hi!" }
 ```
 
 ### Permission checks
@@ -113,6 +117,7 @@ As Marcus, editing Elena's project or profile gives **403**. As Alex, `GET /stud
 | 404 | doesn't exist, or you can't see it |
 | 409 | a topic id that doesn't exist, or a duplicate |
 | 500 | server error; find the `traceId` in the API's terminal |
+| 503 | attachment storage isn't available (see "Inquiries" below) |
 
 ### Responses and updates
 
@@ -141,12 +146,21 @@ Every path starts with `/api/v1`.
 | PUT | `/projects/<id>` | Edit a project (owner or admin) | 200 |
 | DELETE | `/projects/<id>` | Delete a project (owner or admin) | 204 |
 | **Inquiries** | | | |
-| GET | `/inquiries` | List the inquiries you're part of (admins: all) | 200 |
-| GET | `/inquiries/<id>` | One inquiry with its student, supervisor and project | 200 |
-| GET | `/inquiries/students/<student id>` | A student's inquiries | 200 |
+| GET | `/inquiries` | List the inquiries you're part of (admins: all), each with its members | 200 |
+| GET | `/inquiries/<id>` | One inquiry with its creator, supervisor, project, members (with emails) and attachments | 200 |
+| GET | `/inquiries/students/<student id>` | The inquiries a student is a member of | 200 |
 | GET | `/inquiries/supervisors/<supervisor id>` | Inquiries sent to a supervisor | 200 |
 | GET | `/inquiries/projects/<project id>` | Inquiries about a project | 200 |
-| POST | `/inquiries` | Send an inquiry (students; you're the sender) | 201 |
+| POST | `/inquiries` | Create a draft request about a project (students; you're the creator and first member) | 201 |
+| POST | `/inquiries/<id>/members` | Add a friend by email (creator, draft only, 3 students max) | 200 |
+| DELETE | `/inquiries/<id>/members/<student id>` | Leave a request, or (creator) remove a friend from a draft | 204 |
+| POST | `/inquiries/<id>/send` | Mark a draft as sent, after emailing it (a member) | 200 |
+| POST | `/inquiries/<id>/offer` | Offer a match on a sent request (its supervisor) | 200 |
+| POST | `/inquiries/<id>/close` | Close a request at any time (its supervisor) | 200 |
+| POST | `/inquiries/<id>/respond` | Accept or decline an offer (a member); body `{ "accept": true }` | 200 |
+| POST | `/inquiries/<id>/attachments/upload-url` | A signed upload URL for your own file; body `{ "kind": "resume" }` or `transcript` | 200 |
+| POST | `/inquiries/<id>/attachments` | Register an uploaded file: `storagePath`, `kind`, `mimeType`, `sizeBytes` | 201 |
+| GET | `/inquiries/<id>/attachments/<attachment id>/url` | A view link for a file, valid for 5 minutes | 200 |
 | **Students** | | | |
 | GET | `/students` | List student profiles you can see (students: only yourself) | 200 |
 | GET | `/students/<id>` | One profile with topics, inquiries and saved projects | 200 |
@@ -159,6 +173,29 @@ Every path starts with `/api/v1`.
 | GET | `/supervisors` | List all supervisors | 200 |
 | GET | `/supervisors/<id>` | One profile with topics, projects and inquiries | 200 |
 | PUT | `/supervisors/<id>` | Edit a profile (that supervisor or admin) | 200 |
+
+### Inquiries
+
+An inquiry is a request from up to three students (the creator plus two friends) to the supervisor of a
+project. It moves through these statuses:
+
+| Status | How it gets there |
+| --- | --- |
+| `draft` | Created. The creator adds friends by email; an email that isn't a registered student is rejected |
+| `sent` | A member confirms they emailed it (the app opens Outlook; the API only records the answer) |
+| `offered` | The supervisor offers a match |
+| `matched` | Every remaining member has answered and at least one accepted |
+| `closed` | The supervisor closed it, or every member declined |
+
+A member who declines is removed from the inquiry. Accepting an offer also declines every other offer the
+student is still pending on, in the same transaction. Each member uploads their own PDF résumé and transcript
+(2 MB max): ask for an upload URL, `PUT` the file to it with `Content-Type: application/pdf`, then register it.
+
+Upload and view links come from Supabase Storage. The API calls Storage with the caller's own bearer token, so
+it needs a real Supabase login (not the Development id) plus `Supabase:Url` (or `Auth:Authority`, from which it
+is derived) and `Supabase:PublishableKey` (or `SUPABASE_PUBLISHABLE_KEY`). Without them those endpoints return
+**503**. The in-memory sample data has inquiries in every status, with login emails like
+`alex.morgan@example.test` so friends can be added by email.
 
 ## 5. Tests
 

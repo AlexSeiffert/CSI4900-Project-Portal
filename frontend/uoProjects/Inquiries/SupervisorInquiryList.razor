@@ -1,0 +1,43 @@
+@namespace uoProjects.Inquiries
+@inject InquiriesService Inquiries
+@inject ProjectsService Projects
+
+<div class="mt-8">
+    <Panel Title="Received">
+        @if (inquiries is null)
+        {
+            <LoadingState />
+        }
+        else
+        {
+            <DataTable Items="inquiries" PageSize="10" ExportName="inquiries" SortedBy="Created" Empty="No inquiries yet.">
+                <DataColumn Title="Project" SortBy="i => TitleOf(i)">
+                    <a class="font-semibold hover:text-focus hover:underline" href="@($"supervisor-home/inquiries/{context.Id}")">@TitleOf(context)</a>
+                </DataColumn>
+                <DataColumn Title="Students" SortBy="i => i.Members!.Count">@(context.Members?.Count ?? 0)</DataColumn>
+                <DataColumn Title="Status" SortBy="i => i.Status" Export="i => Display.Inquiry(i.Status).Label">
+                    <StatusPill Status="@Display.Inquiry(context.Status)" />
+                </DataColumn>
+                <DataColumn Title="Created" SortBy="i => i.CreatedAt" DescendingFirst>
+                    <span class="text-text-secondary">@Display.Ago(context.CreatedAt)</span>
+                </DataColumn>
+            </DataTable>
+        }
+    </Panel>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public SignedInUser User { get; set; } = default!;
+
+    private List<Inquiry>? inquiries;
+    private Dictionary<Guid, string> titles = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        titles = (await Projects.GetProjectsAsync() ?? []).ToDictionary(p => p.Id, p => p.Title);
+        inquiries = await Inquiries.ListForSupervisorAsync(User.Id) ?? [];
+    }
+
+    private string TitleOf(Inquiry inquiry) =>
+        inquiry.ProjectId is { } id && titles.TryGetValue(id, out var title) ? title : "General inquiry";
+}

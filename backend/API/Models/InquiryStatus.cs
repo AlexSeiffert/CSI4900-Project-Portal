@@ -1,3 +1,3 @@
 namespace API.Models;
 
-public enum InquiryStatus { Sent, Matched, Closed }
+public enum InquiryStatus { Draft, Sent, Offered, Matched, Closed }

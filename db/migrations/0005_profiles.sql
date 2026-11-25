@@ -18,7 +18,7 @@
 -- profile but keeps the old one.
 --
 -- Supervisor profiles are readable by every signed-in user, because students browse them.
--- Student profiles are readable only by their owner (and, from 0009, by supervisors who
+-- Student profiles are readable only by their owner (and, from 0009, by fellow inquiry members and supervisors who
 -- received an inquiry from that student). Owners can update their own profile.
 
 -- Keeps updated_at current on any row change. Also used by later tables.

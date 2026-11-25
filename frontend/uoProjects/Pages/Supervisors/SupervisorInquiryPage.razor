@@ -1,0 +1,14 @@
+@namespace uoProjects.Pages
+@page "/supervisor-home/inquiries/{InquiryId:guid}"
+
+<PageTitle>Inquiry · uoProjects</PageTitle>
+
+<RoleGate Role="supervisor" Context="user">
+    <SiteShell Current="home">
+        <SupervisorInquiry InquiryId="InquiryId" />
+    </SiteShell>
+</RoleGate>
+
+@code {
+    [Parameter] public Guid InquiryId { get; set; }
+}

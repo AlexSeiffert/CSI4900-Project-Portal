@@ -3,6 +3,8 @@ using System.Text.Json.Serialization;
 using API.Models.Data;
 using API.Repositories;
 using API.Services;
+using API.Storage;
+using Moq;
 using Microsoft.EntityFrameworkCore;
 
 namespace API.Tests.DTOs.Mapping;
@@ -25,7 +27,7 @@ public class DtoResponseSerializationTests
 
         var projects = await new ProjectService(new ProjectRepository(db)).GetProjects();
         var topics = await new TopicService(new TopicRepository(db)).GetTopics();
-        var inquiries = await new InquiryService(new InquiryRepository(db)).GetInquiries();
+        var inquiries = await new InquiryService(new InquiryRepository(db), new ProjectRepository(db), Mock.Of<IAttachmentStorage>()).GetInquiries();
         var students = await new StudentService(new StudentRepository(db)).GetStudents();
         var supervisors = await new SupervisorService(new SupervisorRepository(db)).GetSupervisors();
 

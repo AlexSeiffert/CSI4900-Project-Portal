@@ -9,6 +9,7 @@ using API.Repositories;
 using API.Repositories.Interfaces;
 using API.Services;
 using API.Services.Interfaces;
+using API.Storage;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -124,7 +125,8 @@ builder.Services.AddDbContext<ApplicationDbContext>((services, options) =>
     {
         options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")
             ?? throw new InvalidOperationException("Set ConnectionStrings__DefaultConnection for PostgreSQL.", new ArgumentException("The database connection string is missing.", "ConnectionStrings:DefaultConnection")),
-        postgres => postgres.MapEnum<ProjectStatus>("project_status", "public").MapEnum<InquiryStatus>("inquiry_status", "public"))
+        postgres => postgres.MapEnum<ProjectStatus>("project_status", "public").MapEnum<InquiryStatus>("inquiry_status", "public")
+            .MapEnum<InquiryResponse>("inquiry_response", "public").MapEnum<AttachmentKind>("attachment_kind", "public"))
             .AddInterceptors(services.GetRequiredService<RlsConnectionInterceptor>());
     }
 });
@@ -140,6 +142,7 @@ builder.Services.AddScoped<ISupervisorService, SupervisorService>();
 builder.Services.AddScoped<ITopicService, TopicService>();
 builder.Services.AddScoped<IInquiryService, InquiryService>();
 builder.Services.AddScoped<ISavedProjectService, SavedProjectService>();
+builder.Services.AddHttpClient<IAttachmentStorage, SupabaseAttachmentStorage>();
 
 var app = builder.Build();
 app.UseExceptionHandler();

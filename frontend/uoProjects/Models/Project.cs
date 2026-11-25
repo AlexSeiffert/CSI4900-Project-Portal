@@ -9,5 +9,6 @@ public sealed record Project(
     ProjectStatus Status = ProjectStatus.Available,
     DateTime CreatedAt = default,
     DateTime UpdatedAt = default,
-    List<Topic>? Topics = null
+    List<Topic>? Topics = null,
+    Supervisor? Supervisor = null
 );

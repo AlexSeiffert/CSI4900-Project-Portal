@@ -12,13 +12,15 @@ public class Inquiry
 
     public string? Message { get; set; }
 
-    public InquiryStatus Status { get; set; } = InquiryStatus.Sent;
+    public InquiryStatus Status { get; set; } = InquiryStatus.Draft;
 
     public DateTime CreatedAt { get; set; }
 
     public DateTime UpdatedAt { get; set; }
 
     public ICollection<InquiryAttachment> Attachments { get; set; } = new List<InquiryAttachment>();
+
+    public ICollection<InquiryMember> Members { get; set; } = new List<InquiryMember>();
 
     // Relationships
     public Student Student { get; set; } = null!;
