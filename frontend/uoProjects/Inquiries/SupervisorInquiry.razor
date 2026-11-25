@@ -1,0 +1,92 @@
+@namespace uoProjects.Inquiries
+@inject InquiriesService Inquiries
+@inject IDialogService Dialogs
+
+@if (inquiry is null)
+{
+    @if (loaded)
+    {
+        <ErrorState Message="This inquiry doesn't exist or wasn't sent to you." OnRetry="LoadAsync" />
+    }
+    else
+    {
+        <LoadingState Layout="LoadingState.SkeletonLayout.Detail" Message="Loading the inquiry…" />
+    }
+}
+else
+{
+    <RecordHeader Title="@(inquiry.Project?.Title ?? "General inquiry")" BackHref="supervisor-home" BackLabel="All inquiries">
+        <StatusPill Status="@Display.Inquiry(inquiry.Status)" />
+        <span>Created @Display.Ago(inquiry.CreatedAt).ToLowerInvariant()</span>
+    </RecordHeader>
+
+    <div class="mt-8 grid grid-cols-[minmax(0,1fr)] items-start gap-4 lg:grid-cols-[3fr_2fr]">
+        <div class="space-y-4">
+            <Panel Title="Message">
+                <p class="whitespace-pre-wrap text-text-secondary">@(inquiry.Message ?? "No message.")</p>
+            </Panel>
+            <Panel Title="Students">
+                <MemberList Members="@(inquiry.Members ?? [])" CreatorId="inquiry.StudentId" ShowResponses="@(inquiry.Status is InquiryStatus.Offered or InquiryStatus.Matched)" />
+            </Panel>
+            <Panel Title="Files">
+                <AttachmentList InquiryId="inquiry.Id" Attachments="@(inquiry.Attachments ?? [])" Members="@(inquiry.Members ?? [])" />
+            </Panel>
+        </div>
+        <Panel Title="Decision" Description="@Hint">
+            <div class="flex flex-wrap gap-3">
+                @if (inquiry.Status == InquiryStatus.Sent)
+                {
+                    <MudButton Variant="Variant.Filled" DropShadow="false" Class="btn btn-sm" OnClick="OfferAsync" Disabled="busy">Offer a match</MudButton>
+                }
+                @if (inquiry.Status != InquiryStatus.Closed)
+                {
+                    <MudButton Variant="Variant.Outlined" DropShadow="false" Class="btn btn-secondary btn-sm" OnClick="CloseAsync" Disabled="busy">Close</MudButton>
+                }
+            </div>
+        </Panel>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public Guid InquiryId { get; set; }
+
+    private Inquiry? inquiry;
+    private bool loaded;
+    private bool busy;
+
+    private string Hint => inquiry?.Status switch
+    {
+        InquiryStatus.Draft => "The students haven't confirmed sending this yet. You can offer once they have.",
+        InquiryStatus.Sent => "Offer a match, and each student confirms or declines.",
+        InquiryStatus.Offered => "Waiting for the students to answer your offer.",
+        InquiryStatus.Matched => "The students who accepted are matched to this project.",
+        _ => "This inquiry is closed."
+    };
+
+    protected override Task OnParametersSetAsync() => LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        inquiry = await Inquiries.GetAsync(InquiryId);
+        loaded = true;
+    }
+
+    private async Task OfferAsync()
+    {
+        busy = true;
+        inquiry = await Inquiries.OfferAsync(InquiryId) ?? inquiry;
+        busy = false;
+    }
+
+    private async Task CloseAsync()
+    {
+        if (await Dialogs.ShowMessageBoxAsync("Close this inquiry?", "The students will see it as closed with no match.",
+                yesText: "Close", cancelText: "Cancel") != true)
+        {
+            return;
+        }
+        busy = true;
+        inquiry = await Inquiries.CloseAsync(InquiryId) ?? inquiry;
+        busy = false;
+    }
+}

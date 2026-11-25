@@ -11,8 +11,8 @@ const CHECKS = {
   '0006_topics.sql': "select to_regprocedure('public.get_or_create_topic(text)') is not null",
   '0007_projects.sql': "select to_regclass('public.projects') is not null",
   '0008_project_topic_tags.sql': "select to_regclass('public.project_topic_tags') is not null",
-  '0009_inquiries.sql': "select to_regclass('public.inquiries') is not null",
-  '0010_inquiry_attachments.sql': "select to_regclass('public.inquiry_attachments') is not null",
+  '0009_inquiries.sql': "select to_regclass('public.inquiry_members') is not null",
+  '0010_inquiry_attachments.sql': "select exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'inquiry_attachments' and column_name = 'kind')",
   '0011_saved_projects.sql': "select to_regclass('public.student_saved_projects') is not null",
   '0012_topic_tags.sql': "select exists (select 1 from public.topics where name = 'Games & Graphics')",
 };

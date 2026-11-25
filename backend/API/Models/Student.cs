@@ -14,5 +14,7 @@ public class Student
 
     public ICollection<Inquiry> Inquiries { get; set; } = new List<Inquiry>();
 
+    public ICollection<InquiryMember> InquiryMemberships { get; set; } = new List<InquiryMember>();
+
     public ICollection<Project> SavedProjects { get; set; } = new List<Project>();
 }

@@ -178,15 +178,16 @@ internal static class DevelopmentData
             new Inquiry
             {
                 Id = Guid.Parse("55555555-5555-5555-5555-555555555551"),
+                Status = InquiryStatus.Sent,
                 Student = students[0], Supervisor = supervisors[0], Project = projects[0],
-                Message = "I am interested in accessible web development. Could we discuss this project?"
+                Message = "We are interested in accessible web development. Could we discuss this project?"
             },
             new Inquiry
             {
                 Id = Guid.Parse("55555555-5555-5555-5555-555555555552"),
-                Status = InquiryStatus.Sent,
+                Status = InquiryStatus.Offered,
                 Student = students[1], Supervisor = supervisors[1], Project = projects[3],
-                Message = "I have completed a machine learning course and would like to work on recommendations."
+                Message = "We have completed a machine learning course and would like to work on recommendations."
             },
             new Inquiry
             {
@@ -205,12 +206,14 @@ internal static class DevelopmentData
             new Inquiry
             {
                 Id = Guid.Parse("55555555-5555-5555-5555-555555555555"),
-                Student = students[1], Supervisor = supervisors[0],
+                Status = InquiryStatus.Draft,
+                Student = students[1], Supervisor = supervisors[0], Project = projects[0],
                 Message = "Are there upcoming projects that combine AI and software engineering?"
             },
             new Inquiry
             {
                 Id = Guid.Parse("55555555-5555-5555-5555-555555555556"),
+                Status = InquiryStatus.Sent,
                 Student = students[2], Supervisor = supervisors[1]
                 // A general inquiry with a null project and message.
             },
@@ -224,6 +227,7 @@ internal static class DevelopmentData
             new Inquiry
             {
                 Id = Guid.Parse("55555555-5555-5555-5555-555555555558"),
+                Status = InquiryStatus.Offered,
                 Student = students[4], Supervisor = supervisors[1], Project = projects[4],
                 Message = "Could the search interface support keyboard-only navigation?"
             }
@@ -238,6 +242,33 @@ internal static class DevelopmentData
             inquiries[index].UpdatedAt = inquiries[index].CreatedAt.AddHours(1);
         }
 
+        // The creator is always the first member. Alex is pending on two offers (2 and 8), so
+        // accepting one drops Alex from the other.
+        (int Inquiry, int Student, InquiryResponse Response)[] members =
+        [
+            (0, 0, InquiryResponse.Pending), (0, 3, InquiryResponse.Pending),
+            (1, 1, InquiryResponse.Accepted), (1, 0, InquiryResponse.Pending), (1, 4, InquiryResponse.Pending),
+            (2, 2, InquiryResponse.Accepted),
+            (3, 0, InquiryResponse.Pending),
+            (4, 1, InquiryResponse.Pending),
+            (5, 2, InquiryResponse.Pending),
+            (6, 4, InquiryResponse.Pending),
+            (7, 4, InquiryResponse.Pending), (7, 0, InquiryResponse.Pending)
+        ];
+        foreach (var (inquiry, student, response) in members)
+        {
+            inquiries[inquiry].Members.Add(new InquiryMember { Student = students[student], StudentId = students[student].UserId, Response = response });
+        }
+
+        // Login emails, so friends can be added by email. Postgres keeps these in public.users.
+        var users = students.Select(student => new UserAccount
+            {
+                Id = student.UserId,
+                Email = student.DisplayName.ToLowerInvariant().Replace(' ', '.') + "@example.test"
+            })
+            .Concat(supervisors.Select(supervisor => new UserAccount { Id = supervisor.UserId, Email = supervisor.ContactEmail }))
+            .ToList();
+
         // Saving a project is independent of sending an inquiry.
         students[0].SavedProjects = [projects[0], projects[3], projects[4]];
         students[1].SavedProjects = [projects[3], projects[4], projects[6]];
@@ -249,6 +280,7 @@ internal static class DevelopmentData
         db.Students.AddRange(students);
         db.Projects.AddRange(projects);
         db.Inquiries.AddRange(inquiries);
+        db.Users.AddRange(users);
 
         // The InMemory provider does not evaluate the SQL default for saved_at.
         db.ChangeTracker.DetectChanges();

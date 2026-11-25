@@ -1,0 +1,55 @@
+@namespace uoProjects.Inquiries
+@inject InquiriesService Inquiries
+@inject ProjectsService Projects
+
+<div class="mt-8">
+    <Panel Title="Requests" Description="Requests you created or were added to.">
+        <Actions>
+            <MudButton Href="student-home/requests/new" Variant="Variant.Filled" DropShadow="false" Class="btn btn-sm">New request</MudButton>
+        </Actions>
+        <ChildContent>
+            @if (requests is null)
+            {
+                <LoadingState />
+            }
+            else
+            {
+                <DataTable Items="requests" PageSize="10" ExportName="requests" SortedBy="Updated" Empty="No requests yet.">
+                    <DataColumn Title="Project" SortBy="i => TitleOf(i)">
+                        <a class="font-semibold hover:text-focus hover:underline" href="@($"student-home/requests/{context.Id}")">@TitleOf(context)</a>
+                    </DataColumn>
+                    <DataColumn Title="Students" SortBy="i => i.Members!.Count">@(context.Members?.Count ?? 0)</DataColumn>
+                    <DataColumn Title="Status" SortBy="i => i.Status" Export="i => Display.Inquiry(i.Status).Label">
+                        <StatusPill Status="@Display.Inquiry(context.Status)" />
+                        @if (context.Status == InquiryStatus.Offered && MyResponse(context) == InquiryResponse.Pending)
+                        {
+                            <span class="ml-2 text-xs text-focus">Answer needed</span>
+                        }
+                    </DataColumn>
+                    <DataColumn Title="Updated" SortBy="i => i.UpdatedAt" DescendingFirst>
+                        <span class="text-text-secondary">@Display.Ago(context.UpdatedAt)</span>
+                    </DataColumn>
+                </DataTable>
+            }
+        </ChildContent>
+    </Panel>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public SignedInUser User { get; set; } = default!;
+
+    private List<Inquiry>? requests;
+    private Dictionary<Guid, string> titles = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var projects = await Projects.GetProjectsAsync();
+        titles = (projects ?? []).ToDictionary(p => p.Id, p => p.Title);
+        requests = await Inquiries.ListForStudentAsync(User.Id) ?? [];
+    }
+
+    private string TitleOf(Inquiry inquiry) =>
+        inquiry.ProjectId is { } id && titles.TryGetValue(id, out var title) ? title : "General inquiry";
+
+    private InquiryResponse? MyResponse(Inquiry inquiry) => inquiry.Members?.FirstOrDefault(m => m.StudentId == User.Id)?.Response;
+}

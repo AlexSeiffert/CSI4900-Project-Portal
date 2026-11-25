@@ -30,12 +30,17 @@ internal sealed class RepositoryTestContext : IAsyncDisposable
         Project = new() { Id = Guid.NewGuid(), SupervisorId = Supervisor.UserId, Title = "Zoology portal", Description = "Research", Topics = [Topic], CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc) };
         OtherProject = new() { Id = Guid.NewGuid(), SupervisorId = OtherSupervisor.UserId, Title = "Algorithms portal", Description = "Other research", Status = ProjectStatus.Archived, Topics = [OtherTopic], CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc) };
         Inquiry = new() { Id = Guid.NewGuid(), StudentId = Student.UserId, SupervisorId = Supervisor.UserId, ProjectId = Project.Id, Message = "Original", CreatedAt = Project.CreatedAt };
+        Inquiry.Members.Add(new InquiryMember { InquiryId = Inquiry.Id, StudentId = Student.UserId });
         OtherInquiry = new() { Id = Guid.NewGuid(), StudentId = OtherStudent.UserId, SupervisorId = OtherSupervisor.UserId, ProjectId = OtherProject.Id, CreatedAt = OtherProject.CreatedAt };
+        OtherInquiry.Members.Add(new InquiryMember { InquiryId = OtherInquiry.Id, StudentId = OtherStudent.UserId });
     }
 
     public static async Task<RepositoryTestContext> CreateAsync()
     {
         var context = new RepositoryTestContext();
+        context.Db.AddRange(new UserAccount { Id = context.Student.UserId, Email = "zoe@student.test" },
+            new UserAccount { Id = context.OtherStudent.UserId, Email = "alex@student.test" },
+            new UserAccount { Id = context.Supervisor.UserId, Email = context.Supervisor.ContactEmail });
         context.Db.AddRange(context.Student, context.OtherStudent, context.Supervisor, context.OtherSupervisor,
             context.Topic, context.OtherTopic, context.Project, context.OtherProject, context.Inquiry, context.OtherInquiry);
         await context.Db.SaveChangesAsync();

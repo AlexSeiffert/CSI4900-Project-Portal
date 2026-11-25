@@ -9,6 +9,7 @@ public class Inquiry : AuditableDto<Guid>
     public Guid? ProjectId { get; set; }
     public string? Message { get; set; }
     public Models.InquiryStatus Status { get; set; }
+    public List<InquiryMember> Members { get; set; } = [];
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public Student? Student { get; set; }
@@ -18,4 +19,7 @@ public class Inquiry : AuditableDto<Guid>
     
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public Project? Project { get; set; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public List<InquiryAttachment>? Attachments { get; set; }
 }

@@ -46,7 +46,7 @@ private static readonly (string, string, string)[] Areas =
         studentStages =
         [
             new("No inquiries", notStarted, "var(--color-chart-neutral)"),
-            new("Sent", stages.Count(s => s == InquiryStatus.Sent), "var(--color-stage-1)"),
+            new("Sent", stages.Count(s => s is InquiryStatus.Sent or InquiryStatus.Offered), "var(--color-stage-1)"),
             new("Closed, no match", stages.Count(s => s == InquiryStatus.Closed), "var(--color-muted)", LightText: true),
             new("Matched", matched, "var(--color-stage-4)", LightText: true),
         ];

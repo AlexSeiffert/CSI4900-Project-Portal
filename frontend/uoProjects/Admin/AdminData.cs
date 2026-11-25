@@ -34,7 +34,9 @@ public sealed class AdminData
             names[supervisor.UserId] = supervisor.DisplayName;
         }
         projectsById = projects.ToDictionary(p => p.Id);
-        byStudent = Inquiries.ToLookup(i => i.StudentId);
+        byStudent = Inquiries
+            .SelectMany(i => (i.Members is { Count: > 0 } members ? members.Select(m => m.StudentId) : [i.StudentId]).Select(id => (id, i)))
+            .ToLookup(pair => pair.id, pair => pair.i);
         bySupervisor = Inquiries.ToLookup(i => i.SupervisorId);
         byProject = Inquiries.ToLookup(i => i.ProjectId);
         projectsBySupervisor = Projects.ToLookup(p => p.SupervisorId);
@@ -126,7 +128,9 @@ public sealed class AdminData
 
     public InquiryStatus? FurthestStage(Guid studentId)
     {
-        return byStudent[studentId].Select(i => (InquiryStatus?)i.Status).OrderByDescending(s => s is InquiryStatus.Matched ? 2 : s is InquiryStatus.Sent ? 1 : 0).FirstOrDefault();
+        return byStudent[studentId].Where(i => i.Status != InquiryStatus.Draft).Select(i => (InquiryStatus?)i.Status)
+            .OrderByDescending(s => s switch { InquiryStatus.Matched => 3, InquiryStatus.Offered => 2, InquiryStatus.Sent => 1, _ => 0 })
+            .FirstOrDefault();
     }
 
     public DateTime? LastActivity(Guid studentId)
@@ -142,7 +146,7 @@ public sealed class AdminData
 
     public static bool IsOpen(Inquiry inquiry)
     {
-        return inquiry.Status == InquiryStatus.Sent;
+        return inquiry.Status is InquiryStatus.Sent or InquiryStatus.Offered;
     }
 
     public static bool IsStale(Inquiry inquiry)

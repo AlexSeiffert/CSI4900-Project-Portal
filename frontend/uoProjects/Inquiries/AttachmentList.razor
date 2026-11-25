@@ -1,0 +1,39 @@
+@namespace uoProjects.Inquiries
+@inject InquiriesService Inquiries
+@inject IJSRuntime JS
+
+@if (Attachments.Count == 0)
+{
+    <p class="text-sm text-text-secondary">No files yet.</p>
+}
+else
+{
+    <ul class="divide-y divide-border">
+        @foreach (var attachment in Attachments)
+        {
+            <li class="flex flex-wrap items-center justify-between gap-2 py-2">
+                <span>
+                    <span class="font-semibold">@(attachment.Kind == AttachmentKind.Resume ? "Résumé" : "Transcript")</span>
+                    <span class="ml-2 text-sm text-text-secondary">@NameOf(attachment.StudentId) · @(attachment.SizeBytes / 1024) KB</span>
+                </span>
+                <MudButton Variant="Variant.Outlined" DropShadow="false" Class="btn btn-secondary btn-sm" OnClick="() => ViewAsync(attachment)">View</MudButton>
+            </li>
+        }
+    </ul>
+}
+
+@code {
+    [Parameter, EditorRequired] public Guid InquiryId { get; set; }
+    [Parameter, EditorRequired] public IReadOnlyList<InquiryAttachment> Attachments { get; set; } = [];
+    [Parameter] public IReadOnlyList<InquiryMember> Members { get; set; } = [];
+
+    private string NameOf(Guid studentId) => Members.FirstOrDefault(m => m.StudentId == studentId)?.DisplayName ?? "Former member";
+
+    private async Task ViewAsync(InquiryAttachment attachment)
+    {
+        if (await Inquiries.GetAttachmentUrlAsync(InquiryId, attachment.Id) is { } signed)
+        {
+            await JS.InvokeVoidAsync("open", signed.Url, "_blank", "noopener");
+        }
+    }
+}

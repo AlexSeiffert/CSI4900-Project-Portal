@@ -18,7 +18,7 @@ public partial class RoleGate
         var current = await Auth.GetUserAsync();
         if (current is null)
         {
-            Nav.NavigateTo("/login", replace: true);
+            Nav.NavigateTo($"/login?returnUrl={Uri.EscapeDataString("/" + Nav.ToBaseRelativePath(Nav.Uri))}", replace: true);
         }
         else if (current.Role != Role)
         {

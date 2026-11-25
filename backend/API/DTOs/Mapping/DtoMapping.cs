@@ -38,8 +38,35 @@ internal static class DtoMapping
             ProjectId = x.ProjectId,
             Message = x.Message,
             Status = x.Status,
+            Members = x.Members.Select(member => member.ToDto()).ToList(),
             CreatedAt = x.CreatedAt,
             UpdatedAt = x.UpdatedAt
+        };
+    }
+
+    // Members are part of the inquiry itself, so every inquiry carries them; the name is added when loaded.
+    public static InquiryMember ToDto(this Models.InquiryMember x)
+    {
+        return new()
+        {
+            StudentId = x.StudentId,
+            Response = x.Response,
+            DisplayName = x.Student?.DisplayName
+        };
+    }
+
+    public static InquiryAttachment ToDto(this Models.InquiryAttachment x)
+    {
+        return new()
+        {
+            Id = x.Id,
+            InquiryId = x.InquiryId,
+            StudentId = x.StudentId,
+            Kind = x.Kind,
+            StoragePath = x.StoragePath,
+            MimeType = x.MimeType,
+            SizeBytes = x.SizeBytes,
+            CreatedAt = x.CreatedAt
         };
     }
 
@@ -97,6 +124,8 @@ internal static class DtoMapping
         dto.Student = x.Student?.ToDto();
         dto.Supervisor = x.Supervisor?.ToDto();
         dto.Project = x.Project?.ToDto();
+        dto.Attachments = x.Attachments.OrderBy(attachment => attachment.CreatedAt)
+            .Select(attachment => attachment.ToDto()).ToList();
         return dto;
     }
 

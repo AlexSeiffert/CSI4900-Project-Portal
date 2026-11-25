@@ -4,9 +4,12 @@ public class InquiryAttachment
 {
     public Guid Id { get; set; }
     public Guid InquiryId { get; set; }
+    public Guid StudentId { get; set; }
+    public AttachmentKind Kind { get; set; }
     public string StoragePath { get; set; } = string.Empty;
     public string MimeType { get; set; } = string.Empty;
     public int SizeBytes { get; set; }
     public DateTime CreatedAt { get; set; }
     public Inquiry Inquiry { get; set; } = null!;
+    public Student Student { get; set; } = null!;
 }

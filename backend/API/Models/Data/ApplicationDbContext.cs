@@ -13,6 +13,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<Project> Projects => Set<Project>();
     public DbSet<Inquiry> Inquiries => Set<Inquiry>();
     public DbSet<InquiryAttachment> InquiryAttachments => Set<InquiryAttachment>();
+    public DbSet<InquiryMember> InquiryMembers => Set<InquiryMember>();
+    public DbSet<UserAccount> Users => Set<UserAccount>();
 
     protected override void OnModelCreating(ModelBuilder model)
     {
@@ -23,6 +25,9 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         model.Entity<Project>().ToTable("projects");
         model.Entity<Inquiry>().ToTable("inquiries");
         model.Entity<InquiryAttachment>().ToTable("inquiry_attachments");
+        model.Entity<InquiryMember>().ToTable("inquiry_members").HasKey(x => new { x.InquiryId, x.StudentId });
+        model.Entity<UserAccount>().ToTable("users");
+        model.Entity<UserAccount>().Property(x => x.Id).ValueGeneratedNever();
         model.Entity<Student>().Property(x => x.UserId).ValueGeneratedNever();
         model.Entity<Supervisor>().Property(x => x.UserId).ValueGeneratedNever();
         model.Entity<Supervisor>().Property(x => x.AcceptingInquiries).HasDefaultValue(true);
@@ -36,7 +41,13 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .HasForeignKey(x => x.ProjectId).OnDelete(DeleteBehavior.SetNull);
         model.Entity<InquiryAttachment>().HasOne(x => x.Inquiry).WithMany(x => x.Attachments)
             .HasForeignKey(x => x.InquiryId).OnDelete(DeleteBehavior.Cascade);
+        model.Entity<InquiryAttachment>().HasOne(x => x.Student).WithMany()
+            .HasForeignKey(x => x.StudentId).OnDelete(DeleteBehavior.Cascade);
         model.Entity<InquiryAttachment>().HasIndex(x => x.StoragePath).IsUnique();
+        model.Entity<InquiryMember>().HasOne(x => x.Inquiry).WithMany(x => x.Members)
+            .HasForeignKey(x => x.InquiryId).OnDelete(DeleteBehavior.Cascade);
+        model.Entity<InquiryMember>().HasOne(x => x.Student).WithMany(x => x.InquiryMemberships)
+            .HasForeignKey(x => x.StudentId).OnDelete(DeleteBehavior.Cascade);
 
         model.Entity<Project>().HasMany(x => x.Topics).WithMany(x => x.Projects)
             .UsingEntity<Dictionary<string, object>>("project_topic_tags",
@@ -92,7 +103,9 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         model.Entity<Project>().Property(x => x.Status).HasColumnType("public.project_status")
             .HasDefaultValue(ProjectStatus.Available);
         model.Entity<Inquiry>().Property(x => x.Status).HasColumnType("public.inquiry_status")
-            .HasDefaultValue(InquiryStatus.Sent);
+            .HasDefaultValue(InquiryStatus.Draft);
+        model.Entity<InquiryMember>().Property(x => x.Response).HasColumnType("public.inquiry_response");
+        model.Entity<InquiryAttachment>().Property(x => x.Kind).HasColumnType("public.attachment_kind");
     }
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

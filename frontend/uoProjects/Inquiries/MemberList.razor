@@ -1,0 +1,36 @@
+@namespace uoProjects.Inquiries
+<ul class="divide-y divide-border">
+    @foreach (var member in Members)
+    {
+        <li class="flex flex-wrap items-center justify-between gap-2 py-2">
+            <span>
+                <span class="font-semibold">@(member.DisplayName ?? "Student")</span>
+                @if (member.Email is not null)
+                {
+                    <span class="ml-2 text-sm text-text-secondary">@member.Email</span>
+                }
+                @if (member.StudentId == CreatorId)
+                {
+                    <span class="ml-2 text-xs text-text-faint">created the request</span>
+                }
+            </span>
+            <span class="flex items-center gap-3 text-sm text-text-secondary">
+                @if (ShowResponses)
+                {
+                    @member.Response
+                }
+                @if (OnRemove.HasDelegate && member.StudentId != CreatorId)
+                {
+                    <MudButton Variant="Variant.Outlined" DropShadow="false" Class="btn btn-secondary btn-sm" OnClick="() => OnRemove.InvokeAsync(member)">Remove</MudButton>
+                }
+            </span>
+        </li>
+    }
+</ul>
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<InquiryMember> Members { get; set; } = [];
+    [Parameter] public Guid CreatorId { get; set; }
+    [Parameter] public bool ShowResponses { get; set; }
+    [Parameter] public EventCallback<InquiryMember> OnRemove { get; set; }
+}

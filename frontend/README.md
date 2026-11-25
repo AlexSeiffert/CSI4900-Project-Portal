@@ -9,13 +9,24 @@ Routable views live in feature folders under `Pages/`. Admin components are grou
 | Route | Page | Access |
 | --- | --- | --- |
 | `/`, `/login` | Sign in | Anyone |
-| `/student-home` | Student home | Student only |
-| `/supervisor-home` | Supervisor home | Supervisor only |
+| `/student-home` | The student's requests | Student only |
+| `/student-home/requests/new` (optional `?projectId=`) | Start a request: pick a project, write a message (2000 characters max) | Student only |
+| `/student-home/requests/{id}` | One request: add friends by email, upload a résumé and transcript, send it, answer an offer | Student only |
+| `/supervisor-home` | Inquiries sent to the supervisor | Supervisor only |
+| `/supervisor-home/inquiries/{id}` | One inquiry: message, students, every student's files, offer a match or close | Supervisor only |
 | `/admin-home` (and `/admin-home/{Tab}/{ItemId}`) | Admin dashboard | Admin only |
 | `/projects`, `/supervisors`, `/user` | Browse and profile shells | Students and supervisors |
 | `/admin-preview` | Read-only sample dashboard | Development only |
 
-`RoleGate` (in `Auth/`) redirects signed-out users to `/login` and users with the wrong role to their own home.
+`RoleGate` (in `Auth/`) redirects signed-out users to `/login?returnUrl=…`, which brings them back after signing in, and users with the wrong role to their own home.
+
+## Requests and inquiries
+
+The pages in `Inquiries/` cover group requests (see "Inquiries" in the [backend guide](../backend/README.md) for the statuses).
+
+- **Send** opens Outlook on the web in a new tab (`Inquiries/OutlookLink.cs`): To the supervisor's contact email, CC the other members, and a body of the message plus one link, `/supervisor-home/inquiries/{id}`. That link is the same page supervisors reach from their list, and only that supervisor can open it. When the student comes back, "Did you send it?" marks the request as sent; "No" leaves it a draft.
+- Each member uploads their own PDFs straight to Supabase Storage through a signed URL from the API, so uploads and view links need a real Supabase sign-in.
+- On an offer, each member accepts or declines. Accepting while holding other offers asks first, then drops the student from those.
 
 The admin Projects list loads 25 projects at a time. Search, filters, and sorting apply across all projects. Exports fetch the full selected result set in pages when requested.
 

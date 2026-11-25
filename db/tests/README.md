@@ -14,10 +14,20 @@
 | `07_topics.sql` | topics are reused ignoring case; nobody writes to the table directly |
 | `08_projects.sql` | who can create, edit, change the status of and delete projects |
 | `09_topic_links.sql` | project tags, supervisor interests and student interests |
-| `10_inquiries.sql` | who can send, see and change inquiries; what survives a deletion |
-| `11_attachments.sql` | attachment rows, the storage bucket, and who can touch the files |
+| `10_inquiries.sql` | group requests: adding friends by email, the 3-member limit, who can see them, every status change (only a student's confirmation produces `matched`), and what survives a deletion |
+| `11_attachments.sql` | each member's attachment rows and files (`resume` / `transcript`), the storage bucket, who can touch them, and that a member who leaves takes their files with them |
 | `12_saved_projects.sql` | a student's saved projects |
 | `13_structure_domain.sql` | tables, keys, triggers, policies and grants for migrations 0005-0011 |
+
+## Run them locally
+
+With Docker running, start a throwaway stack in any empty folder outside the repo, apply the migrations, and run the tests there:
+
+```sh
+supabase init && supabase start
+for f in <repo>/db/migrations/*.sql; do docker exec -i supabase_db_<folder> psql -U postgres -v ON_ERROR_STOP=1 -q < "$f"; done
+mkdir -p supabase/tests && cp <repo>/db/tests/*.sql supabase/tests/ && supabase test db
+```
 
 ## How they run
 
